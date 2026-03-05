@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -127,9 +128,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# STRIPE CONFIGURATION (Test Keys you shared)
-STRIPE_PUBLISHABLE_KEY = 'pk_test_51T01qCQawQ09H8jObON0oxWIneCxGhzNd9SHEukZsVV2JQY0wvFyyTrS1KAsLJ7ZAkyNF8Yz5uuoHixDR9LLXsGH0033lKeaVR'
-STRIPE_SECRET_KEY = 'sk_test_51T01qCQawQ09H8jOEWZRouIqT2TRn8mLV4LCPNk0pZZrqtaUcS6n0itw6lUgE9aPwf9nHbpvQRcIlCt5JH63LuAX00vT4PbT0C'
+# STRIPE CONFIGURATION
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
