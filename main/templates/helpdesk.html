@@ -1,0 +1,487 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Help Center | GoWheels{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* =========================================
+       HELPDESK SPECIFIC VARIABLES
+       ========================================= */
+    :root {
+      --chat-bot-bg: #1e1e1e;
+      --chat-user-bg: var(--primary);
+      --sidebar-bg: rgba(255, 255, 255, 0.02);
+    }
+
+    body.light {
+      --chat-bot-bg: #f0f0f0;
+      --sidebar-bg: rgba(0, 0, 0, 0.03);
+    }
+
+    /* ================= LAYOUT ================= */
+    .support-wrapper {
+      display: flex;
+      height: calc(100vh - 80px); /* Fill screen minus header */
+      margin-top: 80px; /* Clear the fixed header */
+      width: 100%;
+      overflow: hidden;
+      border-top: 1px solid var(--border);
+    }
+
+    /* SIDEBAR */
+    .support-sidebar {
+      width: 320px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex; 
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 20px 25px;
+      font-size: 1rem;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+      display: flex; 
+      align-items: center; 
+      gap: 10px;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .topic-list {
+      flex: 1; 
+      overflow-y: auto; 
+      padding: 15px; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 20px;
+    }
+    
+    .topic-list::-webkit-scrollbar { width: 5px; }
+    .topic-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .category-group { display: flex; flex-direction: column; gap: 6px; }
+    
+    .category-title {
+      font-size: 0.75rem; 
+      text-transform: uppercase; 
+      letter-spacing: 1px;
+      color: var(--text-muted); 
+      font-weight: 700; 
+      margin-bottom: 5px; 
+      padding-left: 10px;
+      font-family: 'Open Sans', sans-serif;
+    }
+
+    .topic-btn {
+      background: transparent; 
+      border: 1px solid transparent;
+      color: var(--text-main); 
+      padding: 10px 15px; 
+      border-radius: 8px;
+      text-align: left; 
+      cursor: pointer; 
+      display: flex; 
+      align-items: center; 
+      gap: 12px;
+      font-size: 0.9rem; 
+      transition: 0.2s;
+      font-family: 'Open Sans', sans-serif;
+      font-weight: 600;
+    }
+    .topic-btn:hover { background: rgba(255, 255, 255, 0.05); color: var(--primary); }
+    body.light .topic-btn:hover { background: rgba(0, 0, 0, 0.05); }
+    .topic-btn i { color: var(--text-muted); font-size: 1.1rem; width: 20px; text-align: center; }
+    .topic-btn:hover i { color: var(--primary); }
+
+    /* CHAT AREA */
+    .chat-interface {
+      flex: 1; 
+      display: flex; 
+      flex-direction: column; 
+      position: relative;
+      background: radial-gradient(circle at center, rgba(255,106,42,0.02), transparent 60%);
+    }
+
+    .messages-area {
+      flex: 1; 
+      padding: 40px; 
+      overflow-y: auto; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 20px;
+    }
+    
+    .messages-area::-webkit-scrollbar { width: 6px; }
+    .messages-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+    /* Message Bubbles */
+    .msg-row { display: flex; flex-direction: column; max-width: 80%; animation: popIn 0.3s ease; }
+    .msg-row.bot { align-self: flex-start; }
+    .msg-row.user { align-self: flex-end; align-items: flex-end; }
+
+    .msg-bubble {
+      padding: 16px 20px; 
+      border-radius: 18px; 
+      font-size: 0.95rem; 
+      line-height: 1.6; 
+      position: relative;
+      font-family: 'Open Sans', sans-serif;
+    }
+    .bot .msg-bubble {
+      background: var(--chat-bot-bg); 
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px; 
+      color: var(--text-main);
+    }
+    .user .msg-bubble {
+      background: var(--chat-user-bg); 
+      color: #fff;
+      border-bottom-right-radius: 4px; 
+      box-shadow: 0 4px 15px var(--primary-glow);
+    }
+
+    .timestamp { font-size: 0.75rem; color: var(--text-muted); margin-top: 5px; margin-left: 5px; font-family: 'Open Sans', sans-serif; }
+
+    /* Action Buttons in Chat */
+    .chat-action-btn {
+      display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 10px 18px;
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+      border-radius: 30px; color: var(--text-main); text-decoration: none;
+      font-size: 0.85rem; font-weight: 600; transition: 0.2s; cursor: pointer;
+    }
+    body.light .chat-action-btn { background: rgba(0,0,0,0.03); }
+    .chat-action-btn:hover { background: var(--primary); border-color: var(--primary); color: white; }
+
+    /* Quick Chips (Suggestions) */
+    .quick-chips {
+      padding: 15px 30px; display: flex; gap: 10px; overflow-x: auto;
+      border-top: 1px solid var(--border); background: var(--bg-main);
+    }
+    .quick-chips::-webkit-scrollbar { height: 4px; }
+    .quick-chips::-webkit-scrollbar-thumb { background: var(--border); }
+
+    .chip {
+      white-space: nowrap; background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+      padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; color: var(--text-muted);
+      cursor: pointer; transition: 0.2s; font-weight: 600; font-family: 'Open Sans', sans-serif;
+      display: flex; align-items: center; gap: 6px;
+    }
+    body.light .chip { background: rgba(0,0,0,0.03); }
+    .chip:hover { border-color: var(--primary); color: var(--primary); background: rgba(255,106,42,0.05); }
+
+    /* Input Zone */
+    .input-zone {
+      padding: 20px 30px; background: var(--bg-main); display: flex; gap: 15px; border-top: 1px solid var(--border);
+    }
+    .chat-input {
+      flex: 1; background: var(--bg-card); border: 1px solid var(--border);
+      padding: 14px 20px; border-radius: 12px; color: var(--text-main); font-size: 0.95rem;
+      font-family: 'Open Sans', sans-serif;
+    }
+    .chat-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-glow); outline: none; }
+
+    .send-btn {
+      width: 50px; height: 50px; border-radius: 12px; border: none;
+      background: var(--primary); color: white; font-size: 1.2rem; cursor: pointer;
+      display: grid; place-items: center; transition: 0.2s;
+    }
+    .send-btn:hover { transform: scale(1.05); box-shadow: 0 4px 15px var(--primary-glow); }
+
+    /* Typing Animation */
+    .typing { display: none; gap: 4px; padding: 12px 16px; background: var(--chat-bot-bg); border-radius: 18px; border-bottom-left-radius: 4px; width: fit-content; margin-bottom: 15px; border: 1px solid var(--border); }
+    .dot { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+    .dot:nth-child(1) { animation-delay: -0.32s; }
+    .dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+    @keyframes popIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Mobile Responsive */
+    @media (max-width: 900px) {
+      .support-sidebar { display: none; } 
+      .quick-chips { padding: 10px 15px; }
+      .messages-area { padding: 15px; }
+      .input-zone { padding: 15px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="support-wrapper">
+  
+  <aside class="support-sidebar">
+    <div class="sidebar-header">
+      <i class="bi bi-grid-fill" style="color: var(--primary);"></i> Knowledge Base
+    </div>
+    
+    <div class="topic-list">
+      
+      <div class="category-group">
+        <div class="category-title">Rentals & Bookings</div>
+        <button class="topic-btn" onclick="sendQuick('Where is my booking?')">
+          <i class="bi bi-calendar-check"></i> Check Status
+        </button>
+        <button class="topic-btn" onclick="sendQuick('Modify my booking dates')">
+          <i class="bi bi-calendar-range"></i> Extend / Shorten
+        </button>
+        <button class="topic-btn" onclick="sendQuick('I want to cancel a trip')">
+          <i class="bi bi-x-circle"></i> Cancellation Policy
+        </button>
+        <button class="topic-btn" onclick="sendQuick('Vehicle availability')">
+          <i class="bi bi-car-front"></i> Vehicle Availability
+        </button>
+      </div>
+
+      <div class="category-group">
+        <div class="category-title">Payments & Wallet</div>
+        <button class="topic-btn" onclick="sendQuick('Check wallet balance')">
+          <i class="bi bi-wallet2"></i> Check Balance
+        </button>
+        <button class="topic-btn" onclick="sendQuick('How to add money?')">
+          <i class="bi bi-plus-circle"></i> Add Funds
+        </button>
+        <button class="topic-btn" onclick="sendQuick('Refund not received')">
+          <i class="bi bi-arrow-counterclockwise"></i> Refund Status
+        </button>
+        <button class="topic-btn" onclick="sendQuick('Transaction history')">
+          <i class="bi bi-receipt"></i> Transactions
+        </button>
+      </div>
+
+      <div class="category-group">
+        <div class="category-title">Drivers</div>
+        <button class="topic-btn" onclick="sendQuick('I want to be a driver')">
+          <i class="bi bi-person-badge"></i> Apply as Driver
+        </button>
+        <button class="topic-btn" onclick="sendQuick('Driver details?')">
+          <i class="bi bi-person-vcard"></i> Driver Info
+        </button>
+        <button class="topic-btn" onclick="sendQuick('Driver charges')">
+          <i class="bi bi-cash-stack"></i> Driver Fees
+        </button>
+      </div>
+
+      <div class="category-group">
+        <div class="category-title">Help & Safety</div>
+        <button class="topic-btn" onclick="sendQuick('Documents needed?')">
+          <i class="bi bi-file-earmark-text"></i> Documents Required
+        </button>
+        <button class="topic-btn" onclick="sendQuick('Report damage')">
+          <i class="bi bi-exclamation-triangle"></i> Report Damage
+        </button>
+        <button class="topic-btn" onclick="sendQuick('Fuel policy?')">
+          <i class="bi bi-fuel-pump"></i> Fuel Policy
+        </button>
+        <button class="topic-btn" onclick="sendQuick('Contact human support')">
+          <i class="bi bi-headset"></i> Talk to Agent
+        </button>
+      </div>
+
+    </div>
+  </aside>
+
+  <main class="chat-interface">
+    <div class="messages-area" id="chatBox">
+      <div class="msg-row bot">
+        <div class="msg-bubble">
+          <i class="bi bi-robot" style="color: var(--primary); font-size: 1.2rem;"></i> <span id="greetingText">Hello!</span><br><br>
+          I am the GoWheels AI Assistant. How can I help you today? You can select a topic from the sidebar or type your question below.
+        </div>
+        <div class="timestamp">Just now</div>
+      </div>
+
+      <div class="typing" id="typingLoader">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>
+
+    <div class="quick-chips">
+      <div class="chip" onclick="sendQuick('Check my balance')"><i class="bi bi-wallet2"></i> My Wallet</div>
+      <div class="chip" onclick="sendQuick('Active trips')"><i class="bi bi-clock-history"></i> Rent History</div>
+      <div class="chip" onclick="sendQuick('Cancel booking')"><i class="bi bi-x-circle"></i> Cancel Trip</div>
+      <div class="chip" onclick="sendQuick('Driver application')"><i class="bi bi-person-badge"></i> Join as Driver</div>
+      <div class="chip" onclick="sendQuick('Contact support')"><i class="bi bi-headset"></i> Call Agent</div>
+    </div>
+
+    <div class="input-zone">
+      <input type="text" id="userInput" class="chat-input" placeholder="Type your issue..." onkeypress="handleEnter(event)" autocomplete="off">
+      <button class="send-btn" onclick="sendMessage()">
+        <i class="bi bi-send-fill"></i>
+      </button>
+    </div>
+  </main>
+</div>
+
+<script>
+  // --- Dynamic Greeting ---
+  const hour = new Date().getHours();
+  const greetSpan = document.getElementById("greetingText");
+  if (hour < 12) greetSpan.innerText = "Good Morning!";
+  else if (hour < 18) greetSpan.innerText = "Good Afternoon!";
+  else greetSpan.innerText = "Good Evening!";
+
+  // --- Chat Logic ---
+  const chatBox = document.getElementById('chatBox');
+  const userInput = document.getElementById('userInput');
+  const typingLoader = document.getElementById('typingLoader');
+
+  // Intelligent Knowledge Base
+  const responses = {
+    'book': {
+      text: "You can check your current booking status, including Active, Upcoming, and Completed trips, directly from your dashboard.",
+      link: "{% url 'rent_history' %}",
+      btnText: "Go to Rent History"
+    },
+    'cancel': {
+      text: "Cancellations are fully permitted up to <b>24 hours before your pickup time</b>. Navigate to your Rent History, select your trip, and hit Cancel for a seamless refund.",
+      link: "{% url 'rent_history' %}",
+      btnText: "Manage Bookings"
+    },
+    'modify': {
+      text: "Need to change your dates? The easiest way is to cancel your current trip and re-book for the correct dates. Subject to vehicle availability.",
+      link: "{% url 'vehicles' %}", 
+      btnText: "Browse Vehicles"
+    },
+    'availability': {
+      text: "Our fleet availability is updated in real-time! Head over to the Vehicles page and use the date filters to see what rides are ready for you.",
+      link: "{% url 'vehicles' %}",
+      btnText: "Check Availability"
+    },
+    'wallet': {
+      text: "Your GoWheels Wallet allows for instant, secure transactions. You can check your available balance and review your full transaction history anytime.",
+      link: "{% url 'payments' %}",
+      btnText: "Open Wallet"
+    },
+    'add_funds': {
+      text: "To top up your account, simply navigate to your Wallet and select your desired amount. All transactions are securely processed via Stripe.",
+      link: "{% url 'payments' %}",
+      btnText: "Add Money"
+    },
+    'refund': {
+      text: "Trip cancellations process a refund instantly to your GoWheels Wallet. If you requested a return to your original payment method, please allow 5-7 business days.",
+      link: "{% url 'payments' %}",
+      btnText: "Check Transactions"
+    },
+    'driver_apply': {
+      text: "We are always looking for professional pilots! You will need a valid Commercial Driving License and your Aadhaar Card to get started.",
+      link: "{% url 'become_driver' %}",
+      btnText: "Apply to Drive"
+    },
+    'driver_info': {
+      text: "If you opted for a chauffeur, their name, photo, and contact number will be securely shared with you via SMS exactly 2 hours before your scheduled pickup.",
+      link: null, btnText: null
+    },
+    'driver_fee': {
+      text: "Professional driver charges are dynamically calculated based on the vehicle type and duration, generally starting at ₹500/day (inclusive of their food and stay allowances).",
+      link: null, btnText: null
+    },
+    'docs': {
+      text: "For self-drive rentals, you are required to upload a <b>Valid Driving License</b> and a government-issued <b>Aadhaar Card</b> during the checkout process.",
+      link: null, btnText: null
+    },
+    'insurance': {
+      text: "Rest easy! All GoWheels trips include basic third-party liability insurance. Please note that direct damage to the GoWheels vehicle may be subject to a standard deductible.",
+      link: null, btnText: null
+    },
+    'damage': {
+      text: "<b>Emergency Protocol:</b> If you are involved in an accident or scratch the vehicle, please safely take photos of the damage immediately and contact our 24/7 support line.",
+      link: "tel:+919876543210", btnText: "Call Emergency Line"
+    },
+    'fuel': {
+      text: "We operate on a strict <b>'Fuel-to-Fuel'</b> policy. You will receive the vehicle with a full tank, and it must be returned full. Missing fuel is charged at market rates plus a small service fee.",
+      link: null, btnText: null
+    },
+    'contact': {
+      text: "Need human assistance? You can email us at <b>support@gowheels.com</b> or call our 24/7 dedicated helpline.",
+      link: "tel:+919876543210",
+      btnText: "Call +91 98765 43210"
+    },
+    'default': {
+      text: "I didn't quite catch that. Try selecting a common topic from the sidebar, or use keywords like <b>'Wallet'</b>, <b>'Cancel'</b>, or <b>'Driver'</b>.",
+      link: null, btnText: null
+    }
+  };
+
+  function getTime() {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function handleEnter(e) {
+    if (e.key === 'Enter') sendMessage();
+  }
+
+  function sendQuick(text) {
+    userInput.value = text;
+    sendMessage();
+  }
+
+  function sendMessage() {
+    const text = userInput.value.trim();
+    if (!text) return;
+
+    appendMsg(text, 'user');
+    userInput.value = '';
+    showTyping();
+
+    setTimeout(() => {
+      hideTyping();
+      const replyObj = getBotResponse(text.toLowerCase());
+      appendMsg(replyObj.text, 'bot', replyObj.link, replyObj.btnText);
+    }, 800); // Simulated delay for realism
+  }
+
+  function getBotResponse(input) {
+    if (input.includes('status') || input.includes('history') || input.includes('track') || input.includes('active')) return responses.book;
+    if (input.includes('cancel') || input.includes('refund trip')) return responses.cancel;
+    if (input.includes('modify') || input.includes('change date') || input.includes('extend')) return responses.modify;
+    if (input.includes('avail') || input.includes('free') || input.includes('search')) return responses.availability;
+    
+    if (input.includes('balance') || input.includes('check wallet')) return responses.wallet;
+    if (input.includes('add') || input.includes('deposit') || input.includes('recharge')) return responses.add_funds;
+    if (input.includes('refund') || input.includes('money back')) return responses.refund;
+    if (input.includes('transaction') || input.includes('history')) return responses.refund;
+
+    if (input.includes('apply') || input.includes('job') || input.includes('join') || input.includes('become')) return responses.driver_apply;
+    if (input.includes('driver info') || input.includes('who is my driver')) return responses.driver_info;
+    if (input.includes('driver fee') || input.includes('driver charge') || input.includes('cost')) return responses.driver_fee;
+
+    if (input.includes('doc') || input.includes('license') || input.includes('id')) return responses.docs;
+    if (input.includes('insur') || input.includes('safety') || input.includes('policy')) return responses.insurance;
+    if (input.includes('damage') || input.includes('scratch') || input.includes('accident') || input.includes('crash')) return responses.damage;
+    if (input.includes('fuel') || input.includes('gas') || input.includes('petrol') || input.includes('diesel')) return responses.fuel;
+    if (input.includes('contact') || input.includes('human') || input.includes('call') || input.includes('agent')) return responses.contact;
+
+    return responses.default;
+  }
+
+  function appendMsg(text, type, link = null, btnText = null) {
+    const div = document.createElement('div');
+    div.className = `msg-row ${type}`;
+    
+    let content = text;
+    if (link && btnText) {
+      content += `<br><a href="${link}" class="chat-action-btn">${btnText} <i class="bi bi-arrow-right"></i></a>`;
+    }
+
+    div.innerHTML = `
+      <div class="msg-bubble">${content}</div>
+      <div class="timestamp">${getTime()}</div>
+    `;
+    
+    chatBox.insertBefore(div, typingLoader);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function showTyping() {
+    typingLoader.style.display = 'flex';
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function hideTyping() {
+    typingLoader.style.display = 'none';
+  }
+</script>
+{% endblock %}

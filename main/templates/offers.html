@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Exclusive Offers | GoWheels{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* =========================================
+       OFFERS PAGE STYLES
+       ========================================= */
+    .offers-wrapper {
+        max-width: 1100px;
+        margin: 120px auto 60px; /* Accounts for fixed header */
+        padding: 0 20px;
+        width: 100%;
+        min-height: 100vh;
+    }
+
+    .page-header { 
+        text-align: center; 
+        margin-bottom: 50px; 
+    }
+    .page-header h1 { 
+        font-size: 2.2rem; 
+        font-weight: 800; 
+        margin-bottom: 10px; 
+        color: var(--text-main); 
+        font-family: 'Poppins', sans-serif; 
+    }
+    .page-header p { 
+        color: var(--text-muted); 
+        font-size: 1.1rem; 
+        max-width: 600px; 
+        margin: 0 auto; 
+        font-family: 'Open Sans', sans-serif; 
+    }
+
+    /* Grid Layout */
+    .offers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 30px;
+    }
+
+    /* Offer Cards */
+    .offer-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    
+    body:not(.light) .offer-card {
+        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    .offer-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px var(--primary-glow);
+    }
+
+    .card-img-wrapper {
+        position: relative;
+        height: 180px;
+        overflow: hidden;
+    }
+
+    .card-img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+    .offer-card:hover .card-img-wrapper img { 
+        transform: scale(1.05); 
+    }
+
+    /* Badge */
+    .promo-badge {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background: rgba(255, 255, 255, 0.95);
+        color: var(--primary);
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        font-family: 'Open Sans', sans-serif;
+    }
+
+    /* Card Body */
+    .card-body {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .offer-title { 
+        font-size: 1.25rem; 
+        font-weight: 700; 
+        margin-bottom: 8px; 
+        color: var(--text-main); 
+        font-family: 'Poppins', sans-serif; 
+    }
+    
+    .offer-desc { 
+        font-size: 0.95rem; 
+        color: var(--text-muted); 
+        margin-bottom: 20px; 
+        line-height: 1.5; 
+        flex-grow: 1; 
+        font-family: 'Open Sans', sans-serif; 
+    }
+
+    /* Coupon Box */
+    .coupon-container {
+        background: rgba(255,106,42,0.05);
+        border: 1px dashed var(--primary);
+        border-radius: 8px;
+        padding: 8px 8px 8px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    .coupon-code {
+        font-family: monospace;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--primary);
+        letter-spacing: 1px;
+    }
+
+    .btn-copy {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text-main);
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: 'Open Sans', sans-serif;
+    }
+    
+    .btn-copy:hover {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #000;
+    }
+
+    .offer-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        border-top: 1px solid var(--border);
+        padding-top: 15px;
+        margin-top: 5px;
+        font-family: 'Open Sans', sans-serif;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="offers-wrapper">
+    
+    <div class="page-header">
+        <h1>Exclusive Deals</h1>
+        <p>Save on your next adventure with our curated offers.</p>
+    </div>
+
+    <div class="offers-grid">
+      
+        <div class="offer-card">
+            <div class="card-img-wrapper">
+                <div class="promo-badge">₹200 OFF</div>
+                <img src="{% static 'images/first ride.png' %}" alt="First Ride">
+            </div>
+            <div class="card-body">
+                <h3 class="offer-title">Welcome Aboard</h3>
+                <p class="offer-desc">New to GoWheels? Enjoy a flat discount on your very first ride with us. No minimum booking required.</p>
+                
+                <div class="coupon-container">
+                    <span class="coupon-code">FIRST200</span>
+                    <button class="btn-copy" onclick="copyCode('FIRST200', this)">Copy</button>
+                </div>
+                
+                <div class="offer-meta">
+                    <span><i class="bi bi-calendar3"></i> Valid till Jan 31</span>
+                    <span>All Vehicles</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="offer-card">
+            <div class="card-img-wrapper">
+                <div class="promo-badge">10% SAVINGS</div>
+                <img src="{% static 'images/long drive.png' %}" alt="Long Drive">
+            </div>
+            <div class="card-body">
+                <h3 class="offer-title">Long Haul Special</h3>
+                <p class="offer-desc">Planning a road trip? Get 10% off instantly when you book any vehicle for 5 days or more.</p>
+                
+                <div class="coupon-container">
+                    <span class="coupon-code">LONG10</span>
+                    <button class="btn-copy" onclick="copyCode('LONG10', this)">Copy</button>
+                </div>
+                
+                <div class="offer-meta">
+                    <span><i class="bi bi-calendar3"></i> Valid till Feb 28</span>
+                    <span>Min. 5 Days</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="offer-card">
+            <div class="card-img-wrapper">
+                <div class="promo-badge">WEEKEND DEAL</div>
+                <img src="{% static 'images/weekend.png' %}" alt="Weekend">
+            </div>
+            <div class="card-body">
+                <h3 class="offer-title">Weekend Warrior</h3>
+                <p class="offer-desc">Make the most of your weekends. Flat ₹150 off on all rentals booked for Saturday & Sunday.</p>
+                
+                <div class="coupon-container">
+                    <span class="coupon-code">WEEKEND150</span>
+                    <button class="btn-copy" onclick="copyCode('WEEKEND150', this)">Copy</button>
+                </div>
+                
+                <div class="offer-meta">
+                    <span><i class="bi bi-calendar3"></i> Valid till Jan 31</span>
+                    <span>Min. 2 Days</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Copy Code Function with visual feedback
+    function copyCode(code, btnElement) {
+        navigator.clipboard.writeText(code).then(() => {
+            // Visual feedback on the button
+            const originalText = btnElement.innerText;
+            btnElement.innerText = "Copied!";
+            btnElement.style.background = "var(--primary)";
+            btnElement.style.color = "#000";
+            
+            // Revert back after 2 seconds
+            setTimeout(() => {
+                btnElement.innerText = originalText;
+                btnElement.style.background = "";
+                btnElement.style.color = "";
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy', err);
+            alert("Failed to copy code. Please select and copy manually.");
+        });
+    }
+</script>
+{% endblock %}

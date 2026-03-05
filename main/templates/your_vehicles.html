@@ -1,0 +1,475 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fleet Dashboard | GoWheels{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* =========================================
+       FLEET DASHBOARD STYLES
+       ========================================= */
+    .dashboard-wrapper {
+        max-width: 1200px;
+        margin: 110px auto 60px;
+        padding: 0 20px;
+        min-height: 100vh;
+    }
+
+    /* Page Header */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+        font-size: 2.2rem;
+        margin: 0 0 5px 0;
+        color: var(--text-main);
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .page-header p {
+        color: var(--text-muted);
+        margin: 0;
+        font-size: 1rem;
+        font-family: 'Open Sans', sans-serif;
+    }
+
+    .add-vehicle-btn {
+        background: var(--primary);
+        color: #000;
+        padding: 14px 28px;
+        border-radius: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: 'Open Sans', sans-serif;
+        transition: all 0.3s ease;
+        border: none;
+        box-shadow: 0 4px 15px var(--primary-glow);
+    }
+
+    .add-vehicle-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(255, 106, 42, 0.4);
+        color: #000;
+    }
+
+    /* Analytics Bento Box */
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .stat-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        transition: transform 0.3s;
+    }
+    
+    body:not(.light) .stat-card { box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    body.light .stat-card { box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+
+    .stat-card:hover { transform: translateY(-3px); border-color: var(--primary); }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        background: rgba(255,106,42,0.1);
+        color: var(--primary);
+        display: grid;
+        place-items: center;
+        font-size: 1.8rem;
+    }
+
+    .stat-info h4 { margin: 0; font-size: 0.9rem; color: var(--text-muted); font-family: 'Open Sans', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-info h2 { margin: 5px 0 0 0; font-size: 1.8rem; color: var(--text-main); font-family: 'Poppins', sans-serif; }
+
+    /* Toolbar (Search & Filters) */
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        padding: 12px 20px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 10px;
+    }
+
+    .filter-btn {
+        background: transparent;
+        border: 1px solid transparent;
+        color: var(--text-muted);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.3s;
+        font-family: 'Open Sans', sans-serif;
+    }
+
+    .filter-btn:hover { color: var(--text-main); background: rgba(255,255,255,0.05); }
+    body.light .filter-btn:hover { background: rgba(0,0,0,0.05); }
+    
+    .filter-btn.active {
+        background: var(--primary);
+        color: #000;
+        box-shadow: 0 4px 10px var(--primary-glow);
+    }
+
+    .search-bar { position: relative; width: 300px; }
+    .search-bar i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .search-bar input {
+        width: 100%; padding: 12px 16px 12px 42px; border-radius: 12px; border: 1px solid var(--border);
+        background: var(--bg-main); color: var(--text-main); font-size: 0.9rem; outline: none; transition: 0.3s;
+    }
+    .search-bar input:focus { border-color: var(--primary); }
+
+    /* Grid Layout */
+    .vehicle-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 25px;
+    }
+
+    /* Premium Vehicle Card */
+    .v-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    body:not(.light) .v-card { box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    body.light .v-card { box-shadow: 0 10px 25px rgba(0,0,0,0.06); }
+
+    .v-card:hover { transform: translateY(-6px); border-color: var(--primary); box-shadow: 0 15px 40px var(--primary-glow); }
+
+    .v-img-wrapper { position: relative; height: 220px; overflow: hidden; }
+    .v-img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+    .v-card:hover .v-img-wrapper img { transform: scale(1.08); }
+    
+    .v-img-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 40%, rgba(0,0,0,0.8) 100%);
+    }
+
+    /* Status Badge Over Image */
+    .v-status {
+        position: absolute; top: 15px; left: 15px; padding: 6px 14px;
+        border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        display: flex; align-items: center; gap: 6px; z-index: 2;
+    }
+    .v-status.available { background: rgba(40,199,111,0.2); color: #48bb78; border: 1px solid rgba(40,199,111,0.4); }
+    .v-status.booked { background: rgba(234,84,85,0.2); color: #fc8181; border: 1px solid rgba(234,84,85,0.4); }
+
+    .v-price {
+        position: absolute; bottom: 15px; left: 15px; z-index: 2;
+        color: #fff; font-size: 1.4rem; font-weight: 700; font-family: 'Poppins', sans-serif;
+    }
+    .v-price span { font-size: 0.8rem; font-weight: 500; opacity: 0.8; font-family: 'Open Sans', sans-serif; }
+
+    /* Card Details */
+    .v-details { padding: 24px; display: flex; flex-direction: column; flex-grow: 1; }
+    .v-title { font-size: 1.3rem; margin: 0 0 16px 0; color: var(--text-main); font-family: 'Poppins', sans-serif; }
+
+    .v-specs {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;
+    }
+    .spec-item {
+        display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); font-family: 'Open Sans', sans-serif;
+    }
+    .spec-item i { color: var(--primary); font-size: 1.1rem; }
+
+    /* Card Footer Actions */
+    .v-actions {
+        display: flex; justify-content: space-between; align-items: center;
+        border-top: 1px solid var(--border); padding-top: 16px; margin-top: auto;
+    }
+
+    .btn-edit {
+        background: transparent; border: 1px solid var(--border); color: var(--text-main);
+        padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s;
+    }
+    .btn-edit:hover { background: var(--text-main); color: var(--bg-card); }
+
+    /* Toggle Switch UI */
+    .host-toggle { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+    .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border); transition: .4s; border-radius: 34px; }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: var(--text-muted); transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: rgba(40,199,111,0.2); border: 1px solid #28c76f; }
+    input:checked + .slider:before { transform: translateX(18px); background-color: #28c76f; }
+
+    /* Empty State */
+    .no-vehicles {
+        grid-column: 1 / -1; text-align: center; padding: 100px 20px;
+        background: var(--bg-card); border: 2px dashed var(--border); border-radius: 24px;
+    }
+    .no-vehicles i { font-size: 4rem; color: var(--border); display: block; margin-bottom: 20px; }
+
+    @media (max-width: 768px) {
+        .page-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+        .analytics-grid { grid-template-columns: 1fr; }
+        .toolbar { flex-direction: column; align-items: stretch; }
+        .search-bar { width: 100%; }
+        .filter-tabs { overflow-x: auto; padding-bottom: 5px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <div class="page-header">
+        <div>
+            <h1>Fleet Dashboard</h1>
+            <p>Manage your listings, track performance, and control availability.</p>
+        </div>
+        <a href="{% url 'list_vehicle' %}" class="add-vehicle-btn">
+            <i class="bi bi-plus-circle-fill"></i> Add Vehicle
+        </a>
+    </div>
+
+    <div class="analytics-grid">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-car-front-fill"></i></div>
+            <div class="stat-info">
+                <h4>Total Fleet</h4>
+                <h2>{{ vehicles|length }}</h2>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(40,199,111,0.1); color: #28c76f;"><i class="bi bi-key-fill"></i></div>
+            <div class="stat-info">
+                <h4>Currently on Rent</h4>
+                <h2>{{ booked_count|default:"0" }}</h2> </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(115,103,240,0.1); color: #7367f0;"><i class="bi bi-graph-up-arrow"></i></div>
+            <div class="stat-info">
+                <h4>Total Revenue</h4>
+                <h2>₹{{ total_earnings|default:"0" }}</h2> </div>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <div class="filter-tabs" id="filterTabs">
+            <button class="filter-btn active" data-filter="all">All Vehicles</button>
+            <button class="filter-btn" data-filter="car">Cars Only</button>
+            <button class="filter-btn" data-filter="bike">Bikes Only</button>
+            <button class="filter-btn" data-filter="available">Available Now</button>
+        </div>
+        <div class="search-bar">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchInput" placeholder="Search fleet...">
+        </div>
+    </div>
+
+    <div class="vehicle-grid" id="vehicleGrid">
+        {% if vehicles %}
+            {% for vehicle in vehicles %}
+                <div class="v-card" id="card-{{ vehicle.id }}" data-type="{{ vehicle.vehicle_type|lower }}" data-status="{% if vehicle.is_booked_today %}booked{% else %}available{% endif %}">
+                    
+                    <div class="v-img-wrapper">
+                        {% if vehicle.front_image %}
+                            <img src="{{ vehicle.front_image.image.url }}" alt="{{ vehicle.vehicle_name }}">
+                        {% else %}
+                            <img src="https://via.placeholder.com/400x250?text=GoWheels" alt="Placeholder">
+                        {% endif %}
+                        <div class="v-img-overlay"></div>
+                        
+                        <span id="badge-{{ vehicle.id }}" class="v-status {% if not vehicle.available %}booked{% elif vehicle.is_booked_today %}booked{% else %}available{% endif %}">
+                            {% if not vehicle.available %}
+                                <i class="bi bi-slash-circle"></i> Offline
+                            {% elif vehicle.is_booked_today %}
+                                <i class="bi bi-lock-fill"></i> On Trip
+                            {% else %}
+                                <i class="bi bi-check-circle-fill"></i> Available
+                            {% endif %}
+                        </span>
+                        
+                        <div class="v-price">₹{{ vehicle.price_per_day }} <span>/day</span></div>
+                    </div>
+
+                    <div class="v-details">
+                        <h3 class="v-title">{{ vehicle.vehicle_name }}</h3>
+                        
+                        <div class="v-specs">
+                            <div class="spec-item"><i class="bi bi-grid-1x2"></i> {{ vehicle.category }}</div>
+                            <div class="spec-item"><i class="bi bi-people"></i> {{ vehicle.seats|default:"-" }} Seats</div>
+                            <div class="spec-item"><i class="bi bi-fuel-pump"></i> {{ vehicle.fuel_type }}</div>
+                            <div class="spec-item"><i class="bi bi-geo-alt"></i> {{ vehicle.pickup_location|default:"Coordinate w/ Renter" }}</div>
+                        </div>
+
+                        <div class="v-actions">
+                            <a href="{% url 'edit_vehicle' vehicle.id %}" class="btn-edit" style="text-decoration: none; display: inline-block; text-align: center;">
+                                <i class="bi bi-pencil-square"></i> Manage
+                            </a>
+                            
+                            <div class="host-toggle">
+                                <span id="statusText-{{ vehicle.id }}">
+                                    {% if vehicle.available %}Online{% else %}Offline{% endif %}
+                                </span>
+                                <label class="switch">
+                                    <input type="checkbox" class="status-toggle" data-vehicle-id="{{ vehicle.id }}" data-booked="{% if vehicle.is_booked_today %}true{% else %}false{% endif %}" {% if vehicle.available %}checked{% endif %}>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-vehicles">
+                <i class="bi bi-inboxes"></i>
+                <h3 style="color: var(--text-main); font-family: 'Poppins', sans-serif; margin-bottom: 8px;">Your Garage is Empty</h3>
+                <p>Start your hosting journey by listing your first vehicle today.</p>
+                <br>
+                <a href="{% url 'list_vehicle' %}" class="add-vehicle-btn">
+                    Get Started <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+    // --- Helper function for Django CSRF Token ---
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // --- AJAX Background Status Toggle Logic ---
+    document.querySelectorAll('.status-toggle').forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const vehicleId = this.getAttribute('data-vehicle-id');
+            const isBooked = this.getAttribute('data-booked') === 'true';
+            const isAvailable = this.checked;
+            
+            const statusText = document.getElementById(`statusText-${vehicleId}`);
+            const badge = document.getElementById(`badge-${vehicleId}`);
+            
+            // 1. Instantly Update the UI Text next to the toggle
+            statusText.innerText = isAvailable ? 'Online' : 'Offline';
+
+            // 2. Instantly Update the Photo Badge 
+            if (!isAvailable) {
+                badge.className = 'v-status booked';
+                badge.innerHTML = '<i class="bi bi-slash-circle"></i> Offline';
+                badge.style.background = 'rgba(234,84,85,0.2)';
+                badge.style.color = '#fc8181';
+                badge.style.borderColor = 'rgba(234,84,85,0.4)';
+            } else if (isBooked) {
+                badge.className = 'v-status booked';
+                badge.innerHTML = '<i class="bi bi-lock-fill"></i> On Trip';
+                badge.style.background = 'rgba(234,84,85,0.2)';
+                badge.style.color = '#fc8181';
+                badge.style.borderColor = 'rgba(234,84,85,0.4)';
+            } else {
+                badge.className = 'v-status available';
+                badge.innerHTML = '<i class="bi bi-check-circle-fill"></i> Available';
+                badge.style.background = 'rgba(40,199,111,0.2)';
+                badge.style.color = '#48bb78';
+                badge.style.borderColor = 'rgba(40,199,111,0.4)';
+            }
+
+            // 3. Send background request to Django database
+            fetch(`/toggle-status/${vehicleId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken') 
+                },
+                body: JSON.stringify({ available: isAvailable })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    console.error('Error updating status:', data.error);
+                    this.checked = !isAvailable; // Revert switch if DB fails
+                    alert("Something went wrong. Please refresh and try again.");
+                }
+            })
+            .catch(error => {
+                console.error('Network Error:', error);
+                this.checked = !isAvailable;
+            });
+        });
+    });
+
+    // --- Search Logic ---
+    document.getElementById("searchInput").addEventListener("keyup", function () {
+        const filter = this.value.toLowerCase();
+        document.querySelectorAll(".v-card").forEach(card => {
+            const textContent = card.innerText.toLowerCase();
+            card.style.display = textContent.includes(filter) ? "" : "none";
+        });
+    });
+
+    // --- Filter Tabs Logic ---
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const cards = document.querySelectorAll('.v-card');
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const filterValue = btn.getAttribute('data-filter');
+
+            cards.forEach(card => {
+                const vType = card.getAttribute('data-type');
+                const vStatus = card.getAttribute('data-status');
+
+                if (filterValue === 'all') {
+                    card.style.display = 'flex';
+                } else if (filterValue === 'car' || filterValue === 'bike') {
+                    card.style.display = (vType === filterValue) ? 'flex' : 'none';
+                } else if (filterValue === 'available') {
+                    card.style.display = (vStatus === 'available') ? 'flex' : 'none';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

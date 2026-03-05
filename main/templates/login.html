@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GoWheels - Garage Access</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Archivo+Black&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+  <style>
+    /* =========================
+       1. VARIABLES & RESET
+       ========================= */
+    :root {
+      /* Default (Dark Mode) Variables */
+      --bg-color: #1a1a1a;
+      --grid-line: rgba(255, 255, 255, 0.1);
+      --panel-bg: #121212;
+      --text-main: #ffffff;
+      --text-muted: #888888;
+      
+      --brand-accent: #ff6a2a; /* Orange accent remains constant */
+      --brand-yellow: #f4d03f;
+      --border-color: #ffffff; /* White borders in dark mode */
+      
+      --border-thick: 3px solid var(--border-color);
+      --shadow-hard: 8px 8px 0px var(--border-color);
+    }
+
+    /* Light Mode Variables */
+    body.light {
+      --bg-color: #f0f0f0;
+      --grid-line: rgba(0, 0, 0, 0.05);
+      --panel-bg: #ffffff;
+      --text-main: #121212;
+      --text-muted: #555555;
+      
+      --border-color: #121212; /* Black borders in light mode */
+      
+      --border-thick: 3px solid var(--border-color);
+      --shadow-hard: 8px 8px 0px var(--border-color);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      
+      /* Subtle Technical Grid Background */
+      background-image: 
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+      background-size: 40px 40px;
+      background-position: center center;
+      
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* =========================
+       2. LAYOUT CONTAINER
+       ========================= */
+    .split-container {
+      display: flex;
+      width: 90%;
+      max-width: 1000px;
+      height: 600px;
+      background: var(--panel-bg);
+      border: var(--border-thick);
+      box-shadow: var(--shadow-hard);
+      position: relative;
+      z-index: 10;
+      transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* LEFT SIDE: Visuals & Hype */
+    .left-panel {
+      flex: 1;
+      background: var(--brand-accent); /* Orange for Login to distinguish from Signup */
+      border-right: var(--border-thick);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+      color: #121212; /* Always dark text on orange background */
+    }
+
+    .left-panel h1 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 4rem;
+      line-height: 0.9;
+      text-transform: uppercase;
+      transform: rotate(-2deg);
+      text-shadow: 4px 4px 0px #ffffff;
+      z-index: 2;
+    }
+
+    .left-panel .sticker {
+      position: absolute;
+      background: #ffffff;
+      color: #121212;
+      border: 3px solid #121212;
+      padding: 10px 20px;
+      font-weight: bold;
+      transform: rotate(15deg);
+      top: 50px;
+      right: 30px;
+      box-shadow: 4px 4px 0px #121212;
+    }
+
+    /* RIGHT SIDE: The Form */
+    .right-panel {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: var(--panel-bg);
+    }
+
+    .form-header { margin-bottom: 25px; }
+    .form-header h2 { font-weight: 700; font-size: 2rem; color: var(--text-main); }
+    .form-header p { font-weight: 500; color: var(--text-muted); }
+
+    /* =========================
+       3. BRUTALIST INPUTS
+       ========================= */
+    .input-wrapper {
+      margin-bottom: 15px;
+      position: relative;
+    }
+
+    .brutal-input {
+      width: 100%;
+      padding: 15px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      border: var(--border-thick);
+      background: var(--bg-color); /* Matches page background */
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.1s ease;
+    }
+
+    .brutal-input:focus {
+      background: var(--panel-bg);
+      box-shadow: 4px 4px 0px var(--brand-accent);
+      border-color: var(--brand-accent);
+      transform: translate(-2px, -2px);
+    }
+
+    .brutal-input::placeholder { color: var(--text-muted); font-weight: 400; text-transform: uppercase; font-size: 0.85rem;}
+
+    /* =========================
+       4. ACTION BUTTONS
+       ========================= */
+    .submit-btn {
+      width: 100%;
+      padding: 18px;
+      margin-top: 10px;
+      background: var(--text-main); /* Inverts based on theme */
+      color: var(--panel-bg);       /* Inverts based on theme */
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+      border: none;
+      border: var(--border-thick); 
+      cursor: pointer;
+      position: relative;
+      transition: all 0.1s;
+    }
+
+    .submit-btn:hover {
+      background: var(--brand-accent);
+      color: #ffffff;
+      border-color: var(--brand-accent);
+      box-shadow: 6px 6px 0px var(--text-main);
+      transform: translate(-2px, -2px);
+    }
+
+    .submit-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px var(--text-main);
+    }
+
+    .footer-links {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .footer-links span { margin-right: 5px; }
+    .footer-links a {
+      color: var(--text-main);
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+    }
+    .footer-links a:hover {
+      background: var(--brand-yellow);
+      color: #121212;
+    }
+
+    /* Back Home Floating Button */
+    .back-home {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: var(--panel-bg);
+      border: var(--border-thick);
+      padding: 10px 20px;
+      font-weight: bold;
+      text-decoration: none;
+      color: var(--text-main);
+      box-shadow: 4px 4px 0px var(--border-color);
+      transition: all 0.1s;
+      z-index: 20;
+    }
+    .back-home:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0px var(--brand-accent);
+      border-color: var(--brand-accent);
+      color: var(--brand-accent);
+    }
+    .back-home:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px var(--border-color);
+    }
+
+    /* Messages */
+    .messages { list-style: none; margin-bottom: 20px; border: var(--border-thick); }
+    .messages li {
+      padding: 10px;
+      font-weight: bold;
+      background: #ffcccc;
+      color: #d8000c;
+    }
+    .message-success { background: #d4edda; color: #155724; }
+    .message-error { background: #ffcccc; color: #d8000c; }
+
+    /* =========================
+       5. DECORATIONS & MOBILE
+       ========================= */
+    /* Marquee Animation at Bottom */
+    .marquee-container {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: var(--text-main); /* Inverts */
+      color: var(--panel-bg);       /* Inverts */
+      padding: 10px 0;
+      overflow: hidden;
+      white-space: nowrap;
+      border-top: var(--border-thick);
+      transform: rotate(-2deg) scale(1.1); 
+      margin-bottom: 30px;
+    }
+
+    .marquee-content {
+      display: inline-block;
+      animation: scroll 10s linear infinite;
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 1.5rem;
+    }
+
+    @keyframes scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .split-container {
+        flex-direction: column;
+        height: auto;
+        width: 95%;
+      }
+      .left-panel {
+        padding: 30px;
+        border-right: none;
+        border-bottom: var(--border-thick);
+        min-height: 200px;
+      }
+      .left-panel h1 { font-size: 2.5rem; }
+      .right-panel { padding: 30px; }
+      .marquee-container { display: none; } /* Hide on mobile */
+    }
+  </style>
+</head>
+<body>
+
+  <a href="{% url 'home' %}" class="back-home">
+    <i class="bi bi-arrow-90deg-left"></i> BACK
+  </a>
+
+  <div class="split-container">
+    
+    <div class="left-panel">
+      <div class="sticker">Garage</div>
+      <h1>Welcome<br>Back<br>Driver.</h1>
+      <i class="bi bi-key-fill" style="font-size: 5rem; position: absolute; bottom: 20px; right: 20px; opacity: 0.1; color: #000;"></i>
+    </div>
+
+    <div class="right-panel">
+      <div class="form-header">
+        <h2>Log In</h2>
+        <p>Access your fleet. Start the engine.</p>
+      </div>
+
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li class="message-{{ message.tags }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      <form action="" method="POST">
+        {% csrf_token %}
+        
+        <div class="input-wrapper">
+          <input required class="brutal-input" type="text" name="username" placeholder="Username">
+        </div>
+
+        <div class="input-wrapper">
+          <input required class="brutal-input" type="password" name="password" placeholder="Password">
+        </div>
+
+        <input type="submit" class="submit-btn" value="UNLOCK GARAGE">
+
+        <div class="footer-links">
+          <span>New around here?</span>
+          <a href="{% url 'signup' %}">GET ACCESS</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="marquee-container">
+    <div class="marquee-content">
+      LOG IN TO DRIVE /// PREMIUM FLEET /// LOG IN TO DRIVE /// PREMIUM FLEET /// LOG IN TO DRIVE /// PREMIUM FLEET /// LOG IN TO DRIVE /// PREMIUM FLEET /// 
+    </div>
+  </div>
+
+  <script>
+    // --- THEME SYNC LOGIC ---
+    // This script checks the user's preference saved in localStorage 
+    // and applies the 'light' class if needed.
+    
+    (function() {
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "light") {
+        document.body.classList.add("light");
+      }
+    })();
+  </script>
+
+</body>
+</html>

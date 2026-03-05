@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vehicles | GoWheels</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-main: #0a0a0a;
+      --bg-card: #121212;
+      --border: rgba(255,255,255,0.08);
+      --primary: #ff6a2a;
+      --primary-glow: rgba(255,106,42,0.35);
+      --text-main: #ffffff;
+      --text-muted: #b5b5b5;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at top, #1a1a1a, var(--bg-main));
+      color: var(--text-main);
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ===== HEADER ===== */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: color-mix(in srgb, var(--bg-main) 90%, transparent);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 40px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.4rem;
+    }
+
+    .logo span {
+      background: var(--primary);
+      color: #000;
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+    }
+
+    nav {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    nav a {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    nav a:hover { color: var(--text-main); }
+
+    .nav-actions button {
+      margin-left: 10px;
+      padding: 10px 18px;
+      border-radius: 20px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #000;
+      box-shadow: 0 10px 30px var(--primary-glow);
+    }
+
+    /* ===== SECTION ===== */
+    .section { padding: 60px 64px; }
+    .section h2 { font-size: 2rem; margin-bottom: 10px; }
+    .section p { color: var(--text-muted); margin-bottom: 30px; }
+
+    /* ===== LAYOUT ===== */
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 60px;
+        align-items: start;
+    }
+
+    /* ===== FILTER SIDEBAR ===== */
+    .filter-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 18px;
+      border-radius: 18px;
+      position: sticky;
+      top: 120px;
+      height: fit-content;
+    }
+
+    .filter-box h4 {
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+    }
+
+    .filter-box label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+
+    .filter-box input[type="checkbox"] {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--bg-main);
+      position: relative;
+      cursor: pointer;
+    }
+
+    .filter-box input[type="checkbox"]:checked {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .filter-box input[type="checkbox"]:checked::after {
+      content: "✓";
+      position: absolute;
+      top: -1px;
+      left: 3px;
+      font-size: 12px;
+      color: #000;
+    }
+
+    .filter-box input[type="range"] {
+      width: 100%;
+      -webkit-appearance: none;
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--primary), #333);
+      margin: 10px 0 20px;
+    }
+
+    .filter-box input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+    }
+
+    .filter-box select {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg-main);
+      color: var(--text-main);
+      font-size: 0.85rem;
+    }
+
+    .filter-box hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 14px 0;
+    }
+
+    /* ===== VEHICLE GRID ===== */
+    .fleet-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 320px));
+      gap: 28px;
+      align-items: start;
+    }
+
+    .fleet-card {
+      background: var(--bg-card);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .fleet-card:hover {
+      transform: translateY(-16px);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+    }
+
+    .fleet-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .tag {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: var(--primary);
+      color: #000;
+      padding: 4px 12px;
+      font-size: 0.7rem;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .fleet-body {
+      padding: 14px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .fleet-body h4 {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .price {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .fleet-meta {
+      display: flex;
+      gap: 12px;
+      margin-top: 6px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+
+    .rent-btn {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 14px;
+      background: var(--primary);
+      color: #000;
+      font-weight: 600;
+      text-align: center;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .rent-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px var(--primary-glow);
+    }
+
+    footer {
+      padding: 30px;
+      text-align: center;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+
+    body.light {
+  --bg-main: #f5f5f5;
+  --bg-card: #ffffff;
+  --border: rgba(0,0,0,0.12);
+  --primary: #ff6a2a;
+  --primary-glow: rgba(255,106,42,0.25);
+  --text-main: #111111;
+  --text-muted: #555555;
+
+  background: radial-gradient(circle at top, #ffffff, #eaeaea);
+}
+
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .filter-box { position: relative; top: 0; }
+      .section { padding: 40px 20px; }
+    }
+
+    body {
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.filter-box button.btn-primary {
+  width: 60%;
+  padding: 12px 16px;
+  border-radius: 999px;   /* fully rounded pill */
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.filter-actions .btn-primary {
+  flex: 0 0 60%;
+  border-radius: 999px;
+  padding: 12px 0;
+}
+
+.filter-actions .btn-outline {
+  flex: 0 0 40%;
+  border-radius: 999px;
+  padding: 12px 0;
+  text-align: center;
+
+  background: rgba(255,255,255,0.04);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.filter-actions .btn-outline:hover {
+  color: var(--text-main);
+  border-color: var(--text-main);
+}
+.filter-actions .btn-primary {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.filter-actions .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px var(--primary-glow);
+  filter: brightness(1.20);
+}
+
+/* ===== BOOKED VEHICLE STATE ===== */
+.fleet-card.booked {
+  opacity: 0.45;
+  filter: grayscale(1) blur(0.5px);
+  pointer-events: none;
+}
+
+.fleet-card.booked::after {
+  content: "BOOKED";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+}
+
+.rent-btn.available-soon {
+  background: linear-gradient(135deg, #444, #222);
+  color: #facc15;
+  font-size: 0.9rem;
+}
+
+/* ===== UNAVAILABLE RED STAMP ===== */
+.unavailable-stamp {
+  position: absolute;
+  top: 35px;
+  right: -95px;              /* push ribbon outward */
+  background: #dc2626;
+  color: #fff;
+  padding: 8px 90px;        /* 🔥 more horizontal space */
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;       /* 🔥 prevents text cutting */
+  transform: rotate(35deg);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+}
+
+
+.fleet-card:has(.unavailable-stamp) img {
+  filter: grayscale(0.7) brightness(0.85);
+}
+
+/* ===== AVAILABILITY DATE FILTER ===== */
+
+.filter-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.date-input {
+  width: 90%;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+
+  background: var(--bg-main);
+  color: var(--text-main);
+
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  font-size: 0.85rem;
+  font-family: inherit;
+
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Calendar icon visibility fix */
+.date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 1;
+  filter: brightness(1.2) invert(0);
+}
+.date-input::-webkit-calendar-picker-indicator:hover {
+  filter: brightness(1.4);
+}
+
+/* Hover & focus glow */
+.date-input:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-glow);
+}
+
+/* Disabled look (future use) */
+.date-input:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+  </style>
+</head>
+
+<body>
+
+{% extends 'base.html' %}
+
+{% block title %}Home | GoWheels{% endblock %}
+
+{% block content %}
+
+<section class="section">
+  <h2>Need Wheels? We’ve Got You.</h2>
+  <p>Premium cars and bikes for every kind of journey.</p>
+
+  <div class="layout">
+
+    <form method="get" class="filter-box">
+      <h4>Price Range</h4>
+      <label>Up to ₹<span id="priceValue">{{ request.GET.max_price|default:5000 }}</span></label>
+      <input type="range" min="500" max="10000" step="100" name="max_price"
+             value="{{ request.GET.max_price|default:5000 }}"
+             oninput="priceValue.textContent=this.value">
+
+      <hr>
+
+<hr>
+
+<h4>Availability</h4>
+
+<label class="filter-label">Start date</label>
+<input type="date" name="start_date"
+       value="{{ request.GET.start_date }}"
+       class="date-input">
+
+<label class="filter-label">End date</label>
+<input type="date" name="end_date"
+       value="{{ request.GET.end_date }}"
+       class="date-input">
+       <hr>
+
+      <h4>Status</h4>
+<label><input type="checkbox" name="status" value="available"> Available</label>
+<label><input type="checkbox" name="status" value="soon"> Available soon</label>
+
+<h4>Seats</h4>
+<label>
+  <input type="radio" name="seats" value="2" {% if selected_seats == "2" %}checked{% endif %}> 2
+</label>
+<label>
+  <input type="radio" name="seats" value="4" {% if selected_seats == "4" %}checked{% endif %}> 4
+</label>
+<label>
+  <input type="radio" name="seats" value="8" {% if selected_seats == "8" %}checked{% endif %}> 8
+</label>
+<label>
+  <input type="radio" name="seats" value="12" {% if selected_seats == "12" %}checked{% endif %}> 12+
+</label>
+
+
+
+
+      <h4>Category</h4>
+      {% for value, label in categories %}
+        <label>
+          <input type="checkbox" name="category" value="{{ value }}"
+          {% if value in selected_categories %}checked{% endif %}>
+          {{ label }}
+        </label>
+      {% endfor %}
+
+      <hr>
+
+      <h4>Vehicle Type</h4>
+      <label><input type="checkbox" name="vehicle_type" value="car" {% if "car" in selected_vehicle_types %}checked{% endif %}>Car</label>
+      <label><input type="checkbox" name="vehicle_type" value="bike" {% if "bike" in selected_vehicle_types %}checked{% endif %}>Bike</label>
+
+      <hr>
+
+      <h4>Fuel</h4>
+      {% for value, label in fuel_choices %}
+        <label>
+          <input type="checkbox" name="fuel_type" value="{{ value }}"
+          {% if value in selected_fuels %}checked{% endif %}>
+          {{ label }}
+        </label>
+      {% endfor %}
+
+      <hr>
+
+      <h4>Sort</h4>
+      <select name="sort">
+        <option value="">Newest</option>
+        <option value="price_low" {% if request.GET.sort == "price_low" %}selected{% endif %}>Price ↑</option>
+        <option value="price_high" {% if request.GET.sort == "price_high" %}selected{% endif %}>Price ↓</option>
+      </select>
+
+      <br><br>
+      <div class="filter-actions">
+  <button class="btn-primary" type="submit">Apply</button>
+  <a href="{% url 'vehicles' %}" class="btn-outline">Reset</a>
+</div>
+
+    </form>
+
+    <div class="fleet-grid">
+  {% for v in vehicles %}
+  <div class="fleet-card">
+
+    <span class="tag">{{ v.category }}</span>
+
+    {% if not v.available %}
+      <div class="unavailable-stamp" style="background: #dc2626;">Offline</div>
+    {% elif v.is_booked_today %}
+      <div class="unavailable-stamp">On Trip</div>
+    {% endif %}
+
+    {% if v.front_image %}
+      <img src="{{ v.front_image.image.url }}">
+    {% else %}
+      <img src="https://via.placeholder.com/400x200">
+    {% endif %}
+
+    <div class="fleet-body">
+      <h4>{{ v.vehicle_name }}</h4>
+      <span class="price">₹{{ v.price_per_day }}/day</span>
+      
+      <div class="fleet-meta">
+        <span>👤 {{ v.seats|default:"-" }} Seats</span>
+        <span>⛽ {{ v.fuel_type }}</span>
+        <span>📍 {{ v.pickup_location|default:"Contact for Location" }}</span>
+      </div>
+
+      {% if not v.available %}
+        <button class="rent-btn" disabled style="background:#2a2a2a; color:#777; cursor:not-allowed; border:none; width:100%; text-align:center;">
+          Currently Offline
+        </button>
+      {% elif v.is_booked_today %}
+        <a href="{% url 'rent_vehicle' v.id %}" class="rent-btn" style="background:#444; color:#aaa; display:block; text-align:center;">
+          Available from {{ v.next_available_date|date:"d M" }}
+        </a>
+      {% else %}
+        <a href="{% url 'rent_vehicle' v.id %}" class="rent-btn" style="display:block; text-align:center;">
+          Rent Now
+        </a>
+      {% endif %}
+
+    </div>
+  </div>
+  {% empty %}
+    <p>No vehicles found.</p>
+  {% endfor %}
+</div>
+
+<footer> GoWheels. footer remaining</footer>
+{% endblock %}
+<script>
+  const toggle = document.getElementById("themeToggle");
+  const body = document.body;
+
+  if (localStorage.getItem("theme") === "light") {
+    body.classList.add("light");
+    toggle.textContent = "☀️";
+  }
+
+  toggle.onclick = () => {
+    body.classList.toggle("light");
+    localStorage.setItem("theme", body.classList.contains("light") ? "light" : "dark");
+    toggle.textContent = body.classList.contains("light") ? "☀️" : "🌙";
+  };
+</script>
+
+</body>
+</html>

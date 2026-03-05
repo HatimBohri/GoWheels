@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Checkout – {{ vehicle.vehicle_name }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+  <script>
+    // Universal Theme Sync (Runs immediately to prevent flashing)
+    if (localStorage.getItem("theme") === "light") {
+      document.documentElement.classList.add("light");
+    }
+  </script>
+
+  <style>
+    /* =========================================
+       1. VARIABLES & RESET (Dark/Light Mode)
+       ========================================= */
+    :root {
+      --bg-main: #0a0a0a;
+      --bg-card: #121212;
+      --border: rgba(255,255,255,0.08);
+      --primary: #ff6a2a;
+      --primary-glow: rgba(255,106,42,0.15);
+      --text-main: #ffffff;
+      --text-muted: #b5b5b5;
+      --input-bg: #1a1a1a;
+      --card-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      --error-bg: #3f1010;
+      --error-text: #ff6b6b;
+    }
+
+    html.light {
+      --bg-main: #f5f7fa;
+      --bg-card: #ffffff;
+      --border: #e0e0e0;
+      --primary: #ff7c24;
+      --primary-glow: #fff8f5;
+      --text-main: #333333;
+      --text-muted: #666666;
+      --input-bg: #ffffff;
+      --card-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      --error-bg: #fee2e2;
+      --error-text: #b91c1c;
+    }
+
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    
+    body { 
+      margin: 0; 
+      background: var(--bg-main); 
+      padding: 30px; 
+      color: var(--text-main); 
+      transition: background 0.3s ease, color 0.3s ease; 
+    }
+
+    .checkout-container { max-width: 1000px; margin: auto; display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+    
+    .card { 
+      background: var(--bg-card); 
+      border-radius: 16px; 
+      padding: 25px; 
+      box-shadow: var(--card-shadow); 
+      border: 1px solid var(--border);
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+    
+    h2 { margin-bottom: 20px; font-size: 1.6rem; color: var(--text-main); }
+    h3 { margin-bottom: 15px; font-size: 1.2rem; color: var(--text-main); }
+    
+    .form-group { margin-bottom: 18px; }
+    label { font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-muted); }
+    
+    input { 
+      width: 100%; 
+      padding: 12px 14px; 
+      border-radius: 10px; 
+      border: 1px solid var(--border); 
+      font-size: 0.95rem; 
+      background: var(--input-bg);
+      color: var(--text-main);
+      transition: border-color 0.3s;
+    }
+    input:focus { outline: none; border-color: var(--primary); }
+    
+    .two-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .summary-item { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; color: var(--text-muted); }
+    .summary-item strong { color: var(--text-main); }
+    
+    .checkout-btn { margin-top: 20px; width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+    .checkout-btn:hover { filter: brightness(1.1); }
+    .checkout-btn:disabled { background: var(--text-muted); cursor: not-allowed; opacity: 0.5; }
+
+    /* Payment Grid */
+    .payment-options-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .pay-card { border: 1px solid var(--border); border-radius: 12px; padding: 15px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; position: relative; background: var(--bg-card); transition: 0.2s; }
+    .pay-card:hover { border-color: var(--primary); }
+    .pay-card.selected-pay { border: 2px solid var(--primary); background: var(--primary-glow); }
+    .pay-card input { display: none; }
+    .pay-icon { font-size: 1.5rem; color: var(--primary); }
+    .pay-check { position: absolute; top: 10px; right: 10px; color: var(--primary); opacity: 0; }
+    .pay-card.selected-pay .pay-check { opacity: 1; }
+
+    /* Messages & Warnings */
+    #wallet-warning { color: var(--error-text); font-size: 0.85rem; margin-top: 5px; display: none; }
+    .message-box { background: var(--error-bg); color: var(--error-text); padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; border: 1px solid var(--border); }
+
+    /* =========================================
+       2. IMAGE SLIDER STYLES
+       ========================================= */
+    .slider-container { position: relative; width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 15px; border: 1px solid var(--border); }
+    .slider-track { display: flex; transition: transform 0.4s ease-in-out; width: 100%; }
+    .slider-track img { width: 100%; height: 220px; object-fit: cover; flex-shrink: 0; }
+    .slider-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0, 0, 0, 0.6); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: 0.3s; }
+    .slider-btn:hover { background: var(--primary); }
+    .slider-btn.prev { left: 10px; }
+    .slider-btn.next { right: 10px; }
+    .slider-dots { position: absolute; bottom: 10px; width: 100%; display: flex; justify-content: center; gap: 6px; }
+    .dot { width: 8px; height: 8px; background: rgba(255, 255, 255, 0.5); border-radius: 50%; cursor: pointer; transition: 0.3s; }
+    .dot.active { background: var(--primary); transform: scale(1.2); }
+
+    /* --- Drive Toggle Styling --- */
+    .drive-toggle-container {
+      display: flex;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 6px;
+      margin-bottom: 25px;
+    }
+    .drive-option {
+      flex: 1; text-align: center; padding: 14px; border-radius: 10px;
+      cursor: pointer; font-weight: 600; color: var(--text-muted);
+      transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .drive-option:hover { color: var(--text-main); }
+    .drive-option.selected {
+      background: var(--bg-card); color: var(--primary);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid var(--border);
+    }
+    
+    /* --- Premium Driver Cards --- */
+    .driver-grid { display: flex; flex-direction: column; gap: 12px; }
+    .driver-card {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px; border: 1px solid var(--border); border-radius: 14px;
+      background: var(--input-bg); cursor: pointer; transition: all 0.3s ease;
+    }
+    .driver-card:hover { border-color: var(--primary); }
+    .driver-card.selected { border: 2px solid var(--primary); background: var(--primary-glow); }
+    .driver-card input[type="radio"] { display: none; }
+    
+    .driver-info { display: flex; align-items: center; gap: 15px; }
+    .driver-img-wrapper { position: relative; }
+    
+    /* UPDATED: Larger Driver Image */
+    .driver-img { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); }
+    .driver-placeholder { width: 65px; height: 65px; border-radius: 50%; background: var(--border); display: grid; place-items: center; font-size: 1.8rem; color: var(--text-muted); }
+    
+    .driver-rating {
+      position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+      background: #FFD700; color: #000; font-size: 0.75rem; font-weight: 700;
+      padding: 3px 6px; border-radius: 10px; display: flex; align-items: center; gap: 3px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    
+    .driver-price { text-align: right; }
+    .driver-price strong { display: block; color: var(--primary); font-size: 1.15rem; }
+    .driver-price small { color: var(--text-muted); font-size: 0.8rem; }
+    
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media(max-width: 768px){
+      .checkout-container { grid-template-columns: 1fr; }
+      .payment-options-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="message-box">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="checkout-container">
+
+    <div class="card">
+      <h2>Checkout</h2>
+      
+      <h3>Personal Details</h3>
+      <div class="form-group"><label>Full Name</label><input type="text" name="full_name" required></div>
+      <div class="two-cols">
+        <div class="form-group"><label>Age</label><input type="number" name="age" min="18" required></div>
+        <div class="form-group"><label>Phone Number</label><input type="tel" name="phone_number" required></div>
+      </div>
+
+      <h3>Rental Duration</h3>
+      <div class="two-cols">
+        <div class="form-group"><label>Start Date</label><input type="date" name="start_date" id="start_date" required></div>
+        <div class="form-group"><label>End Date</label><input type="date" name="end_date" id="end_date" required></div>
+      </div>
+
+      <h3>Drive Option</h3>
+      
+      <div class="drive-toggle-container">
+        <label class="drive-option selected" id="opt-self" onclick="setDriveType('self')">
+          <input type="radio" name="drive_type" value="self" checked style="display:none;">
+          <i class="bi bi-steering"></i> Self-Drive
+        </label>
+        <label class="drive-option" id="opt-driver" onclick="setDriveType('driver')">
+          <input type="radio" name="drive_type" value="driver" style="display:none;">
+          <i class="bi bi-person-badge"></i> With Driver
+        </label>
+      </div>
+      
+      <div id="driver-section" style="display: none; animation: slideDown 0.4s ease; margin-bottom: 25px;">
+        <h4 style="margin-bottom: 12px; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Select a Chauffeur</h4>
+        
+        <div class="driver-grid">
+          {% for driver in driver_applications %}
+          <label class="driver-card" onclick="selectDriver(this)">
+            <input type="radio" name="driver_id" value="{{ driver.id }}" data-fee="{{ driver.price_per_day }}">
+            
+            <div class="driver-info">
+                <div class="driver-img-wrapper">
+                    {% if driver.profile_photo %}
+                      <img src="{{ driver.profile_photo.url }}" class="driver-img" alt="{{ driver.full_name }}">
+                    {% else %}
+                      <div class="driver-placeholder"><i class="bi bi-person"></i></div>
+                    {% endif %}
+                    
+                    <div class="driver-rating"><i class="bi bi-star-fill"></i> {{ driver.rating|default:"5.0" }}</div>
+                </div>
+                
+                <div>
+                  <strong style="color: var(--text-main); display: block; font-size: 1.05rem;">{{ driver.full_name }}</strong> 
+                  <small style="color: var(--text-muted);">Exp: {{ driver.experience_years }} years</small>
+                </div>
+            </div>
+            
+            <div class="driver-price">
+                <strong>+₹{{ driver.price_per_day }}</strong>
+                <small>per day</small>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <h3>Documents</h3>
+      <div class="form-group"><label>Aadhaar Card</label><input type="file" name="aadhaar_image" accept="image/*" required></div>
+      <div class="form-group"><label>Driving License</label><input type="file" name="license_image" accept="image/*" required></div>
+
+      <h3>Payment Method</h3>
+      <div class="payment-options-grid">
+          <label class="pay-card" id="wallet-card" onclick="selectPayment(this)">
+              <input type="radio" name="payment_mode" value="wallet" id="wallet-radio">
+              <i class="bi bi-wallet2 pay-icon"></i>
+              <div class="pay-check"><i class="bi bi-check-circle-fill"></i></div>
+              <div>
+                  <strong style="display:block; color: var(--text-main);">My Wallet</strong>
+                  <small style="color: var(--text-muted);">Bal: ₹{{ wallet_balance|default:"0" }}</small>
+              </div>
+          </label>
+
+          <label class="pay-card selected-pay" onclick="selectPayment(this)">
+              <input type="radio" name="payment_mode" value="online" checked>
+              <i class="bi bi-credit-card-2-front pay-icon"></i>
+              <div class="pay-check"><i class="bi bi-check-circle-fill"></i></div>
+              <div>
+                  <strong style="display:block; color: var(--text-main);">Online / UPI</strong>
+                  <small style="color: var(--text-muted);">Secure Stripe</small>
+              </div>
+          </label>
+
+          <label class="pay-card" onclick="selectPayment(this)">
+              <input type="radio" name="payment_mode" value="cash">
+              <i class="bi bi-cash-coin pay-icon"></i>
+              <div class="pay-check"><i class="bi bi-check-circle-fill"></i></div>
+              <div>
+                  <strong style="display:block; color: var(--text-main);">Cash</strong>
+                  <small style="color: var(--text-muted);">On Pickup</small>
+              </div>
+          </label>
+      </div>
+      <div id="wallet-warning">⚠️ Insufficient wallet balance. Please add funds or choose another method.</div>
+    </div>
+
+
+    <div class="card" style="align-self: start;">
+      <h3>Summary</h3>
+      
+      <div class="slider-container">
+        <div class="slider-track" id="imageTrack">
+          {% for img in vehicle.images.all %}
+            <img src="{{ img.image.url }}" alt="{{ vehicle.vehicle_name }}">
+          {% endfor %}
+        </div>
+        
+        {% if vehicle.images.count > 1 %}
+          <button type="button" class="slider-btn prev" onclick="moveSlide(-1)"><i class="bi bi-chevron-left"></i></button>
+          <button type="button" class="slider-btn next" onclick="moveSlide(1)"><i class="bi bi-chevron-right"></i></button>
+          
+          <div class="slider-dots" id="sliderDots">
+            {% for img in vehicle.images.all %}
+              <div class="dot {% if forloop.first %}active{% endif %}" onclick="goToSlide({{ forloop.counter0 }})"></div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+      
+      <div class="summary-item"><span>Vehicle</span><strong>{{ vehicle.vehicle_name }}</strong></div>
+      <div class="summary-item"><span>Price/Day</span><span>₹{{ vehicle.price_per_day }}</span></div>
+      <div class="summary-item"><span>Days</span><span id="total_days">0</span></div>
+      <div class="summary-item"><span>Driver Fee</span><span id="driver_fee">₹0</span></div>
+      <hr style="border-color: var(--border);">
+      <div class="summary-item" style="font-size: 1.2rem;"><strong>Total</strong><strong id="total_price" style="color: var(--primary);">₹0</strong></div>
+
+      <div style="margin-top: 20px; background: var(--input-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+        <label>Verification</label>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom: 10px;">
+            <img src="{% url 'captcha' %}" id="captcha_img" style="border-radius: 5px; border: 1px solid var(--border);">
+            <button type="button" onclick="document.getElementById('captcha_img').src='{% url 'captcha' %}?'+Math.random()" style="border:none; background:none; cursor:pointer; font-size: 1.5rem; color: var(--text-muted);">↻</button>
+        </div>
+        <input type="text" name="captcha_input" placeholder="Enter text" required style="text-transform:uppercase;">
+      </div>
+
+      <button type="submit" class="checkout-btn" id="confirm-btn">Confirm Booking</button>
+    </div>
+
+  </div>
+</form>
+
+<script>
+  const startDate = document.getElementById("start_date");
+  const endDate = document.getElementById("end_date");
+  const pricePerDay = parseFloat("{{ vehicle.price_per_day }}");
+  const userBalance = parseFloat("{{ wallet_balance|default:0 }}");
+  let currentTotal = 0;
+
+  // Prevent past dates from being selected
+  const todayDateStr = new Date().toISOString().split('T')[0];
+  if(startDate && endDate) {
+      startDate.setAttribute('min', todayDateStr);
+      endDate.setAttribute('min', todayDateStr);
+      
+      startDate.addEventListener('change', function() {
+          endDate.setAttribute('min', this.value);
+      });
+  }
+
+  // UPDATED: Calculation Logic now reads the Segmented Toggle correctly
+  function updatePrice() {
+    const s = new Date(startDate.value);
+    const e = new Date(endDate.value);
+    
+    if (s && e && e >= s) {
+      const days = Math.ceil((e - s) / (86400000)) + 1;
+      document.getElementById("total_days").innerText = days;
+      
+      let total = days * pricePerDay;
+      
+      // Look for the newly styled radio buttons
+      const driveTypeInput = document.querySelector('input[name="drive_type"]:checked');
+      if (driveTypeInput && driveTypeInput.value === "driver") {
+        const driver = document.querySelector('input[name="driver_id"]:checked');
+        if (driver) {
+           const fee = parseFloat(driver.dataset.fee) * days;
+           document.getElementById("driver_fee").innerText = "₹" + fee;
+           total += fee;
+        }
+      } else {
+        document.getElementById("driver_fee").innerText = "₹0";
+      }
+      
+      currentTotal = total;
+      document.getElementById("total_price").innerText = "₹" + total;
+      checkWalletBalance();
+    }
+  }
+
+  function checkWalletBalance() {
+    const walletRadio = document.getElementById("wallet-radio");
+    const walletWarning = document.getElementById("wallet-warning");
+    const confirmBtn = document.getElementById("confirm-btn");
+
+    if (walletRadio.checked) {
+        if (userBalance < currentTotal) {
+            walletWarning.style.display = "block";
+            confirmBtn.disabled = true;
+            confirmBtn.innerText = "Insufficient Wallet Balance";
+        } else {
+            walletWarning.style.display = "none";
+            confirmBtn.disabled = false;
+            confirmBtn.innerText = "Confirm Booking";
+        }
+    } else {
+        walletWarning.style.display = "none";
+        confirmBtn.disabled = false;
+        confirmBtn.innerText = "Confirm Booking";
+    }
+  }
+
+  function selectPayment(card) {
+      document.querySelectorAll('.pay-card').forEach(c => c.classList.remove('selected-pay'));
+      card.classList.add('selected-pay');
+      card.querySelector('input').checked = true;
+      checkWalletBalance();
+  }
+
+ // --- Drive Type Selection UI ---
+  function setDriveType(type) {
+    document.getElementById("opt-self").classList.remove("selected");
+    document.getElementById("opt-driver").classList.remove("selected");
+    
+    if (type === 'self') {
+      document.getElementById("opt-self").classList.add("selected");
+      document.getElementById("driver-section").style.display = "none";
+      
+      // Uncheck driver so fee resets to 0
+      const checkedDriver = document.querySelector('input[name="driver_id"]:checked');
+      if(checkedDriver) checkedDriver.checked = false;
+      document.querySelectorAll('.driver-card').forEach(c => c.classList.remove('selected'));
+      
+    } else {
+      document.getElementById("opt-driver").classList.add("selected");
+      document.getElementById("driver-section").style.display = "block";
+    }
+    updatePrice(); // Re-calculate total
+  }
+
+  // --- Driver Card Selection UI ---
+  function selectDriver(card) {
+    document.querySelectorAll('.driver-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    card.querySelector('input').checked = true;
+    updatePrice(); // Add driver fee to total
+  }
+
+  // Event Listeners for Pricing
+  startDate.addEventListener("change", updatePrice);
+  endDate.addEventListener("change", updatePrice);
+  document.querySelectorAll('input[name="driver_id"]').forEach(el => {
+      el.addEventListener("change", updatePrice);
+  });
+
+  // --- Image Slider Logic ---
+  let slideIndex = 0;
+  const track = document.getElementById("imageTrack");
+  const dots = document.querySelectorAll(".dot");
+  const totalSlides = document.querySelectorAll(".slider-track img").length;
+
+  function updateSlider() {
+    if (!track) return;
+    track.style.transform = `translateX(-${slideIndex * 100}%)`;
+    dots.forEach(dot => dot.classList.remove("active"));
+    if (dots[slideIndex]) dots[slideIndex].classList.add("active");
+  }
+
+  function moveSlide(direction) {
+    slideIndex += direction;
+    if (slideIndex >= totalSlides) slideIndex = 0;
+    if (slideIndex < 0) slideIndex = totalSlides - 1;
+    updateSlider();
+  }
+
+  function goToSlide(index) {
+    slideIndex = index;
+    updateSlider();
+  }
+</script>
+
+</body>
+</html>
