@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        :root { --bg-app: #09090b; --bg-card: #141417; --bg-accent: #1e1e22; --border: #27272a; --primary: #ff6a2a; --primary-glow: rgba(255, 106, 42, 0.2); --text-main: #fafafa; --text-muted: #a1a1aa; --success: #28c76f; }
+        :root { --bg-app: #09090b; --bg-card: #141417; --bg-accent: #1e1e22; --border: #27272a; --primary: #ff6a2a; --primary-glow: rgba(255, 106, 42, 0.2); --text-main: #fafafa; --text-muted: #a1a1aa; --success: #28c76f; --star: #facc15;}
         body.light { --bg-app: #f8fafc; --bg-card: #ffffff; --bg-accent: #f1f5f9; --border: #e2e8f0; --text-main: #0f172a; --text-muted: #64748b; }
         * { margin: 0; padding: 0; box-sizing: border-box; transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
         body { font-family: 'Roboto', sans-serif; background: var(--bg-app); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; }
@@ -50,11 +50,33 @@
         .badge { padding: 6px 14px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
         .badge.Active { background: rgba(255,106,42,0.15); color: var(--primary); border: 1px solid var(--primary-glow); }
         .badge.Completed { background: rgba(40,199,111,0.1); color: var(--success); border: 1px solid rgba(40,199,111,0.2); }
+        .badge.Upcoming { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
         
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: none; place-items: center; z-index: 2000; }
-        .modal-content { background: var(--bg-card); width: 550px; padding: 40px; border-radius: 32px; border: 1px solid var(--border); position: relative; }
+        /* Modal & Host Info */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: none; place-items: center; z-index: 2000; padding: 20px; }
+        .modal-content { background: var(--bg-card); width: 600px; max-height: 90vh; overflow-y: auto; padding: 40px; border-radius: 32px; border: 1px solid var(--border); position: relative; }
+        .modal-content::-webkit-scrollbar { width: 8px; }
+        .modal-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
         .close-modal { position: absolute; top: 24px; right: 24px; cursor: pointer; font-size: 1.5rem; color: var(--text-muted); }
-        
+
+        .host-card { display: flex; justify-content: space-between; align-items: center; background: var(--bg-accent); border: 1px solid var(--border); padding: 15px 20px; border-radius: 16px; margin-bottom: 12px; }
+        .host-info { display: flex; align-items: center; gap: 12px; }
+        .host-avatar { width: 45px; height: 45px; background: var(--border); border-radius: 50%; display: grid; place-items: center; font-size: 1.2rem; color: var(--text-muted); }
+        .host-card h4 { margin: 0; font-size: 1rem; color: var(--text-main); font-family: 'Open Sans', sans-serif;}
+        .host-card p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
+        .whatsapp-btn { background: #25D366; color: #fff; padding: 8px 14px; border-radius: 10px; font-weight: bold; text-decoration: none; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
+        .whatsapp-btn:hover { filter: brightness(1.1); color: #fff; }
+
+        /* Review UI */
+        .review-section { border-top: 1px solid var(--border); margin-top: 24px; padding-top: 24px; }
+        .star-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .star-label { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
+        .stars { display: flex; gap: 5px; }
+        .stars i { font-size: 1.3rem; color: var(--border); cursor: pointer; transition: 0.2s; }
+        .stars i:hover, .stars i.active { color: var(--star); }
+        textarea.review-box { width: 100%; background: var(--bg-accent); border: 1px solid var(--border); border-radius: 12px; padding: 15px; color: var(--text-main); font-family: inherit; margin-top: 10px; resize: vertical; min-height: 80px; outline: none; }
+        textarea.review-box:focus { border-color: var(--primary); }
+
         .empty-state { text-align: center; padding: 100px; background: var(--bg-accent); border: 2px dashed var(--border); border-radius: 32px; }
         .empty-state i { font-size: 4rem; color: var(--text-muted); opacity: 0.3; }
         
@@ -62,7 +84,6 @@
         .btn-primary { background: var(--primary); color: #000; border: none; }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px var(--primary-glow); }
 
-        /* Styles for perfect PDF generation */
         @media print {
             body { height: auto; overflow: visible; background: #ffffff !important; color: #000000 !important; }
             .top-nav button, .toolbar, .search-box, .trip-item:hover, .modal { display: none !important; }
@@ -86,13 +107,13 @@
                 </div>
             </div>
             <div style="display: flex; gap: 12px;">
+                <a href="{% url 'home' %}" class="btn" style="border: none;"><i class="bi bi-house"></i> Home</a>
                 <button class="btn" id="themeToggle" title="Toggle Theme"><i class="bi bi-moon-stars"></i></button>
                 <div class="avatar-box" style="width: 42px; height: 42px; background: var(--primary); border-radius: 12px; display: grid; place-items: center; font-weight: 700; color: #000; font-family: 'Poppins', sans-serif;">{{ user.username|slice:":1"|upper }}</div>
             </div>
         </div>
 
         <div class="scroll-area">
-            
             <div class="membership-banner">
                 <div>
                     <h3 style="font-size: 1.4rem; margin-bottom: 4px;">{{ tier }} Member <i class="bi bi-patch-check-fill" style="color: var(--primary); font-size: 1.2rem; margin-left: 8px;"></i></h3>
@@ -139,15 +160,11 @@
                         <h3>Weekly Spending</h3>
                         <span id="chartTotal" style="color: var(--primary); font-weight: 800; font-family: 'Poppins';">₹0.00</span>
                     </div>
-                    <div style="position: relative; height: 220px; width: 100%;">
-                        <canvas id="timeChart"></canvas>
-                    </div>
+                    <div style="position: relative; height: 220px; width: 100%;"><canvas id="timeChart"></canvas></div>
                 </div>
                 <div class="chart-box">
                     <h3>By Category</h3>
-                    <div style="position: relative; height: 220px; width: 100%;">
-                        <canvas id="catChart"></canvas>
-                    </div>
+                    <div style="position: relative; height: 220px; width: 100%;"><canvas id="catChart"></canvas></div>
                 </div>
             </div>
 
@@ -164,16 +181,41 @@
 
             <div class="trip-feed" id="tripDataContainer">
                 {% for r in rentals %}
-                <div class="trip-item" onclick="openTripModal('{{ r.vehicle.vehicle_name }}', '{{ r.invoice_no }}', '{{ r.total_price }}', '{{ r.start_date|date:'d M, Y' }}')">
-                    <img src="{{ r.vehicle.front_image.image.url }}" alt="" onerror="this.src='https://via.placeholder.com/150x100?text=GoWheels'">
-                    <div class="trip-info"><p style="font-weight: 700; font-size: 1.1rem; font-family: 'Poppins', sans-serif;" class="trip-name">{{ r.vehicle.vehicle_name }}</p><p style="font-size: 0.8rem; color: var(--text-muted);" class="trip-meta">{{ r.vehicle.category }} • {{ r.invoice_no }}</p></div>
-                    <div class="trip-dates-loc"><p style="font-size: 0.9rem; font-weight: 700;" class="trip-date">{{ r.start_date|date:"d M" }} - {{ r.end_date|date:"d M, Y" }}</p><p style="font-size: 0.8rem; color: var(--text-muted);" class="trip-loc">{{ r.vehicle.pickup_location }}</p></div>
+                <div class="trip-item" onclick="openTripModal(
+                    '{{ r.id }}', 
+                    '{{ r.vehicle.vehicle_name|escapejs }}', 
+                    '{{ r.invoice_no }}', 
+                    '{{ r.total_price }}', 
+                    '{{ r.start_date|date:'d M, Y' }}', 
+                    '{{ r.end_date|date:'d M, Y' }}', 
+                    '{% if r.vehicle.owner.first_name %}{{ r.vehicle.owner.first_name|escapejs }} {{ r.vehicle.owner.last_name|escapejs }}{% else %}{{ r.vehicle.owner.username|escapejs }}{% endif %}', 
+                    '{{ r.vehicle.contact_number }}', 
+                    '{{ r.status_label }}', 
+                    '{{ r.review.id|default_if_none:"" }}',
+                    '{% if r.driver %}{{ r.driver.name|escapejs }}{% else %}{% endif %}'
+                )">
+                    <img src="{% if r.vehicle.front_image %}{{ r.vehicle.front_image.image.url }}{% else %}https://via.placeholder.com/150x100?text=GoWheels{% endif %}">
+                    <div class="trip-info">
+                        <p style="font-weight: 700; font-size: 1.1rem; font-family: 'Poppins', sans-serif;" class="trip-name">{{ r.vehicle.vehicle_name }}</p>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;" class="trip-meta">
+                            <i class="bi bi-star-fill" style="color: var(--star);"></i> {{ r.vehicle.get_avg_rating }} ({{ r.vehicle.get_review_count }} Reviews) • {{ r.vehicle.category }}
+                        </p>
+                    </div>
+                    <div class="trip-dates-loc">
+                        <p style="font-size: 0.9rem; font-weight: 700;" class="trip-date">{{ r.start_date|date:"d M" }} - {{ r.end_date|date:"d M, Y" }}</p>
+                        <p style="font-size: 0.8rem; color: var(--text-muted);" class="trip-loc">{{ r.vehicle.pickup_location }}</p>
+                    </div>
                     <div><span class="badge {{ r.status_label }} trip-status">{{ r.status_label }}</span></div>
                     <div style="font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--primary);" class="trip-price">₹{{ r.total_price }}</div>
                     <i class="bi bi-chevron-right" style="color: var(--text-muted);"></i>
                 </div>
                 {% empty %}
-                <div class="empty-state"><i class="bi bi-geo-alt-fill"></i><h2 style="margin-top: 20px;">No adventures logged yet</h2><p style="color: var(--text-muted); margin: 12px 0 30px;">Your travel history is currently empty.</p><a href="{% url 'vehicles' %}" class="btn btn-primary">Book Your First Ride</a></div>
+                <div class="empty-state">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <h2 style="margin-top: 20px;">No adventures logged yet</h2>
+                    <p style="color: var(--text-muted); margin: 12px 0 30px;">Your travel history is currently empty.</p>
+                    <a href="{% url 'vehicles' %}" class="btn btn-primary">Book Your First Ride</a>
+                </div>
                 {% endfor %}
             </div>
         </div>
@@ -182,46 +224,164 @@
     <div class="modal" id="tripModal">
         <div class="modal-content">
             <i class="bi bi-x-lg close-modal" onclick="closeTripModal()"></i>
+            
             <h2 id="modalTitle" style="font-size: 1.8rem; margin-bottom: 5px;">Trip Details</h2>
-            <p id="modalRef" style="color: var(--text-muted); margin-bottom: 24px; font-weight: 600; font-family: 'Open Sans', sans-serif;"></p>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <p id="modalRef" style="color: var(--text-muted); font-weight: 600; font-family: 'Open Sans', sans-serif; margin: 0;"></p>
+                <span class="badge badge-outline" id="modalDriverBadge" style="display: none; border: 1px solid var(--primary); color: var(--primary);"></span>
+            </div>
+
+            <div class="host-card">
+                <div class="host-info">
+                    <div class="host-avatar"><i class="bi bi-person-fill"></i></div>
+                    <div>
+                        <h4 id="modalHostName">Host Name</h4>
+                        <p id="modalHostPhone">+91 XXXXX XXXXX</p>
+                    </div>
+                </div>
+                <a href="#" id="modalWhatsapp" target="_blank" class="whatsapp-btn"><i class="bi bi-whatsapp"></i> Chat</a>
+            </div>
+
             <div style="background: var(--bg-accent); padding: 24px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 24px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 12px;"><span style="font-family: 'Open Sans', sans-serif;">Rental Duration</span><b id="modalDate"></b></div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;"><span style="font-family: 'Open Sans', sans-serif;">Base Fare</span><b id="modalPrice"></b></div>
                 <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--border);"><span style="font-weight: 700; font-family: 'Open Sans', sans-serif;">Total Amount</span><b id="modalTotal" style="color: var(--primary); font-size: 1.2rem; font-family: 'Poppins', sans-serif;"></b></div>
             </div>
-            <div style="height: 120px; background: var(--border); border-radius: 16px; display: grid; place-items: center; color: var(--text-muted); font-size: 0.8rem;"><i class="bi bi-map" style="font-size: 2rem; margin-bottom: 8px;"></i>Interactive Pickup Map Integration</div>
-            <div style="display: flex; gap: 12px; margin-top: 32px;"><button class="btn btn-primary" style="flex: 1;" onclick="window.print()"><i class="bi bi-download"></i> Download Invoice</button><button class="btn" style="flex: 1;"><i class="bi bi-share"></i> Share Journey</button></div>
+            
+            <div id="reviewWrapper">
+                <div id="reviewFormSection" class="review-section" style="display: none;">
+                    <h3 style="font-size: 1.2rem; margin-bottom: 15px;">Rate your experience</h3>
+                    <form method="POST" action="{% url 'submit_review' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="rental_id" id="reviewRentalId">
+                        
+                        <div class="star-row">
+                            <span class="star-label">Vehicle Cleanliness</span>
+                            <div class="stars" data-input="clean_input">
+                                <i class="bi bi-star-fill active" data-val="1"></i><i class="bi bi-star-fill active" data-val="2"></i><i class="bi bi-star-fill active" data-val="3"></i><i class="bi bi-star-fill active" data-val="4"></i><i class="bi bi-star-fill active" data-val="5"></i>
+                            </div>
+                            <input type="hidden" name="cleanliness" id="clean_input" value="5">
+                        </div>
+                        <div class="star-row">
+                            <span class="star-label">Engine & Performance</span>
+                            <div class="stars" data-input="perf_input">
+                                <i class="bi bi-star-fill active" data-val="1"></i><i class="bi bi-star-fill active" data-val="2"></i><i class="bi bi-star-fill active" data-val="3"></i><i class="bi bi-star-fill active" data-val="4"></i><i class="bi bi-star-fill active" data-val="5"></i>
+                            </div>
+                            <input type="hidden" name="performance" id="perf_input" value="5">
+                        </div>
+                        <div class="star-row">
+                            <span class="star-label">Overall Comfort</span>
+                            <div class="stars" data-input="comf_input">
+                                <i class="bi bi-star-fill active" data-val="1"></i><i class="bi bi-star-fill active" data-val="2"></i><i class="bi bi-star-fill active" data-val="3"></i><i class="bi bi-star-fill active" data-val="4"></i><i class="bi bi-star-fill active" data-val="5"></i>
+                            </div>
+                            <input type="hidden" name="comfort" id="comf_input" value="5">
+                        </div>
+
+                        <div class="star-row" id="driverReviewSection" style="display: none; border-top: 1px dashed var(--border); margin-top: 10px; padding-top: 10px;">
+                            <span class="star-label">Chauffeur Service</span>
+                            <div class="stars" data-input="driver_input">
+                                <i class="bi bi-star-fill active" data-val="1"></i><i class="bi bi-star-fill active" data-val="2"></i><i class="bi bi-star-fill active" data-val="3"></i><i class="bi bi-star-fill active" data-val="4"></i><i class="bi bi-star-fill active" data-val="5"></i>
+                            </div>
+                            <input type="hidden" name="driver_rating" id="driver_input" value="5">
+                        </div>
+                        
+                        <textarea name="comment" class="review-box" placeholder="Tell us what you loved (or didn't) about this trip..."></textarea>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 15px; justify-content: center;">Submit Review</button>
+                    </form>
+                </div>
+                
+                <div id="reviewedMsgSection" class="review-section" style="display: none; text-align: center; color: var(--success);">
+                    <i class="bi bi-check-circle-fill" style="font-size: 2rem;"></i>
+                    <p style="margin-top: 10px; font-weight: 600;">You have reviewed this trip.</p>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 24px;">
+                <button class="btn" style="flex: 1;" onclick="window.print()"><i class="bi bi-download"></i> Invoice</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Modal functions
-        function openTripModal(title, ref, price, date) {
+        // Modal Logic & Data Passing
+        function openTripModal(id, title, ref, price, startDate, endDate, hostName, hostPhone, status, reviewId, driverName) {
             document.getElementById('modalTitle').innerText = title;
-            document.getElementById('modalRef').innerText = "Invoice Reference: " + ref;
-            document.getElementById('modalDate').innerText = date;
-            document.getElementById('modalPrice').innerText = "₹" + price;
+            document.getElementById('modalRef').innerText = "#" + ref;
+            document.getElementById('modalDate').innerText = startDate + " to " + endDate;
             document.getElementById('modalTotal').innerText = "₹" + price;
+            
+            // Driver Check
+            const driverBadge = document.getElementById('modalDriverBadge');
+            const driverReviewSection = document.getElementById('driverReviewSection');
+            
+            if (driverName && driverName.trim() !== '') {
+                driverBadge.style.display = 'inline-block';
+                driverBadge.innerText = "Driver: " + driverName;
+                driverReviewSection.style.display = 'flex'; // Show driver rating form
+            } else {
+                driverBadge.style.display = 'none';
+                driverReviewSection.style.display = 'none'; // Hide driver rating form
+            }
+            
+            // Host Details
+            document.getElementById('modalHostName').innerText = hostName;
+            document.getElementById('modalHostPhone').innerText = hostPhone;
+            
+            let waMsg = encodeURIComponent(`Hi ${hostName}, I booked your ${title} on GoWheels. Reference: ${ref}`);
+            document.getElementById('modalWhatsapp').href = `https://wa.me/91${hostPhone}?text=${waMsg}`;
+
+            // Review Visibility Logic
+            document.getElementById('reviewRentalId').value = id;
+            document.getElementById('reviewFormSection').style.display = 'none';
+            document.getElementById('reviewedMsgSection').style.display = 'none';
+
+            if (status === 'Completed') {
+                if (reviewId && reviewId !== '') {
+                    document.getElementById('reviewedMsgSection').style.display = 'block';
+                } else {
+                    document.getElementById('reviewFormSection').style.display = 'block';
+                }
+            }
+
             document.getElementById('tripModal').style.display = 'grid';
         }
-        function closeTripModal() { document.getElementById('tripModal').style.display = 'none'; }
+        
+        function closeTripModal() { 
+            document.getElementById('tripModal').style.display = 'none'; 
+        }
 
-        // CSV Download Engine
+        // Interactive Star Rating Logic
+        document.querySelectorAll('.stars').forEach(starContainer => {
+            const stars = starContainer.querySelectorAll('i');
+            const targetInputId = starContainer.getAttribute('data-input');
+            const targetInput = document.getElementById(targetInputId);
+
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const value = parseInt(this.getAttribute('data-val'));
+                    targetInput.value = value;
+                    
+                    stars.forEach(s => {
+                        if (parseInt(s.getAttribute('data-val')) <= value) {
+                            s.classList.add('active');
+                        } else {
+                            s.classList.remove('active');
+                        }
+                    });
+                });
+            });
+        });
+
+        // CSV Export Script
         function downloadCSV() {
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "Vehicle Name,Invoice No,Category,Dates,Location,Status,Amount (INR)\n";
-            
+            let csvContent = "data:text/csv;charset=utf-8,Vehicle Name,Invoice No,Category,Dates,Location,Status,Amount (INR)\n";
             const rows = document.querySelectorAll('.trip-item');
-            if (rows.length === 0) {
-                alert("No trips to export!");
-                return;
-            }
+            if (rows.length === 0) { alert("No trips to export!"); return; }
 
             rows.forEach(row => {
                 const name = row.querySelector('.trip-name').innerText;
                 const metaRaw = row.querySelector('.trip-meta').innerText.split('•');
-                const category = metaRaw[0].trim();
-                const invoice = metaRaw[1].trim();
+                const category = metaRaw[1] ? metaRaw[1].trim() : metaRaw[0].trim();
+                const invoice = metaRaw[2] ? metaRaw[2].trim() : metaRaw[1] ? metaRaw[1].trim() : "";
                 const dates = row.querySelector('.trip-date').innerText;
                 const loc = row.querySelector('.trip-loc').innerText;
                 const status = row.querySelector('.trip-status').innerText;
@@ -240,15 +400,12 @@
             document.body.removeChild(link);
         }
 
-        // Theme Toggle
+        // Theme Logic
         const themeBtn = document.getElementById("themeToggle");
         const body = document.body;
-        
         if (!localStorage.getItem("theme")) { 
             if (window.matchMedia('(prefers-color-scheme: light)').matches) body.classList.add("light"); 
-        } else if (localStorage.getItem("theme") === "light") { 
-            body.classList.add("light"); 
-        }
+        } else if (localStorage.getItem("theme") === "light") { body.classList.add("light"); }
 
         themeBtn.onclick = () => {
             body.classList.toggle("light");
@@ -257,13 +414,11 @@
             updateChartColors(isLight);
         };
 
-        // Chart configuration
+        // Charts JS
         let timeChart, catChart;
-
         function initCharts(isLight) {
             const chartTextColor = isLight ? '#64748b' : '#a1a1aa';
             const ctx = document.getElementById('timeChart').getContext('2d');
-            
             const gradient = ctx.createLinearGradient(0, 0, 0, 200);
             gradient.addColorStop(0, '#ff6a2a'); 
             gradient.addColorStop(1, 'rgba(255, 106, 42, 0.1)'); 
@@ -276,54 +431,21 @@
                 type: 'bar',
                 data: {
                     labels: {{ time_labels|safe|default:"[]" }},
-                    datasets: [{
-                        label: 'Spent',
-                        data: values,
-                        backgroundColor: gradient,
-                        borderRadius: 10,
-                        borderSkipped: false,
-                        hoverBackgroundColor: '#ff6a2a',
-                        barThickness: 25,
-                    }]
+                    datasets: [{ label: 'Spent', data: values, backgroundColor: gradient, borderRadius: 10, hoverBackgroundColor: '#ff6a2a', barThickness: 25 }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false, 
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: isLight ? '#e2e8f0' : '#27272a', drawTicks: false }, border: { display: false }, ticks: { color: chartTextColor, font: { size: 10 } } },
-                        x: { grid: { display: false }, border: { display: false }, ticks: { color: chartTextColor, font: { family: "'Open Sans'", size: 11 } } }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: isLight ? '#e2e8f0' : '#27272a', drawTicks: false }, border: { display: false }, ticks: { color: chartTextColor, font: { size: 10 } } }, x: { grid: { display: false }, border: { display: false }, ticks: { color: chartTextColor, font: { family: "'Open Sans'", size: 11 } } } } }
             });
 
             catChart = new Chart(document.getElementById('catChart'), {
                 type: 'doughnut',
                 data: {
                     labels: {{ cat_labels|safe|default:"[]" }},
-                    datasets: [{
-                        data: {{ cat_values|safe|default:"[]" }},
-                        backgroundColor: ['#ff6a2a', '#7367f0', '#28c76f', '#ec4899', '#facc15'],
-                        borderWidth: 2,
-                        borderColor: isLight ? '#fff' : '#141417',
-                        hoverOffset: 15
-                    }]
+                    datasets: [{ data: {{ cat_values|safe|default:"[]" }}, backgroundColor: ['#ff6a2a', '#7367f0', '#28c76f', '#ec4899', '#facc15'], borderWidth: 2, borderColor: isLight ? '#fff' : '#141417', hoverOffset: 15 }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { color: chartTextColor, boxWidth: 8, padding: 15, font: { weight: '600' } } } },
-                    cutout: '80%'
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: chartTextColor, boxWidth: 8, padding: 15, font: { weight: '600' } } } }, cutout: '80%' }
             });
         }
-
-        function updateChartColors(isLight) {
-            if(timeChart) timeChart.destroy();
-            if(catChart) catChart.destroy();
-            initCharts(isLight);
-        }
-
+        function updateChartColors(isLight) { if(timeChart) timeChart.destroy(); if(catChart) catChart.destroy(); initCharts(isLight); }
         initCharts(document.body.classList.contains("light"));
     </script>
 {% endblock %}

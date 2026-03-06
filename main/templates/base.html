@@ -478,7 +478,13 @@
         <div class="account-dropdown">
           <div class="account-trigger">
             <i class="bi bi-person-circle"></i>
-            <span>{{ user.username }}</span>
+            <span>
+              {% if user.first_name %}
+                {{ user.first_name|title }}
+              {% else %}
+                {{ user.username|title }}
+              {% endif %}
+            </span>
             <i class="bi bi-chevron-down chevron"></i>
           </div>
 

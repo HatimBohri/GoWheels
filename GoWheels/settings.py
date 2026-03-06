@@ -27,6 +27,7 @@ SECRET_KEY = 'django-insecure-y$4z%p_1(u57sx!cbh24gpwomp8f$vg3lb^pn1x*20i7vm$z_p
 DEBUG = True
 
 ALLOWED_HOSTS = []
+#CSRF_TRUSTED_ORIGINS = ['https://*.vscode.dev', 'https://*.ngrok-free.app', 'https://*.ngrok.io']
 
 
 # Application definition
@@ -135,3 +136,14 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
+
+# ==========================================
+# EMAIL SMTP CONFIGURATION
+# ==========================================
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'hatimbohri05@gmail.com' 
+EMAIL_HOST_PASSWORD = 'iymzvavpppialfmq' 
+DEFAULT_FROM_EMAIL = 'GoWheels <hatimbohri05.email@gmail.com>'

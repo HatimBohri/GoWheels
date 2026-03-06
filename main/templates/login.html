@@ -12,31 +12,29 @@
        1. VARIABLES & RESET
        ========================= */
     :root {
-      /* Default (Dark Mode) Variables */
       --bg-color: #1a1a1a;
       --grid-line: rgba(255, 255, 255, 0.1);
       --panel-bg: #121212;
       --text-main: #ffffff;
       --text-muted: #888888;
       
-      --brand-accent: #ff6a2a; /* Orange accent remains constant */
+      --brand-accent: #ff6a2a; 
       --brand-yellow: #f4d03f;
-      --border-color: #ffffff; /* White borders in dark mode */
+      --brand-green: #00e676; 
+      --brand-red: #ff3b30;   
+      --border-color: #ffffff; 
       
       --border-thick: 3px solid var(--border-color);
       --shadow-hard: 8px 8px 0px var(--border-color);
     }
 
-    /* Light Mode Variables */
     body.light {
       --bg-color: #f0f0f0;
       --grid-line: rgba(0, 0, 0, 0.05);
       --panel-bg: #ffffff;
       --text-main: #121212;
       --text-muted: #555555;
-      
-      --border-color: #121212; /* Black borders in light mode */
-      
+      --border-color: #121212; 
       --border-thick: 3px solid var(--border-color);
       --shadow-hard: 8px 8px 0px var(--border-color);
     }
@@ -47,14 +45,11 @@
       font-family: 'Space Grotesk', sans-serif;
       background-color: var(--bg-color);
       color: var(--text-main);
-      
-      /* Subtle Technical Grid Background */
       background-image: 
         linear-gradient(var(--grid-line) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
       background-size: 40px 40px;
       background-position: center center;
-      
       height: 100vh;
       display: flex;
       justify-content: center;
@@ -79,10 +74,9 @@
       transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
-    /* LEFT SIDE: Visuals & Hype */
     .left-panel {
       flex: 1;
-      background: var(--brand-accent); /* Orange for Login to distinguish from Signup */
+      background: var(--brand-accent); 
       border-right: var(--border-thick);
       display: flex;
       flex-direction: column;
@@ -90,7 +84,7 @@
       padding: 40px;
       position: relative;
       overflow: hidden;
-      color: #121212; /* Always dark text on orange background */
+      color: #121212; 
     }
 
     .left-panel h1 {
@@ -116,39 +110,71 @@
       box-shadow: 4px 4px 0px #121212;
     }
 
-    /* RIGHT SIDE: The Form */
     .right-panel {
       flex: 1;
-      padding: 40px;
+      padding: 40px 50px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       background: var(--panel-bg);
     }
 
-    .form-header { margin-bottom: 25px; }
-    .form-header h2 { font-weight: 700; font-size: 2rem; color: var(--text-main); }
-    .form-header p { font-weight: 500; color: var(--text-muted); }
+    .form-header { margin-bottom: 30px; }
+    .form-header h2 { font-weight: 700; font-size: 2.2rem; color: var(--text-main); margin-bottom: 5px; }
+    .form-header p { font-weight: 500; color: var(--text-muted); font-size: 0.95rem; }
 
     /* =========================
-       3. BRUTALIST INPUTS
+       3. PROFESSIONAL MESSAGES
        ========================= */
-    .input-wrapper {
-      margin-bottom: 15px;
-      position: relative;
+    .messages { list-style: none; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; }
+    .messages li {
+      padding: 14px 18px; font-weight: 700; font-size: 0.95rem;
+      border: 3px solid #121212; box-shadow: 4px 4px 0px #121212;
+      display: flex; align-items: center; gap: 12px; animation: slideDown 0.3s ease forwards;
+    }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .message-success { background: var(--brand-green); color: #121212; }
+    .message-error { background: var(--brand-red); color: #ffffff; }
+
+    /* =========================
+       4. ENHANCED BRUTALIST INPUTS
+       ========================= */
+    .form-group { margin-bottom: 20px; }
+    
+    .brutal-label {
+      display: block;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-wrapper { position: relative; }
+    
+    .input-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      z-index: 2;
+      transition: color 0.3s ease;
     }
 
     .brutal-input {
       width: 100%;
-      padding: 15px;
+      padding: 14px 14px 14px 45px; /* Extra left padding for the icon */
       font-family: 'Space Grotesk', sans-serif;
       font-weight: 700;
       font-size: 1rem;
       border: var(--border-thick);
-      background: var(--bg-color); /* Matches page background */
+      background: var(--bg-color); 
       color: var(--text-main);
       outline: none;
-      transition: all 0.1s ease;
+      transition: all 0.15s ease;
     }
 
     .brutal-input:focus {
@@ -157,143 +183,73 @@
       border-color: var(--brand-accent);
       transform: translate(-2px, -2px);
     }
-
-    .brutal-input::placeholder { color: var(--text-muted); font-weight: 400; text-transform: uppercase; font-size: 0.85rem;}
-
-    /* =========================
-       4. ACTION BUTTONS
-       ========================= */
-    .submit-btn {
-      width: 100%;
-      padding: 18px;
-      margin-top: 10px;
-      background: var(--text-main); /* Inverts based on theme */
-      color: var(--panel-bg);       /* Inverts based on theme */
-      font-family: 'Archivo Black', sans-serif;
-      font-size: 1.2rem;
-      text-transform: uppercase;
-      border: none;
-      border: var(--border-thick); 
-      cursor: pointer;
-      position: relative;
-      transition: all 0.1s;
-    }
-
-    .submit-btn:hover {
-      background: var(--brand-accent);
-      color: #ffffff;
-      border-color: var(--brand-accent);
-      box-shadow: 6px 6px 0px var(--text-main);
-      transform: translate(-2px, -2px);
-    }
-
-    .submit-btn:active {
-      transform: translate(2px, 2px);
-      box-shadow: 0px 0px 0px var(--text-main);
-    }
-
-    .footer-links {
-      margin-top: 20px;
-      text-align: center;
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-    .footer-links span { margin-right: 5px; }
-    .footer-links a {
-      color: var(--text-main);
-      text-decoration: underline;
-      text-decoration-thickness: 2px;
-    }
-    .footer-links a:hover {
-      background: var(--brand-yellow);
-      color: #121212;
-    }
-
-    /* Back Home Floating Button */
-    .back-home {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      background: var(--panel-bg);
-      border: var(--border-thick);
-      padding: 10px 20px;
-      font-weight: bold;
-      text-decoration: none;
-      color: var(--text-main);
-      box-shadow: 4px 4px 0px var(--border-color);
-      transition: all 0.1s;
-      z-index: 20;
-    }
-    .back-home:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0px var(--brand-accent);
-      border-color: var(--brand-accent);
+    
+    /* Highlight icon when input is focused */
+    .brutal-input:focus + .input-icon, 
+    .brutal-input:focus ~ .input-icon {
       color: var(--brand-accent);
     }
-    .back-home:active {
-      transform: translate(2px, 2px);
-      box-shadow: 0px 0px 0px var(--border-color);
-    }
 
-    /* Messages */
-    .messages { list-style: none; margin-bottom: 20px; border: var(--border-thick); }
-    .messages li {
-      padding: 10px;
-      font-weight: bold;
-      background: #ffcccc;
-      color: #d8000c;
+    .brutal-input::placeholder { color: var(--text-muted); font-weight: 400; font-size: 0.9rem; text-transform: none;}
+
+    .toggle-pwd { 
+      position: absolute; right: 15px; top: 50%; transform: translateY(-50%); 
+      background: none; border: none; color: var(--text-muted); font-size: 1.2rem; 
+      cursor: pointer; transition: 0.2s; z-index: 3;
     }
-    .message-success { background: #d4edda; color: #155724; }
-    .message-error { background: #ffcccc; color: #d8000c; }
+    .toggle-pwd:hover { color: var(--text-main); }
+    .pr-50 { padding-right: 50px !important; }
 
     /* =========================
-       5. DECORATIONS & MOBILE
+       5. ACTION BUTTONS
        ========================= */
-    /* Marquee Animation at Bottom */
+    .submit-btn {
+      width: 100%; padding: 18px; background: var(--text-main); color: var(--panel-bg); 
+      font-family: 'Archivo Black', sans-serif; font-size: 1.2rem; text-transform: uppercase;
+      border: var(--border-thick); cursor: pointer; position: relative; transition: all 0.1s;
+    }
+    .submit-btn:hover {
+      background: var(--brand-accent); color: #ffffff; border-color: var(--brand-accent);
+      box-shadow: 6px 6px 0px var(--text-main); transform: translate(-2px, -2px);
+    }
+    .submit-btn:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px var(--text-main); }
+
+    .aux-links { display: flex; justify-content: flex-end; margin-bottom: 20px; margin-top: -5px; }
+    .forgot-pwd { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-decoration: none; border-bottom: 2px solid transparent; transition: 0.2s; }
+    .forgot-pwd:hover { color: var(--brand-accent); border-color: var(--brand-accent); }
+
+    .footer-links { margin-top: 25px; text-align: center; font-size: 0.9rem; font-weight: 700; color: var(--text-main); }
+    .footer-links span { margin-right: 5px; color: var(--text-muted); }
+    .footer-links a { color: var(--text-main); text-decoration: underline; text-decoration-thickness: 2px; }
+    .footer-links a:hover { background: var(--brand-yellow); color: #121212; }
+
+    .back-home {
+      position: absolute; top: 20px; left: 20px; background: var(--panel-bg);
+      border: var(--border-thick); padding: 10px 20px; font-weight: bold;
+      text-decoration: none; color: var(--text-main); box-shadow: 4px 4px 0px var(--border-color);
+      transition: all 0.1s; z-index: 20;
+    }
+    .back-home:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px var(--brand-accent); border-color: var(--brand-accent); color: var(--brand-accent); }
+
+    /* =========================
+       6. DECORATIONS & MOBILE
+       ========================= */
     .marquee-container {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: var(--text-main); /* Inverts */
-      color: var(--panel-bg);       /* Inverts */
-      padding: 10px 0;
-      overflow: hidden;
-      white-space: nowrap;
-      border-top: var(--border-thick);
-      transform: rotate(-2deg) scale(1.1); 
+      position: absolute; bottom: 0; left: 0; width: 100%;
+      background: var(--text-main); color: var(--panel-bg); 
+      padding: 10px 0; overflow: hidden; white-space: nowrap;
+      border-top: var(--border-thick); transform: rotate(-2deg) scale(1.1); 
       margin-bottom: 30px;
     }
+    .marquee-content { display: inline-block; animation: scroll 10s linear infinite; font-family: 'Archivo Black', sans-serif; font-size: 1.5rem; }
+    @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-    .marquee-content {
-      display: inline-block;
-      animation: scroll 10s linear infinite;
-      font-family: 'Archivo Black', sans-serif;
-      font-size: 1.5rem;
-    }
-
-    @keyframes scroll {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
-
-    /* Mobile Responsive */
     @media (max-width: 768px) {
-      .split-container {
-        flex-direction: column;
-        height: auto;
-        width: 95%;
-      }
-      .left-panel {
-        padding: 30px;
-        border-right: none;
-        border-bottom: var(--border-thick);
-        min-height: 200px;
-      }
+      .split-container { flex-direction: column; height: auto; width: 95%; }
+      .left-panel { padding: 30px; border-right: none; border-bottom: var(--border-thick); min-height: 200px; }
       .left-panel h1 { font-size: 2.5rem; }
       .right-panel { padding: 30px; }
-      .marquee-container { display: none; } /* Hide on mobile */
+      .marquee-container { display: none; } 
     }
   </style>
 </head>
@@ -306,7 +262,7 @@
   <div class="split-container">
     
     <div class="left-panel">
-      <div class="sticker">Garage</div>
+      <div class="sticker">स्वागत है</div>
       <h1>Welcome<br>Back<br>Driver.</h1>
       <i class="bi bi-key-fill" style="font-size: 5rem; position: absolute; bottom: 20px; right: 20px; opacity: 0.1; color: #000;"></i>
     </div>
@@ -320,7 +276,16 @@
       {% if messages %}
         <ul class="messages">
           {% for message in messages %}
-            <li class="message-{{ message.tags }}">{{ message }}</li>
+            <li class="message-{{ message.tags }}">
+              {% if message.tags == 'success' %}
+                <i class="bi bi-check-circle-fill" style="font-size: 1.3rem;"></i>
+              {% elif message.tags == 'error' %}
+                <i class="bi bi-exclamation-triangle-fill" style="font-size: 1.3rem;"></i>
+              {% else %}
+                <i class="bi bi-info-circle-fill" style="font-size: 1.3rem;"></i>
+              {% endif %}
+              {{ message }}
+            </li>
           {% endfor %}
         </ul>
       {% endif %}
@@ -328,12 +293,27 @@
       <form action="" method="POST">
         {% csrf_token %}
         
-        <div class="input-wrapper">
-          <input required class="brutal-input" type="text" name="username" placeholder="Username">
+        <div class="form-group">
+          <label class="brutal-label">Email</label>
+          <div class="input-wrapper">
+            <input required class="brutal-input" type="text" name="username" placeholder="e.g. xyz@email.com">
+            <i class="bi bi-person-fill input-icon"></i>
+          </div>
         </div>
 
-        <div class="input-wrapper">
-          <input required class="brutal-input" type="password" name="password" placeholder="Password">
+        <div class="form-group">
+          <label class="brutal-label">Password</label>
+          <div class="input-wrapper">
+            <input required class="brutal-input pr-50" type="password" id="pwd" name="password" placeholder="Enter your password">
+            <i class="bi bi-lock-fill input-icon"></i>
+            <button type="button" class="toggle-pwd" onclick="toggleVisibility('pwd', this)">
+              <i class="bi bi-eye-slash-fill"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="aux-links">
+            <a href="{% url 'forgot_password' %}" class="forgot-pwd">Forgot Password?</a>
         </div>
 
         <input type="submit" class="submit-btn" value="UNLOCK GARAGE">
@@ -353,16 +333,26 @@
   </div>
 
   <script>
-    // --- THEME SYNC LOGIC ---
-    // This script checks the user's preference saved in localStorage 
-    // and applies the 'light' class if needed.
-    
     (function() {
       const savedTheme = localStorage.getItem("theme");
       if (savedTheme === "light") {
         document.body.classList.add("light");
       }
     })();
+
+    function toggleVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const icon = btn.querySelector('i');
+      if (input.type === "password") {
+        input.type = "text";
+        icon.classList.replace('bi-eye-slash-fill', 'bi-eye-fill');
+        icon.style.color = "var(--brand-accent)";
+      } else {
+        input.type = "password";
+        icon.classList.replace('bi-eye-fill', 'bi-eye-slash-fill');
+        icon.style.color = "var(--text-muted)";
+      }
+    }
   </script>
 
 </body>

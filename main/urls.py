@@ -45,4 +45,10 @@ urlpatterns = [
     
     path('toggle-status/<int:vehicle_id>/', views.toggle_vehicle_status, name='toggle_vehicle_status'),
     path('toggle-status/<int:vehicle_id>/', views.toggle_vehicle_status, name='toggle_vehicle_status'),
+
+    path('api/send-otp/', views.send_otp_api, name='send_otp_api'),
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('reset-password/', views.reset_password, name='reset_password'),
+
+    path('submit-review/', views.submit_review, name='submit_review'),
 ]

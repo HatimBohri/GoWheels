@@ -12,31 +12,29 @@
        1. VARIABLES & RESET
        ========================= */
     :root {
-      /* Default (Dark Mode) Variables */
       --bg-color: #1a1a1a;
       --grid-line: rgba(255, 255, 255, 0.1);
       --panel-bg: #121212;
       --text-main: #ffffff;
       --text-muted: #888888;
       
-      --brand-accent: #ff6a2a; /* Orange accent remains constant */
+      --brand-accent: #ff6a2a; 
       --brand-yellow: #f4d03f;
-      --border-color: #ffffff; /* White borders in dark mode */
+      --brand-green: #25D366;
+      --brand-red: #ff3333;
+      --border-color: #ffffff; 
       
       --border-thick: 3px solid var(--border-color);
       --shadow-hard: 8px 8px 0px var(--border-color);
     }
 
-    /* Light Mode Variables */
     body.light {
       --bg-color: #f0f0f0;
       --grid-line: rgba(0, 0, 0, 0.05);
       --panel-bg: #ffffff;
       --text-main: #121212;
       --text-muted: #555555;
-      
-      --border-color: #121212; /* Black borders in light mode */
-      
+      --border-color: #121212; 
       --border-thick: 3px solid var(--border-color);
       --shadow-hard: 8px 8px 0px var(--border-color);
     }
@@ -47,19 +45,17 @@
       font-family: 'Space Grotesk', sans-serif;
       background-color: var(--bg-color);
       color: var(--text-main);
-      
-      /* Subtle Technical Grid Background */
       background-image: 
         linear-gradient(var(--grid-line) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
       background-size: 40px 40px;
       background-position: center center;
-      
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      overflow: hidden;
+      overflow-x: hidden;
+      padding: 40px 0;
       transition: background-color 0.3s ease, color 0.3s ease;
     }
 
@@ -69,8 +65,8 @@
     .split-container {
       display: flex;
       width: 90%;
-      max-width: 1000px;
-      height: 600px;
+      max-width: 1100px;
+      min-height: 700px;
       background: var(--panel-bg);
       border: var(--border-thick);
       box-shadow: var(--shadow-hard);
@@ -79,11 +75,8 @@
       transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
-    /* LEFT SIDE: Visuals & Hype */
     .left-panel {
       flex: 1;
-      /* Keep the yellow branding on the left, but maybe mute it slightly in dark mode? 
-         Let's keep it bold as requested, but ensure text is readable */
       background: var(--brand-yellow); 
       border-right: var(--border-thick);
       display: flex;
@@ -92,7 +85,7 @@
       padding: 40px;
       position: relative;
       overflow: hidden;
-      color: #121212; /* Always dark text on yellow background */
+      color: #121212; 
     }
 
     .left-panel h1 {
@@ -101,26 +94,17 @@
       line-height: 0.9;
       text-transform: uppercase;
       transform: rotate(-2deg);
-      text-shadow: 4px 4px 0px #ffffff; /* White shadow pops on yellow */
+      text-shadow: 4px 4px 0px #ffffff; 
       z-index: 2;
     }
 
     .left-panel .sticker {
-      position: absolute;
-      background: #ffffff;
-      color: #121212;
-      border: 3px solid #121212;
-      padding: 10px 20px;
-      font-weight: bold;
-      transform: rotate(15deg);
-      top: 50px;
-      right: 30px;
-      box-shadow: 4px 4px 0px #121212;
+      position: absolute; background: #ffffff; color: #121212; border: 3px solid #121212;
+      padding: 10px 20px; font-weight: bold; transform: rotate(15deg); top: 50px; right: 30px; box-shadow: 4px 4px 0px #121212;
     }
 
-    /* RIGHT SIDE: The Form */
     .right-panel {
-      flex: 1;
+      flex: 1.2;
       padding: 40px;
       display: flex;
       flex-direction: column;
@@ -135,178 +119,90 @@
     /* =========================
        3. BRUTALIST INPUTS
        ========================= */
-    .input-wrapper {
-      margin-bottom: 15px;
-      position: relative;
-    }
+    .two-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .input-wrapper { margin-bottom: 15px; position: relative; }
 
     .brutal-input {
-      width: 100%;
-      padding: 15px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      font-size: 1rem;
-      border: var(--border-thick);
-      background: var(--bg-color); /* Matches page background */
-      color: var(--text-main);
-      outline: none;
-      transition: all 0.1s ease;
+      width: 100%; padding: 14px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1rem;
+      border: var(--border-thick); background: var(--bg-color); color: var(--text-main); outline: none; transition: all 0.1s ease;
     }
-
-    .brutal-input:focus {
-      background: var(--panel-bg);
-      box-shadow: 4px 4px 0px var(--brand-accent);
-      border-color: var(--brand-accent);
-      transform: translate(-2px, -2px);
-    }
-
+    .brutal-input:focus { background: var(--panel-bg); box-shadow: 4px 4px 0px var(--brand-accent); border-color: var(--brand-accent); transform: translate(-2px, -2px); }
     .brutal-input::placeholder { color: var(--text-muted); font-weight: 400; text-transform: uppercase; font-size: 0.85rem;}
+    
+    /* Password Eye Toggle */
+    .toggle-pwd { position: absolute; right: 15px; top: 15px; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
+    .toggle-pwd:hover { color: var(--text-main); }
+    .pr-50 { padding-right: 50px !important; }
+
+    /* OTP Specific Styling */
+    .otp-group { display: flex; gap: 10px; margin-bottom: 5px; }
+    .otp-btn { flex: 0 0 130px; background: var(--text-main); color: var(--panel-bg); font-family: 'Archivo Black', sans-serif; font-size: 0.85rem; border: var(--border-thick); cursor: pointer; transition: all 0.1s; }
+    .otp-btn:hover:not(:disabled) { background: var(--brand-yellow); color: #121212; border-color: var(--brand-yellow); transform: translate(-2px, -2px); box-shadow: 4px 4px 0px var(--text-main); }
+    .otp-btn:disabled { background: var(--panel-bg) !important; color: var(--text-muted) !important; border-color: var(--text-muted) !important; cursor: not-allowed; }
+
+    .otp-input-wrapper { display: none; animation: slideDown 0.3s ease-out forwards; margin-top: 10px; }
+    .otp-feedback { display: none; font-size: 0.8rem; color: var(--brand-accent); font-weight: 700; margin-bottom: 15px; animation: slideDown 0.3s ease-out forwards; }
 
     /* =========================
-       4. ACTION BUTTONS
+       4. PASSWORD SECURITY UI
        ========================= */
-    .submit-btn {
-      width: 100%;
-      padding: 18px;
-      margin-top: 10px;
-      background: var(--text-main); /* Inverts based on theme */
-      color: var(--panel-bg);       /* Inverts based on theme */
-      font-family: 'Archivo Black', sans-serif;
-      font-size: 1.2rem;
-      text-transform: uppercase;
-      border: none;
-      border: var(--border-thick); 
-      cursor: pointer;
-      position: relative;
-      transition: all 0.1s;
-    }
+    .security-box { background: var(--bg-color); border: var(--border-thick); padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+    
+    .meter-container { display: flex; gap: 5px; height: 10px; margin-bottom: 15px; }
+    .meter-block { flex: 1; border: 2px solid var(--border-color); background: transparent; transition: 0.3s; }
+    
+    .rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); }
+    .rule-item { display: flex; align-items: center; gap: 6px; transition: color 0.3s; }
+    .rule-item i { font-size: 1rem; }
+    
+    /* Validation States */
+    .rule-item.valid { color: var(--brand-green); }
+    .rule-item.valid i::before { content: "\F26A"; } /* Bootstrap check-circle-fill */
 
-    .submit-btn:hover {
-      background: var(--brand-accent);
-      color: #ffffff;
-      border-color: var(--brand-accent);
-      box-shadow: 6px 6px 0px var(--text-main);
-      transform: translate(-2px, -2px);
-    }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes shakeError { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } }
 
-    .submit-btn:active {
-      transform: translate(2px, 2px);
-      box-shadow: 0px 0px 0px var(--text-main);
-    }
+    /* =========================
+       5. ACTION BUTTONS & MISC
+       ========================= */
+    .submit-btn { width: 100%; padding: 18px; margin-top: 10px; background: var(--text-main); color: var(--panel-bg); font-family: 'Archivo Black', sans-serif; font-size: 1.2rem; text-transform: uppercase; border: var(--border-thick); cursor: pointer; position: relative; transition: all 0.1s; }
+    .submit-btn:hover { background: var(--brand-accent); color: #ffffff; border-color: var(--brand-accent); box-shadow: 6px 6px 0px var(--text-main); transform: translate(-2px, -2px); }
+    .submit-btn:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px var(--text-main); }
+    .submit-btn.shake { animation: shakeError 0.4s; background: var(--brand-red); border-color: var(--brand-red); color: white;}
 
-    .footer-links {
-      margin-top: 20px;
-      text-align: center;
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-    .footer-links span { margin-right: 5px; }
-    .footer-links a {
-      color: var(--text-main);
-      text-decoration: underline;
-      text-decoration-thickness: 2px;
-    }
-    .footer-links a:hover {
-      background: var(--brand-yellow);
-      color: #121212;
-    }
+    .footer-links { margin-top: 20px; text-align: center; font-size: 0.9rem; font-weight: 700; color: var(--text-main); }
+    .footer-links a { color: var(--text-main); text-decoration: underline; text-decoration-thickness: 2px; }
+    .footer-links a:hover { background: var(--brand-yellow); color: #121212; }
 
-    /* Back Home Floating Button */
-    .back-home {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      background: var(--panel-bg);
-      border: var(--border-thick);
-      padding: 10px 20px;
-      font-weight: bold;
-      text-decoration: none;
-      color: var(--text-main);
-      box-shadow: 4px 4px 0px var(--border-color);
-      transition: all 0.1s;
-      z-index: 20;
-    }
-    .back-home:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0px var(--brand-accent);
-      border-color: var(--brand-accent);
-      color: var(--brand-accent);
-    }
-    .back-home:active {
-      transform: translate(2px, 2px);
-      box-shadow: 0px 0px 0px var(--border-color);
-    }
+    .back-home { position: absolute; top: 20px; left: 20px; background: var(--panel-bg); border: var(--border-thick); padding: 10px 20px; font-weight: bold; text-decoration: none; color: var(--text-main); box-shadow: 4px 4px 0px var(--border-color); transition: all 0.1s; z-index: 20; }
+    .back-home:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px var(--brand-accent); border-color: var(--brand-accent); color: var(--brand-accent); }
 
-    /* Messages */
     .messages { list-style: none; margin-bottom: 20px; border: var(--border-thick); }
-    .messages li {
-      padding: 10px;
-      font-weight: bold;
-      background: #ffcccc;
-      color: #d8000c;
-    }
+    .messages li { padding: 10px; font-weight: bold; background: #ffcccc; color: #d8000c; }
+    #form-error { display: none; color: var(--brand-red); font-weight: bold; font-size: 0.85rem; text-align: center; margin-top: 10px; }
 
-    /* =========================
-       5. DECORATIONS & MOBILE
-       ========================= */
-    /* Marquee Animation at Bottom */
-    .marquee-container {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: var(--text-main); /* Inverts */
-      color: var(--panel-bg);       /* Inverts */
-      padding: 10px 0;
-      overflow: hidden;
-      white-space: nowrap;
-      border-top: var(--border-thick);
-      transform: rotate(-2deg) scale(1.1); 
-      margin-bottom: 30px;
-    }
+    .marquee-container { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--text-main); color: var(--panel-bg); padding: 10px 0; overflow: hidden; white-space: nowrap; border-top: var(--border-thick); transform: rotate(-2deg) scale(1.1); margin-bottom: 30px; z-index: 1; }
+    .marquee-content { display: inline-block; animation: scroll 10s linear infinite; font-family: 'Archivo Black', sans-serif; font-size: 1.5rem; }
+    @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-    .marquee-content {
-      display: inline-block;
-      animation: scroll 10s linear infinite;
-      font-family: 'Archivo Black', sans-serif;
-      font-size: 1.5rem;
-    }
-
-    @keyframes scroll {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
-
-    /* Mobile Responsive */
     @media (max-width: 768px) {
-      .split-container {
-        flex-direction: column;
-        height: auto;
-        width: 95%;
-      }
-      .left-panel {
-        padding: 30px;
-        border-right: none;
-        border-bottom: var(--border-thick);
-        min-height: 200px;
-      }
+      .split-container { flex-direction: column; width: 95%; margin-bottom: 60px; }
+      .left-panel { padding: 30px; border-right: none; border-bottom: var(--border-thick); min-height: 200px; }
       .left-panel h1 { font-size: 2.5rem; }
-      .right-panel { padding: 30px; }
-      .marquee-container { display: none; } /* Hide on mobile */
+      .right-panel { padding: 25px; }
+      .marquee-container { display: none; }
+      .two-cols { grid-template-columns: 1fr; gap: 0; }
+      .rules-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <a href="{% url 'home' %}" class="back-home">
-    <i class="bi bi-arrow-90deg-left"></i> BACK
-  </a>
+  <a href="{% url 'home' %}" class="back-home"><i class="bi bi-arrow-90deg-left"></i> BACK</a>
 
   <div class="split-container">
-    
     <div class="left-panel">
-      <div class="sticker">Est. 2026</div>
+      <div class="sticker">स्वागत है</div>
       <h1>Full<br>Throttle<br>Access.</h1>
       <i class="bi bi-speedometer" style="font-size: 5rem; position: absolute; bottom: 20px; right: 20px; opacity: 0.1; color: #000;"></i>
     </div>
@@ -325,30 +221,63 @@
         </ul>
       {% endif %}
 
-      <form action="" method="POST">
+      <form action="" method="POST" id="signupForm">
         {% csrf_token %}
         
-        <div class="input-wrapper">
-          <input required class="brutal-input" type="text" name="username" placeholder="Choose Username" value="{{ request.POST.username }}">
+        <div class="two-cols">
+          <div class="input-wrapper"><input required class="brutal-input" type="text" name="first_name" placeholder="First Name" value="{{ request.POST.first_name }}"></div>
+          <div class="input-wrapper"><input required class="brutal-input" type="text" name="last_name" placeholder="Last Name" value="{{ request.POST.last_name }}"></div>
+        </div>
+
+        <div class="input-wrapper otp-group">
+          <input required class="brutal-input" type="email" id="email_input" name="email" placeholder="Enter Email" value="{{ request.POST.email }}">
+          <button type="button" class="otp-btn" id="send-otp-btn" onclick="triggerOTP()">SEND OTP</button>
+        </div>
+        
+        <div class="otp-feedback" id="otp-message">
+          <i class="bi bi-envelope-check-fill"></i> OTP sent! Please check your email inbox.
+        </div>
+
+        <div class="input-wrapper otp-input-wrapper" id="otp-field-container">
+          <input class="brutal-input" type="text" name="otp_code" placeholder="Enter 6-Digit OTP" maxlength="6" style="border-color: var(--brand-accent); color: var(--brand-accent);">
         </div>
 
         <div class="input-wrapper">
-          <input required class="brutal-input" type="email" name="email" placeholder="Enter Email" value="{{ request.POST.email }}">
+          <input required class="brutal-input" type="tel" name="phone_number" placeholder="Phone Number" value="{{ request.POST.phone_number }}">
         </div>
 
-        <div class="input-wrapper">
-          <input required class="brutal-input" type="password" name="password" placeholder="Create Password">
+        <div class="two-cols">
+            <div class="input-wrapper">
+              <input required class="brutal-input pr-50" type="password" id="pwd" name="password" placeholder="Password">
+              <button type="button" class="toggle-pwd" onclick="toggleVisibility('pwd', this)"><i class="bi bi-eye-slash-fill"></i></button>
+            </div>
+            <div class="input-wrapper">
+              <input required class="brutal-input pr-50" type="password" id="pwd_confirm" name="confirm_password" placeholder="Confirm">
+              <button type="button" class="toggle-pwd" onclick="toggleVisibility('pwd_confirm', this)"><i class="bi bi-eye-slash-fill"></i></button>
+            </div>
         </div>
 
-        <div class="input-wrapper">
-          <input required class="brutal-input" type="password" name="confirm_password" placeholder="Repeat Password">
+        <div class="security-box">
+          <div class="meter-container">
+            <div class="meter-block" id="meter-1"></div>
+            <div class="meter-block" id="meter-2"></div>
+            <div class="meter-block" id="meter-3"></div>
+            <div class="meter-block" id="meter-4"></div>
+          </div>
+          <div class="rules-grid">
+            <div class="rule-item" id="rule-len"><i class="bi bi-x-circle"></i> 8+ Characters</div>
+            <div class="rule-item" id="rule-upper"><i class="bi bi-x-circle"></i> Uppercase Letter</div>
+            <div class="rule-item" id="rule-num"><i class="bi bi-x-circle"></i> Minimum 1 Number</div>
+            <div class="rule-item" id="rule-spec"><i class="bi bi-x-circle"></i> Special Char (@#$%)</div>
+            <div class="rule-item" id="rule-match"><i class="bi bi-x-circle"></i> Passwords Match</div>
+          </div>
         </div>
 
-        <input type="submit" class="submit-btn" value="START ENGINE">
+        <input type="submit" class="submit-btn" id="mainSubmit" value="START ENGINE">
+        <div id="form-error">Please fulfill all security requirements.</div>
 
         <div class="footer-links">
-          <span>Existing Driver?</span>
-          <a href="{% url 'login' %}">LOG IN HERE</a>
+          <span>Existing Driver?</span> <a href="{% url 'login' %}">LOG IN HERE</a>
         </div>
       </form>
     </div>
@@ -356,21 +285,141 @@
 
   <div class="marquee-container">
     <div class="marquee-content">
-      PREMIUM RENTALS /// NO HIDDEN FEES /// 24/7 SUPPORT /// INSTANT BOOKING /// PREMIUM RENTALS /// NO HIDDEN FEES /// 24/7 SUPPORT /// INSTANT BOOKING /// 
+      PREMIUM RENTALS /// NO HIDDEN FEES /// 24/7 SUPPORT /// SECURE GARAGE /// PREMIUM RENTALS /// NO HIDDEN FEES /// 24/7 SUPPORT /// SECURE GARAGE /// 
     </div>
   </div>
 
   <script>
-    // --- THEME SYNC LOGIC ---
-    // This script checks the user's preference saved in localStorage 
-    // and applies the 'light' class if needed.
-    
-    (function() {
-      const savedTheme = localStorage.getItem("theme");
-      if (savedTheme === "light") {
-        document.body.classList.add("light");
+    // --- THEME ---
+    (function() { if (localStorage.getItem("theme") === "light") document.body.classList.add("light"); })();
+
+    // --- OTP LOGIC ---
+    let timerInterval;
+    function triggerOTP() {
+      const emailInput = document.getElementById("email_input").value;
+      const btn = document.getElementById("send-otp-btn");
+      const otpContainer = document.getElementById("otp-field-container");
+      
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if(emailRegex.test(emailInput)) {
+        btn.innerText = "SENDING..."; btn.disabled = true;
+        
+        fetch('/api/send-otp/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `email=${encodeURIComponent(emailInput)}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === "success") {
+                otpContainer.style.display = "block";
+                otpContainer.querySelector("input").setAttribute("required", "true");
+                document.getElementById("otp-message").style.display = "block";
+                startTimer(60, btn);
+            } else { alert(data.message); btn.innerText = "SEND OTP"; btn.disabled = false; }
+        }).catch(err => { alert("Network Error."); btn.innerText = "SEND OTP"; btn.disabled = false; });
+      } else { alert("Please enter a valid email."); }
+    }
+
+    function startTimer(duration, btn) {
+        let timer = duration; clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            btn.innerText = `RESEND (${timer}s)`; btn.disabled = true;
+            if (--timer < 0) { clearInterval(timerInterval); btn.innerText = "RESEND OTP"; btn.disabled = false; }
+        }, 1000);
+    }
+
+    // --- PASSWORD UI LOGIC ---
+    const pwd = document.getElementById('pwd');
+    const pwdConf = document.getElementById('pwd_confirm');
+    let isPasswordValid = false;
+
+    // Toggle Eye Icon
+    function toggleVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const icon = btn.querySelector('i');
+      if (input.type === "password") {
+        input.type = "text";
+        icon.classList.replace('bi-eye-slash-fill', 'bi-eye-fill');
+        icon.style.color = "var(--brand-accent)";
+      } else {
+        input.type = "password";
+        icon.classList.replace('bi-eye-fill', 'bi-eye-slash-fill');
+        icon.style.color = "var(--text-muted)";
       }
-    })();
+    }
+
+    // Real-Time Validation Engine
+    function checkSecurity() {
+      const val = pwd.value;
+      const confVal = pwdConf.value;
+      
+      // RegEx Tests
+      const hasLen = val.length >= 8;
+      const hasUpper = /[A-Z]/.test(val);
+      const hasNum = /[0-9]/.test(val);
+      const hasSpec = /[!@#$%^&*(),.?":{}|<>]/.test(val);
+      const isMatch = val === confVal && val !== "";
+
+      // Update UI List
+      toggleRule('rule-len', hasLen);
+      toggleRule('rule-upper', hasUpper);
+      toggleRule('rule-num', hasNum);
+      toggleRule('rule-spec', hasSpec);
+      toggleRule('rule-match', isMatch);
+
+      // Calculate Strength (0 to 4)
+      let strength = 0;
+      if(hasLen) strength++;
+      if(hasUpper) strength++;
+      if(hasNum) strength++;
+      if(hasSpec) strength++;
+
+      // Update Meter Colors
+      const m1 = document.getElementById('meter-1');
+      const m2 = document.getElementById('meter-2');
+      const m3 = document.getElementById('meter-3');
+      const m4 = document.getElementById('meter-4');
+      
+      // Reset all
+      [m1, m2, m3, m4].forEach(m => { m.style.background = 'transparent'; m.style.borderColor = 'var(--border-color)' });
+
+      // Apply colors based on strength
+      if (strength >= 1) { m1.style.background = 'var(--brand-red)'; m1.style.borderColor = 'var(--brand-red)'; }
+      if (strength >= 2) { m2.style.background = 'var(--brand-yellow)'; m2.style.borderColor = 'var(--brand-yellow)'; }
+      if (strength >= 3) { m3.style.background = 'var(--brand-yellow)'; m3.style.borderColor = 'var(--brand-yellow)'; }
+      if (strength === 4) { 
+        [m1, m2, m3, m4].forEach(m => { m.style.background = 'var(--brand-green)'; m.style.borderColor = 'var(--brand-green)' }); 
+      }
+
+      // Check if EVERYTHING is satisfied
+      isPasswordValid = (strength === 4 && isMatch);
+    }
+
+    function toggleRule(id, isValid) {
+      const el = document.getElementById(id);
+      if(isValid) { el.classList.add('valid'); } else { el.classList.remove('valid'); }
+    }
+
+    pwd.addEventListener('input', checkSecurity);
+    pwdConf.addEventListener('input', checkSecurity);
+
+    // Form Submit Interceptor
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+      if(!isPasswordValid) {
+        e.preventDefault(); // Stop form submission
+        const btn = document.getElementById('mainSubmit');
+        const err = document.getElementById('form-error');
+        
+        btn.classList.remove('shake');
+        void btn.offsetWidth; // trigger reflow
+        btn.classList.add('shake');
+        
+        err.style.display = 'block';
+        setTimeout(() => { btn.classList.remove('shake'); }, 400);
+      }
+    });
+
   </script>
 
 </body>

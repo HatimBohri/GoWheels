@@ -6,7 +6,8 @@ from .models import (
     DriverApplication, 
     Driver, 
     Wallet, 
-    WalletTransaction
+    WalletTransaction,
+    Review
 )
 
 # ==========================================
@@ -119,3 +120,7 @@ class WalletTransactionAdmin(admin.ModelAdmin):
     list_display = ('wallet', 'transaction_type', 'amount', 'status', 'created_at')
     list_filter = ('transaction_type', 'status')
     search_fields = ('wallet__user__username', 'description')
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('vehicle', 'user', 'vehicle_avg', 'driver_rating', 'created_at')

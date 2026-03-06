@@ -8,7 +8,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
   <script>
-    // Universal Theme Sync (Runs immediately to prevent flashing)
     if (localStorage.getItem("theme") === "light") {
       document.documentElement.classList.add("light");
     }
@@ -16,7 +15,7 @@
 
   <style>
     /* =========================================
-       1. VARIABLES & RESET (Dark/Light Mode)
+       1. VARIABLES & RESET 
        ========================================= */
     :root {
       --bg-main: #0a0a0a;
@@ -30,6 +29,7 @@
       --card-shadow: 0 10px 25px rgba(0,0,0,0.5);
       --error-bg: #3f1010;
       --error-text: #ff6b6b;
+      --whatsapp: #25D366;
     }
 
     html.light {
@@ -47,51 +47,34 @@
     }
 
     * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body { margin: 0; background: var(--bg-main); padding: 30px; color: var(--text-main); transition: background 0.3s ease, color 0.3s ease; }
     
-    body { 
-      margin: 0; 
-      background: var(--bg-main); 
-      padding: 30px; 
-      color: var(--text-main); 
-      transition: background 0.3s ease, color 0.3s ease; 
-    }
-
     .checkout-container { max-width: 1000px; margin: auto; display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
-    
-    .card { 
-      background: var(--bg-card); 
-      border-radius: 16px; 
-      padding: 25px; 
-      box-shadow: var(--card-shadow); 
-      border: 1px solid var(--border);
-      transition: background 0.3s ease, border-color 0.3s ease;
-    }
+    .card { background: var(--bg-card); border-radius: 16px; padding: 25px; box-shadow: var(--card-shadow); border: 1px solid var(--border); }
     
     h2 { margin-bottom: 20px; font-size: 1.6rem; color: var(--text-main); }
-    h3 { margin-bottom: 15px; font-size: 1.2rem; color: var(--text-main); }
+    h3 { margin-bottom: 15px; font-size: 1.2rem; color: var(--text-main); margin-top: 25px; }
+    h3:first-of-type { margin-top: 0; }
     
     .form-group { margin-bottom: 18px; }
-    label { font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-muted); }
+    label { font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;}
     
-    input { 
-      width: 100%; 
-      padding: 12px 14px; 
-      border-radius: 10px; 
-      border: 1px solid var(--border); 
-      font-size: 0.95rem; 
-      background: var(--input-bg);
-      color: var(--text-main);
-      transition: border-color 0.3s;
-    }
+    input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.95rem; background: var(--input-bg); color: var(--text-main); transition: border-color 0.3s; }
     input:focus { outline: none; border-color: var(--primary); }
+    input[type="file"] { padding: 9px 14px; }
     
     .two-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     .summary-item { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; color: var(--text-muted); }
-    .summary-item strong { color: var(--text-main); }
+    .summary-item strong { color: var(--text-main); text-align: right; }
     
     .checkout-btn { margin-top: 20px; width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
-    .checkout-btn:hover { filter: brightness(1.1); }
-    .checkout-btn:disabled { background: var(--text-muted); cursor: not-allowed; opacity: 0.5; }
+    .checkout-btn:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 5px 15px var(--primary-glow); }
+    .checkout-btn:disabled { background: var(--text-muted); cursor: not-allowed; opacity: 0.5; transform: none; box-shadow: none; }
+
+    /* Quick Date Selectors */
+    .quick-dates { display: flex; gap: 10px; margin-top: -5px; margin-bottom: 15px; }
+    .quick-btn { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-muted); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
+    .quick-btn:hover { border-color: var(--primary); color: var(--primary); }
 
     /* Payment Grid */
     .payment-options-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
@@ -103,85 +86,87 @@
     .pay-check { position: absolute; top: 10px; right: 10px; color: var(--primary); opacity: 0; }
     .pay-card.selected-pay .pay-check { opacity: 1; }
 
-    /* Messages & Warnings */
     #wallet-warning { color: var(--error-text); font-size: 0.85rem; margin-top: 5px; display: none; }
     .message-box { background: var(--error-bg); color: var(--error-text); padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; border: 1px solid var(--border); }
 
     /* =========================================
-       2. IMAGE SLIDER STYLES
+       2. UI COMPONENTS (Slider, Lightbox, Host)
        ========================================= */
-    .slider-container { position: relative; width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 15px; border: 1px solid var(--border); }
+    .slider-container { position: relative; width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--border); }
     .slider-track { display: flex; transition: transform 0.4s ease-in-out; width: 100%; }
-    .slider-track img { width: 100%; height: 220px; object-fit: cover; flex-shrink: 0; }
-    .slider-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0, 0, 0, 0.6); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: 0.3s; }
+    .slider-track img { width: 100%; height: 200px; object-fit: cover; flex-shrink: 0; cursor: pointer; transition: 0.2s; }
+    .slider-track img:hover { filter: brightness(0.8); }
+    
+    .slider-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0, 0, 0, 0.6); color: white; border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: 0.3s; z-index: 10; }
     .slider-btn:hover { background: var(--primary); }
     .slider-btn.prev { left: 10px; }
     .slider-btn.next { right: 10px; }
-    .slider-dots { position: absolute; bottom: 10px; width: 100%; display: flex; justify-content: center; gap: 6px; }
+    
+    .slider-dots { position: absolute; bottom: 10px; width: 100%; display: flex; justify-content: center; gap: 6px; z-index: 10; }
     .dot { width: 8px; height: 8px; background: rgba(255, 255, 255, 0.5); border-radius: 50%; cursor: pointer; transition: 0.3s; }
     .dot.active { background: var(--primary); transform: scale(1.2); }
 
-    /* --- Drive Toggle Styling --- */
-    .drive-toggle-container {
-      display: flex;
-      background: var(--input-bg);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 6px;
-      margin-bottom: 25px;
-    }
-    .drive-option {
-      flex: 1; text-align: center; padding: 14px; border-radius: 10px;
-      cursor: pointer; font-weight: 600; color: var(--text-muted);
-      transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;
-    }
-    .drive-option:hover { color: var(--text-main); }
-    .drive-option.selected {
-      background: var(--bg-card); color: var(--primary);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid var(--border);
-    }
+    /* Lightbox */
+    .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+    .lightbox.show { display: flex; opacity: 1; }
+    .lightbox img { max-width: 90%; max-height: 90%; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+    .lightbox .close { position: absolute; top: 20px; right: 30px; font-size: 40px; color: white; cursor: pointer; transition: 0.2s; }
+    .lightbox .close:hover { color: var(--primary); transform: scale(1.1); }
     
-    /* --- Premium Driver Cards --- */
+    /* Host Profile Section */
+    .host-card { background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin: 20px 0; }
+    .host-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .host-avatar { width: 40px; height: 40px; background: var(--border); border-radius: 50%; display: grid; place-items: center; font-size: 1.2rem; color: var(--text-muted); }
+    .host-info h4 { margin: 0; font-size: 0.95rem; color: var(--text-main); }
+    .host-info span { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    .whatsapp-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: transparent; border: 1px solid var(--whatsapp); color: var(--whatsapp); padding: 8px 12px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: 0.3s; }
+    .whatsapp-btn:hover { background: var(--whatsapp); color: #fff; border-color: var(--whatsapp); }
+
+    /* Drive & Premium Driver Cards */
+    .drive-toggle-container { display: flex; background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; padding: 6px; margin-bottom: 25px; }
+    .drive-option { flex: 1; text-align: center; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 600; color: var(--text-muted); transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem; }
+    .drive-option:hover { color: var(--text-main); }
+    .drive-option.selected { background: var(--bg-card); color: var(--primary); box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid var(--border); }
+    
     .driver-grid { display: flex; flex-direction: column; gap: 12px; }
-    .driver-card {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 16px; border: 1px solid var(--border); border-radius: 14px;
-      background: var(--input-bg); cursor: pointer; transition: all 0.3s ease;
-    }
+    .driver-card { display: flex; align-items: center; justify-content: space-between; padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--input-bg); cursor: pointer; transition: all 0.3s ease; }
     .driver-card:hover { border-color: var(--primary); }
     .driver-card.selected { border: 2px solid var(--primary); background: var(--primary-glow); }
     .driver-card input[type="radio"] { display: none; }
-    
     .driver-info { display: flex; align-items: center; gap: 15px; }
     .driver-img-wrapper { position: relative; }
-    
-    /* UPDATED: Larger Driver Image */
-    .driver-img { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); }
-    .driver-placeholder { width: 65px; height: 65px; border-radius: 50%; background: var(--border); display: grid; place-items: center; font-size: 1.8rem; color: var(--text-muted); }
-    
-    .driver-rating {
-      position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
-      background: #FFD700; color: #000; font-size: 0.75rem; font-weight: 700;
-      padding: 3px 6px; border-radius: 10px; display: flex; align-items: center; gap: 3px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    }
-    
+    .driver-img { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); }
+    .driver-placeholder { width: 55px; height: 55px; border-radius: 50%; background: var(--border); display: grid; place-items: center; font-size: 1.5rem; color: var(--text-muted); }
+    .driver-rating { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); background: #FFD700; color: #000; font-size: 0.7rem; font-weight: 700; padding: 2px 5px; border-radius: 10px; display: flex; align-items: center; gap: 3px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
     .driver-price { text-align: right; }
-    .driver-price strong { display: block; color: var(--primary); font-size: 1.15rem; }
-    .driver-price small { color: var(--text-muted); font-size: 0.8rem; }
+    .driver-price strong { display: block; color: var(--primary); font-size: 1.1rem; }
+    .driver-price small { color: var(--text-muted); font-size: 0.75rem; }
     
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    /* ZOMATO STYLE SUCCESS ANIMATION */
+    .success-overlay { position: fixed; inset: 0; background: var(--bg-main); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .success-overlay.show { opacity: 1; pointer-events: all; }
+    .success-circle { width: 120px; height: 120px; background: var(--whatsapp); border-radius: 50%; display: grid; place-items: center; color: white; font-size: 60px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; transform: scale(0); box-shadow: 0 10px 30px rgba(37, 211, 102, 0.4); }
+    @keyframes popIn { to { transform: scale(1); } }
+    .success-text { margin-top: 25px; font-size: 1.8rem; font-weight: 700; color: var(--text-main); animation: slideUp 0.5s ease 0.2s forwards; opacity: 0; transform: translateY(20px); }
+    .success-subtext { color: var(--text-muted); font-size: 1rem; margin-top: 10px; animation: slideUp 0.5s ease 0.3s forwards; opacity: 0; transform: translateY(20px); }
+    @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
 
-    @media(max-width: 768px){
-      .checkout-container { grid-template-columns: 1fr; }
-      .payment-options-grid { grid-template-columns: 1fr; }
-    }
+    @media(max-width: 768px){ .checkout-container { grid-template-columns: 1fr; } .payment-options-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
+
+<div id="order-success-overlay" class="success-overlay">
+  <div class="success-circle"><i class="bi bi-check-lg"></i></div>
+  <div class="success-text">Booking Confirmed!</div>
+  <div class="success-subtext">Redirecting to your dashboard...</div>
+</div>
+
+<div id="lightbox" class="lightbox" onclick="closeLightbox()">
+  <span class="close">&times;</span>
+  <img id="lightbox-img" src="" alt="Vehicle Fullscreen">
+</div>
 
 {% if messages %}
   {% for message in messages %}
@@ -189,7 +174,7 @@
   {% endfor %}
 {% endif %}
 
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" id="checkout-form">
   {% csrf_token %}
   <div class="checkout-container">
 
@@ -197,10 +182,23 @@
       <h2>Checkout</h2>
       
       <h3>Personal Details</h3>
-      <div class="form-group"><label>Full Name</label><input type="text" name="full_name" required></div>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" name="full_name" 
+               value="{% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}" 
+               required>
+      </div>
       <div class="two-cols">
-        <div class="form-group"><label>Age</label><input type="number" name="age" min="18" required></div>
-        <div class="form-group"><label>Phone Number</label><input type="tel" name="phone_number" required></div>
+        <div class="form-group">
+          <label>Age</label>
+          <input type="number" name="age" min="18" required>
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" name="phone_number" 
+                 value="{{ user.profile.phone_number|default:'' }}" 
+                 required>
+        </div>
       </div>
 
       <h3>Rental Duration</h3>
@@ -208,9 +206,15 @@
         <div class="form-group"><label>Start Date</label><input type="date" name="start_date" id="start_date" required></div>
         <div class="form-group"><label>End Date</label><input type="date" name="end_date" id="end_date" required></div>
       </div>
+      
+      <div class="quick-dates">
+        <button type="button" class="quick-btn" onclick="setQuickDate('today', 0)">Today</button>
+        <button type="button" class="quick-btn" onclick="setQuickDate('tomorrow', 1)">Tomorrow</button>
+        <button type="button" class="quick-btn" onclick="setQuickDate('today', 2)">2 Days</button>
+        <button type="button" class="quick-btn" onclick="setQuickDate('today', 7)">1 Week</button>
+      </div>
 
       <h3>Drive Option</h3>
-      
       <div class="drive-toggle-container">
         <label class="drive-option selected" id="opt-self" onclick="setDriveType('self')">
           <input type="radio" name="drive_type" value="self" checked style="display:none;">
@@ -222,14 +226,12 @@
         </label>
       </div>
       
-      <div id="driver-section" style="display: none; animation: slideDown 0.4s ease; margin-bottom: 25px;">
-        <h4 style="margin-bottom: 12px; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Select a Chauffeur</h4>
-        
+      <div id="driver-section" style="display: none; margin-bottom: 25px;">
+        <h4 style="margin-bottom: 12px; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Select a Chauffeur</h4>
         <div class="driver-grid">
           {% for driver in driver_applications %}
           <label class="driver-card" onclick="selectDriver(this)">
             <input type="radio" name="driver_id" value="{{ driver.id }}" data-fee="{{ driver.price_per_day }}">
-            
             <div class="driver-info">
                 <div class="driver-img-wrapper">
                     {% if driver.profile_photo %}
@@ -237,16 +239,13 @@
                     {% else %}
                       <div class="driver-placeholder"><i class="bi bi-person"></i></div>
                     {% endif %}
-                    
                     <div class="driver-rating"><i class="bi bi-star-fill"></i> {{ driver.rating|default:"5.0" }}</div>
                 </div>
-                
                 <div>
-                  <strong style="color: var(--text-main); display: block; font-size: 1.05rem;">{{ driver.full_name }}</strong> 
-                  <small style="color: var(--text-muted);">Exp: {{ driver.experience_years }} years</small>
+                  <strong style="color: var(--text-main); display: block; font-size: 1rem;">{{ driver.full_name }}</strong> 
+                  <small style="color: var(--text-muted);">Exp: {{ driver.experience_years }} yrs</small>
                 </div>
             </div>
-            
             <div class="driver-price">
                 <strong>+₹{{ driver.price_per_day }}</strong>
                 <small>per day</small>
@@ -266,43 +265,33 @@
               <input type="radio" name="payment_mode" value="wallet" id="wallet-radio">
               <i class="bi bi-wallet2 pay-icon"></i>
               <div class="pay-check"><i class="bi bi-check-circle-fill"></i></div>
-              <div>
-                  <strong style="display:block; color: var(--text-main);">My Wallet</strong>
-                  <small style="color: var(--text-muted);">Bal: ₹{{ wallet_balance|default:"0" }}</small>
-              </div>
+              <div><strong style="display:block; color: var(--text-main);">My Wallet</strong><small style="color: var(--text-muted);">Bal: ₹{{ wallet_balance|default:"0" }}</small></div>
           </label>
-
           <label class="pay-card selected-pay" onclick="selectPayment(this)">
               <input type="radio" name="payment_mode" value="online" checked>
               <i class="bi bi-credit-card-2-front pay-icon"></i>
               <div class="pay-check"><i class="bi bi-check-circle-fill"></i></div>
-              <div>
-                  <strong style="display:block; color: var(--text-main);">Online / UPI</strong>
-                  <small style="color: var(--text-muted);">Secure Stripe</small>
-              </div>
+              <div><strong style="display:block; color: var(--text-main);">Online / UPI</strong><small style="color: var(--text-muted);">Secure Stripe</small></div>
           </label>
-
           <label class="pay-card" onclick="selectPayment(this)">
               <input type="radio" name="payment_mode" value="cash">
               <i class="bi bi-cash-coin pay-icon"></i>
               <div class="pay-check"><i class="bi bi-check-circle-fill"></i></div>
-              <div>
-                  <strong style="display:block; color: var(--text-main);">Cash</strong>
-                  <small style="color: var(--text-muted);">On Pickup</small>
-              </div>
+              <div><strong style="display:block; color: var(--text-main);">Cash</strong><small style="color: var(--text-muted);">On Pickup</small></div>
           </label>
       </div>
       <div id="wallet-warning">⚠️ Insufficient wallet balance. Please add funds or choose another method.</div>
     </div>
 
-
-    <div class="card" style="align-self: start;">
-      <h3>Summary</h3>
+    <div class="card" style="align-self: start; position: sticky; top: 20px;">
+      <h3 style="margin-top: 0;">Summary</h3>
       
       <div class="slider-container">
         <div class="slider-track" id="imageTrack">
           {% for img in vehicle.images.all %}
-            <img src="{{ img.image.url }}" alt="{{ vehicle.vehicle_name }}">
+            <img src="{{ img.image.url }}" alt="{{ vehicle.vehicle_name }}" onclick="openLightbox(this.src)">
+          {% empty %}
+            <img src="https://via.placeholder.com/400x200?text=No+Image" alt="Placeholder">
           {% endfor %}
         </div>
         
@@ -319,17 +308,41 @@
       </div>
       
       <div class="summary-item"><span>Vehicle</span><strong>{{ vehicle.vehicle_name }}</strong></div>
+      {% if vehicle.avg_rating > 0 %}
+<div class="summary-item">
+    <span>Rating</span>
+    <strong style="color: var(--star, #facc15); display: flex; align-items: center; gap: 5px;">
+        <i class="bi bi-star-fill"></i> {{ vehicle.avg_rating }} <span style="color: var(--text-muted); font-size: 0.8rem; font-weight: normal;">({{ vehicle.review_count }} Reviews)</span>
+    </strong>
+</div>
+{% endif %}
+      <div class="summary-item"><span>Category</span><strong>{{ vehicle.category }}</strong></div>
+      <div class="summary-item"><span>Pickup</span><strong style="max-width: 60%; text-align: right;">{{ vehicle.pickup_location|default:"Contact Host" }}</strong></div>
+      
+      <div class="host-card">
+        <div class="host-header">
+          <div class="host-avatar"><i class="bi bi-person-fill"></i></div>
+          <div class="host-info">
+            <h4>{% if vehicle.owner.first_name %}{{ vehicle.owner.first_name }} {{ vehicle.owner.last_name }}{% else %}{{ vehicle.owner.username }}{% endif %}</h4>
+            <span>Vehicle Host</span>
+          </div>
+        </div>
+        <a href="https://wa.me/91{{ vehicle.contact_number|urlencode }}?text=Hi%20{% if vehicle.owner.first_name %}{{ vehicle.owner.first_name|urlencode }}{% else %}{{ vehicle.owner.username|urlencode }}{% endif %}!%20I%20am%20interested%20in%20renting%20your%20{{ vehicle.vehicle_name|urlencode }}%20via%20GoWheels." target="_blank" class="whatsapp-btn">
+          <i class="bi bi-whatsapp"></i> Chat on WhatsApp
+        </a>
+      </div>
+
       <div class="summary-item"><span>Price/Day</span><span>₹{{ vehicle.price_per_day }}</span></div>
       <div class="summary-item"><span>Days</span><span id="total_days">0</span></div>
       <div class="summary-item"><span>Driver Fee</span><span id="driver_fee">₹0</span></div>
       <hr style="border-color: var(--border);">
-      <div class="summary-item" style="font-size: 1.2rem;"><strong>Total</strong><strong id="total_price" style="color: var(--primary);">₹0</strong></div>
+      <div class="summary-item" style="font-size: 1.25rem;"><strong>Total</strong><strong id="total_price" style="color: var(--primary);">₹0</strong></div>
 
-      <div style="margin-top: 20px; background: var(--input-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+      <div style="margin-top: 25px; background: var(--input-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
         <label>Verification</label>
         <div style="display:flex; align-items:center; gap:10px; margin-bottom: 10px;">
             <img src="{% url 'captcha' %}" id="captcha_img" style="border-radius: 5px; border: 1px solid var(--border);">
-            <button type="button" onclick="document.getElementById('captcha_img').src='{% url 'captcha' %}?'+Math.random()" style="border:none; background:none; cursor:pointer; font-size: 1.5rem; color: var(--text-muted);">↻</button>
+            <button type="button" onclick="document.getElementById('captcha_img').src='{% url 'captcha' %}?'+Math.random()" style="border:none; background:none; cursor:pointer; font-size: 1.5rem; color: var(--text-muted); transition: 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">↻</button>
         </div>
         <input type="text" name="captcha_input" placeholder="Enter text" required style="text-transform:uppercase;">
       </div>
@@ -341,13 +354,36 @@
 </form>
 
 <script>
+  // --- Form Animation Logic ---
+  const checkoutForm = document.getElementById('checkout-form');
+  const confirmBtn = document.getElementById('confirm-btn');
+  
+  checkoutForm.addEventListener('submit', function(e) {
+      // If wallet is selected but not enough funds, stop!
+      if(document.getElementById("wallet-radio").checked && userBalance < currentTotal) {
+          e.preventDefault();
+          return;
+      }
+      
+      // Stop normal instant submission
+      e.preventDefault();
+      
+      // Trigger full screen Zomato animation
+      document.getElementById('order-success-overlay').classList.add('show');
+      
+      // Wait 1.5 seconds so the user can enjoy the animation, then submit for real
+      setTimeout(() => {
+          checkoutForm.submit();
+      }, 1500);
+  });
+
+  // --- Core Logic ---
   const startDate = document.getElementById("start_date");
   const endDate = document.getElementById("end_date");
   const pricePerDay = parseFloat("{{ vehicle.price_per_day }}");
   const userBalance = parseFloat("{{ wallet_balance|default:0 }}");
   let currentTotal = 0;
 
-  // Prevent past dates from being selected
   const todayDateStr = new Date().toISOString().split('T')[0];
   if(startDate && endDate) {
       startDate.setAttribute('min', todayDateStr);
@@ -355,10 +391,34 @@
       
       startDate.addEventListener('change', function() {
           endDate.setAttribute('min', this.value);
+          if(endDate.value && endDate.value < this.value) {
+            endDate.value = this.value;
+          }
+          updatePrice();
       });
   }
 
-  // UPDATED: Calculation Logic now reads the Segmented Toggle correctly
+  // --- Upgraded Quick Date Logic ---
+  function setQuickDate(startType, daysTotal) {
+    let start = new Date();
+    
+    // If they clicked "Tomorrow", set the start date to tomorrow
+    if(startType === 'tomorrow') {
+        start.setDate(start.getDate() + 1);
+    }
+    
+    // Set start input
+    startDate.value = start.toISOString().split('T')[0];
+    endDate.setAttribute('min', startDate.value);
+
+    // Set end input based on total duration requested
+    let end = new Date(start);
+    end.setDate(start.getDate() + daysTotal);
+    endDate.value = end.toISOString().split('T')[0];
+    
+    updatePrice();
+  }
+
   function updatePrice() {
     const s = new Date(startDate.value);
     const e = new Date(endDate.value);
@@ -369,7 +429,6 @@
       
       let total = days * pricePerDay;
       
-      // Look for the newly styled radio buttons
       const driveTypeInput = document.querySelector('input[name="drive_type"]:checked');
       if (driveTypeInput && driveTypeInput.value === "driver") {
         const driver = document.querySelector('input[name="driver_id"]:checked');
@@ -377,6 +436,8 @@
            const fee = parseFloat(driver.dataset.fee) * days;
            document.getElementById("driver_fee").innerText = "₹" + fee;
            total += fee;
+        } else {
+           document.getElementById("driver_fee").innerText = "₹0";
         }
       } else {
         document.getElementById("driver_fee").innerText = "₹0";
@@ -391,7 +452,6 @@
   function checkWalletBalance() {
     const walletRadio = document.getElementById("wallet-radio");
     const walletWarning = document.getElementById("wallet-warning");
-    const confirmBtn = document.getElementById("confirm-btn");
 
     if (walletRadio.checked) {
         if (userBalance < currentTotal) {
@@ -417,7 +477,6 @@
       checkWalletBalance();
   }
 
- // --- Drive Type Selection UI ---
   function setDriveType(type) {
     document.getElementById("opt-self").classList.remove("selected");
     document.getElementById("opt-driver").classList.remove("selected");
@@ -426,7 +485,6 @@
       document.getElementById("opt-self").classList.add("selected");
       document.getElementById("driver-section").style.display = "none";
       
-      // Uncheck driver so fee resets to 0
       const checkedDriver = document.querySelector('input[name="driver_id"]:checked');
       if(checkedDriver) checkedDriver.checked = false;
       document.querySelectorAll('.driver-card').forEach(c => c.classList.remove('selected'));
@@ -435,25 +493,22 @@
       document.getElementById("opt-driver").classList.add("selected");
       document.getElementById("driver-section").style.display = "block";
     }
-    updatePrice(); // Re-calculate total
+    updatePrice(); 
   }
 
-  // --- Driver Card Selection UI ---
   function selectDriver(card) {
     document.querySelectorAll('.driver-card').forEach(c => c.classList.remove('selected'));
     card.classList.add('selected');
     card.querySelector('input').checked = true;
-    updatePrice(); // Add driver fee to total
+    updatePrice(); 
   }
 
-  // Event Listeners for Pricing
-  startDate.addEventListener("change", updatePrice);
   endDate.addEventListener("change", updatePrice);
   document.querySelectorAll('input[name="driver_id"]').forEach(el => {
       el.addEventListener("change", updatePrice);
   });
 
-  // --- Image Slider Logic ---
+  // --- Re-Added Slider Logic ---
   let slideIndex = 0;
   const track = document.getElementById("imageTrack");
   const dots = document.querySelectorAll(".dot");
@@ -477,6 +532,20 @@
     slideIndex = index;
     updateSlider();
   }
+
+  // --- Lightbox Logic ---
+  const lightbox = document.getElementById("lightbox");
+  const lightboxImg = document.getElementById("lightbox-img");
+
+  function openLightbox(src) {
+    lightboxImg.src = src;
+    lightbox.classList.add("show");
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove("show");
+  }
+
 </script>
 
 </body>

@@ -86,6 +86,21 @@ class Vehicle(models.Model):
             return active_rental.end_date + timedelta(days=1)
         return today
 
+    # ==========================================
+    # NEW RATING PROPERTIES (ADDED HERE)
+    # ==========================================
+    @property
+    def avg_rating(self):
+        reviews = self.reviews.all()
+        if not reviews.exists():
+            return 0.0  # Returns 0 if there are no reviews yet
+        total = sum(r.vehicle_avg for r in reviews)
+        return round(total / reviews.count(), 1)
+
+    @property
+    def review_count(self):
+        return self.reviews.count()
+
 class VehicleImage(models.Model):
     vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to='vehicles/')
@@ -248,3 +263,48 @@ def save_user_wallet(sender, instance, **kwargs):
     # Check if wallet exists before saving to avoid errors
     if hasattr(instance, 'wallet'):
         instance.wallet.save()
+
+# ==========================================
+# 5. USER PROFILE (For Phone Numbers)
+# ==========================================
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    phone_number = models.CharField(max_length=15, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+
+# Signals to Auto-Create Profile
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    if hasattr(instance, 'profile'):
+        instance.profile.save()
+
+
+# ==========================================
+# 6. REVIEWS
+# ==========================================
+class Review(models.Model):
+    rental = models.OneToOneField(Rental, on_delete=models.CASCADE, related_name="review")
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name="reviews")
+    driver = models.ForeignKey(Driver, on_delete=models.CASCADE, related_name="reviews", null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    cleanliness = models.IntegerField(default=5)
+    performance = models.IntegerField(default=5)
+    comfort = models.IntegerField(default=5)
+    driver_rating = models.IntegerField(null=True, blank=True) # Optional if no driver selected
+    comment = models.TextField(blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def vehicle_avg(self):
+        """Calculates the average rating for the vehicle specifically"""
+        return round((self.cleanliness + self.performance + self.comfort) / 3.0, 1)
