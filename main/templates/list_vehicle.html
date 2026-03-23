@@ -122,11 +122,11 @@
         <div class="input-grid">
           <div class="input-group">
             <label>Owner Name</label>
-            <input type="text" name="owner_name" placeholder="John Doe" required>
+            <input type="text" name="owner_name" value="{{ request.user.first_name }} {{ request.user.last_name }}" placeholder="John Doe" required>
           </div>
           <div class="input-group">
             <label>Contact Number</label>
-            <input type="tel" name="contact_number" placeholder="+91 98765 43210" required>
+            <input type="tel" name="contact_number" value="{{ request.user.phone_number }}" required>
           </div>
         </div>
         
@@ -331,12 +331,27 @@
   }
 
   // NEW: Image Preview (Multiple Optional Images)
+  // Store files globally so they don't get erased when the user clicks the box again
+  const selectedFiles = new DataTransfer(); 
+
   function previewMultipleImages(input, containerId) {
     const container = document.getElementById(containerId);
-    container.innerHTML = ''; // Clear out old previews if they select new ones
-
+    
     if (input.files && input.files.length > 0) {
+      // 1. Add the newly selected files to our storage
       Array.from(input.files).forEach(file => {
+        selectedFiles.items.add(file);
+      });
+
+      // 2. Update the actual hidden HTML input to hold ALL files (old + new)
+      // This is what actually gets sent to your Django views.py!
+      input.files = selectedFiles.files;
+
+      // 3. Clear the visual container to re-render all previews
+      container.innerHTML = ''; 
+
+      // 4. Draw the image previews on the screen
+      Array.from(input.files).forEach((file, index) => {
         const reader = new FileReader();
         reader.onload = function(e) {
           const img = document.createElement('img');
@@ -346,10 +361,10 @@
         reader.readAsDataURL(file);
       });
       
-      // Update UI Text
+      // 5. Update the text on the screen
       document.getElementById('multi-icon').className = 'bi bi-check-circle upload-icon';
       document.getElementById('multi-icon').style.color = 'var(--primary)';
-      document.getElementById('multi-text').innerText = input.files.length + ' additional photo(s) selected. Click to change.';
+      document.getElementById('multi-text').innerText = input.files.length + ' additional photo(s) selected. Click to add more.';
     }
   }
 </script>

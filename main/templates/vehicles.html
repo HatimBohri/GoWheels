@@ -12,7 +12,7 @@
     --primary-glow: rgba(255,106,42,0.35);
     --text-main: #ffffff;
     --text-muted: #b5b5b5;
-    --star: #facc15; /* Golden Star Color */
+    --star: #facc15; 
   }
 
   body.light {
@@ -37,23 +37,10 @@
   .section h2 { font-size: 2rem; margin-bottom: 10px; }
   .section p { color: var(--text-muted); margin-bottom: 30px; }
 
-  .layout {
-    display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 60px;
-    align-items: start;
-  }
+  .layout { display: grid; grid-template-columns: 260px 1fr; gap: 60px; align-items: start; }
 
   /* ===== FILTER SIDEBAR ===== */
-  .filter-box {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    padding: 18px;
-    border-radius: 18px;
-    position: sticky;
-    top: 120px;
-    height: fit-content;
-  }
+  .filter-box { background: var(--bg-card); border: 1px solid var(--border); padding: 18px; border-radius: 18px; position: sticky; top: 120px; height: fit-content; }
   .filter-box h4 { margin-bottom: 10px; font-size: 0.95rem; }
   .filter-box label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; margin-bottom: 8px; }
   .filter-box input[type="checkbox"] { appearance: none; width: 16px; height: 16px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-main); position: relative; cursor: pointer; }
@@ -83,19 +70,7 @@
   
   .tag { position: absolute; top: 12px; left: 12px; background: var(--primary); color: #000; padding: 4px 12px; font-size: 0.7rem; border-radius: 999px; font-weight: 700; text-transform: uppercase;}
   
-  /* RATING BADGE */
-  .rating-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: rgba(250, 204, 21, 0.15);
-    color: var(--star);
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    border: 1px solid rgba(250, 204, 21, 0.3);
-  }
+  .rating-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(250, 204, 21, 0.15); color: var(--star); padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(250, 204, 21, 0.3); }
 
   .fleet-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
   .title-row { display: flex; justify-content: space-between; align-items: flex-start; }
@@ -109,8 +84,10 @@
 
   /* ===== STATES ===== */
   .unavailable-stamp { position: absolute; top: 35px; right: -95px; background: #dc2626; color: #fff; padding: 8px 90px; font-size: 12px; font-weight: 700; text-transform: uppercase; white-space: nowrap; transform: rotate(35deg); z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.35); }
-  .fleet-card:has(.unavailable-stamp) img { filter: grayscale(0.7) brightness(0.85); }
-  .fleet-card.booked { opacity: 0.45; filter: grayscale(1) blur(0.5px); pointer-events: none; }
+  
+  /* Fixed Booking Class (REMOVED pointer-events:none to allow future bookings) */
+  .fleet-card:has(.unavailable-stamp) img { filter: grayscale(0.4) brightness(0.85); }
+  .fleet-card.booked { opacity: 0.85; } 
   
   @media (max-width: 900px) {
     .layout { grid-template-columns: 1fr; }
@@ -179,13 +156,13 @@
 
     <div class="fleet-grid">
       {% for v in vehicles %}
-      <div class="fleet-card">
+      <div class="fleet-card {% if v.is_booked_today %}booked{% endif %}">
         <span class="tag">{{ v.category }}</span>
 
         {% if not v.available %}
           <div class="unavailable-stamp" style="background: #dc2626;">Offline&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
         {% elif v.is_booked_today %}
-          <div class="unavailable-stamp">On Trip&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+          <div class="unavailable-stamp" style="background: #eab308;">On Trip&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
         {% endif %}
 
         {% if v.front_image %}
@@ -216,9 +193,9 @@
             <button class="rent-btn" disabled style="background:#2a2a2a; color:#777; cursor:not-allowed; border:none; box-shadow:none;">
               Currently Offline
             </button>
-          {% elif v.is_booked_today %}
-            <a href="{% url 'rent_vehicle' v.id %}" class="rent-btn" style="background:#444; color:#aaa;">
-              Available from {{ v.next_available_date|date:"d M" }}
+          {% elif v.is_booked_today and v.available_from %}
+            <a href="{% url 'rent_vehicle' v.id %}" class="rent-btn" style="background: transparent; color: var(--text-main); border: 1px solid var(--border);">
+              Available from {{ v.available_from|date:"d M" }}
             </a>
           {% else %}
             <a href="{% url 'rent_vehicle' v.id %}" class="rent-btn">Rent Now</a>

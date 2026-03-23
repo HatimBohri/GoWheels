@@ -69,7 +69,7 @@
     
     .checkout-btn { margin-top: 20px; width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
     .checkout-btn:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 5px 15px var(--primary-glow); }
-    .checkout-btn:disabled { background: var(--text-muted); cursor: not-allowed; opacity: 0.5; transform: none; box-shadow: none; }
+    .checkout-btn:disabled { background: var(--input-bg); color: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; border: 1px solid var(--border); }
 
     /* Quick Date Selectors */
     .quick-dates { display: flex; gap: 10px; margin-top: -5px; margin-bottom: 15px; }
@@ -87,6 +87,7 @@
     .pay-card.selected-pay .pay-check { opacity: 1; }
 
     #wallet-warning { color: var(--error-text); font-size: 0.85rem; margin-top: 5px; display: none; }
+    #date-warning { display: none; margin-top: 15px; font-size: 0.85rem; }
     .message-box { background: var(--error-bg); color: var(--error-text); padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; border: 1px solid var(--border); }
 
     /* =========================================
@@ -202,6 +203,12 @@
       </div>
 
       <h3>Rental Duration</h3>
+      
+      <div id="booked-dates-display" style="margin-bottom: 15px; font-size: 0.85rem; color: var(--text-muted); display: none; background: var(--input-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
+          <strong style="color: var(--primary);"><i class="bi bi-calendar-x"></i> Not Available:</strong> 
+          <span id="booked-dates-list"></span>
+      </div>
+
       <div class="two-cols">
         <div class="form-group"><label>Start Date</label><input type="date" name="start_date" id="start_date" required></div>
         <div class="form-group"><label>End Date</label><input type="date" name="end_date" id="end_date" required></div>
@@ -229,20 +236,20 @@
       <div id="driver-section" style="display: none; margin-bottom: 25px;">
         <h4 style="margin-bottom: 12px; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Select a Chauffeur</h4>
         <div class="driver-grid">
-          {% for driver in driver_applications %}
+          {% for driver in available_drivers %}
           <label class="driver-card" onclick="selectDriver(this)">
             <input type="radio" name="driver_id" value="{{ driver.id }}" data-fee="{{ driver.price_per_day }}">
             <div class="driver-info">
                 <div class="driver-img-wrapper">
-                    {% if driver.profile_photo %}
-                      <img src="{{ driver.profile_photo.url }}" class="driver-img" alt="{{ driver.full_name }}">
+                    {% if driver.photo %}
+                      <img src="{{ driver.photo.url }}" class="driver-img" alt="{{ driver.name }}">
                     {% else %}
                       <div class="driver-placeholder"><i class="bi bi-person"></i></div>
                     {% endif %}
                     <div class="driver-rating"><i class="bi bi-star-fill"></i> {{ driver.rating|default:"5.0" }}</div>
                 </div>
                 <div>
-                  <strong style="color: var(--text-main); display: block; font-size: 1rem;">{{ driver.full_name }}</strong> 
+                  <strong style="color: var(--text-main); display: block; font-size: 1rem;">{{ driver.name }}</strong> 
                   <small style="color: var(--text-muted);">Exp: {{ driver.experience_years }} yrs</small>
                 </div>
             </div>
@@ -338,6 +345,8 @@
       <hr style="border-color: var(--border);">
       <div class="summary-item" style="font-size: 1.25rem;"><strong>Total</strong><strong id="total_price" style="color: var(--primary);">₹0</strong></div>
 
+      <div id="date-warning" class="message-box">⚠️ This vehicle is already booked for some or all of the selected dates. Please choose different dates.</div>
+
       <div style="margin-top: 25px; background: var(--input-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
         <label>Verification</label>
         <div style="display:flex; align-items:center; gap:10px; margin-bottom: 10px;">
@@ -354,74 +363,108 @@
 </form>
 
 <script>
-  // --- Form Animation Logic ---
+  // Pull booked dates securely from the Django context
+  const bookedRanges = JSON.parse('{{ booked_dates_json|safe|default:"[]" }}');
+
+  // NEW: Instantly show users the booked dates on page load
+  const bookedListSpan = document.getElementById('booked-dates-list');
+  const bookedDisplay = document.getElementById('booked-dates-display');
+  
+  if (bookedRanges.length > 0) {
+      let dateStrings = bookedRanges.map(r => {
+          let s = new Date(r.start).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'});
+          let e = new Date(r.end).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'});
+          return s === e ? s : `${s} to ${e}`;
+      });
+      bookedListSpan.innerText = dateStrings.join(', ');
+      bookedDisplay.style.display = 'block';
+  }
+
   const checkoutForm = document.getElementById('checkout-form');
   const confirmBtn = document.getElementById('confirm-btn');
   
   checkoutForm.addEventListener('submit', function(e) {
-      // If wallet is selected but not enough funds, stop!
       if(document.getElementById("wallet-radio").checked && userBalance < currentTotal) {
           e.preventDefault();
           return;
       }
-      
-      // Stop normal instant submission
       e.preventDefault();
-      
-      // Trigger full screen Zomato animation
       document.getElementById('order-success-overlay').classList.add('show');
-      
-      // Wait 1.5 seconds so the user can enjoy the animation, then submit for real
-      setTimeout(() => {
-          checkoutForm.submit();
-      }, 1500);
+      setTimeout(() => { checkoutForm.submit(); }, 1500);
   });
 
-  // --- Core Logic ---
   const startDate = document.getElementById("start_date");
   const endDate = document.getElementById("end_date");
   const pricePerDay = parseFloat("{{ vehicle.price_per_day }}");
   const userBalance = parseFloat("{{ wallet_balance|default:0 }}");
   let currentTotal = 0;
 
-  const todayDateStr = new Date().toISOString().split('T')[0];
+  // Timezone safe "today" function
+  function getLocalDateString(dateObj) {
+      const offset = dateObj.getTimezoneOffset() * 60000;
+      return new Date(dateObj.getTime() - offset).toISOString().split('T')[0];
+  }
+
+  const todayDateStr = getLocalDateString(new Date());
   if(startDate && endDate) {
       startDate.setAttribute('min', todayDateStr);
       endDate.setAttribute('min', todayDateStr);
       
       startDate.addEventListener('change', function() {
           endDate.setAttribute('min', this.value);
-          if(endDate.value && endDate.value < this.value) {
-            endDate.value = this.value;
-          }
+          if(endDate.value && endDate.value < this.value) endDate.value = this.value;
           updatePrice();
       });
   }
 
-  // --- Upgraded Quick Date Logic ---
   function setQuickDate(startType, daysTotal) {
     let start = new Date();
+    if(startType === 'tomorrow') start.setDate(start.getDate() + 1);
     
-    // If they clicked "Tomorrow", set the start date to tomorrow
-    if(startType === 'tomorrow') {
-        start.setDate(start.getDate() + 1);
-    }
-    
-    // Set start input
-    startDate.value = start.toISOString().split('T')[0];
+    startDate.value = getLocalDateString(start);
     endDate.setAttribute('min', startDate.value);
 
-    // Set end input based on total duration requested
     let end = new Date(start);
     end.setDate(start.getDate() + daysTotal);
-    endDate.value = end.toISOString().split('T')[0];
+    endDate.value = getLocalDateString(end);
     
     updatePrice();
   }
 
   function updatePrice() {
-    const s = new Date(startDate.value);
-    const e = new Date(endDate.value);
+    const sStr = startDate.value;
+    const eStr = endDate.value;
+    
+    // 1. OVERLAP VALIDATION CHECK
+    let isOverlapping = false;
+    if(sStr && eStr) {
+        for(let range of bookedRanges) {
+            if(sStr <= range.end && eStr >= range.start) {
+                isOverlapping = true;
+                break;
+            }
+        }
+    }
+
+    const dateWarning = document.getElementById("date-warning");
+    
+    if(isOverlapping) {
+        dateWarning.style.display = "block";
+        confirmBtn.disabled = true;
+        confirmBtn.innerText = "Dates Unavailable";
+        document.getElementById("total_days").innerText = "0";
+        document.getElementById("driver_fee").innerText = "₹0";
+        document.getElementById("total_price").innerText = "₹0";
+        return; 
+    } else {
+        dateWarning.style.display = "none";
+        confirmBtn.disabled = false;
+        confirmBtn.innerText = "Confirm Booking";
+    }
+
+    // 2. NORMAL CALCULATION
+    const s = new Date(sStr);
+    const e = new Date(eStr);
     
     if (s && e && e >= s) {
       const days = Math.ceil((e - s) / (86400000)) + 1;
@@ -450,6 +493,8 @@
   }
 
   function checkWalletBalance() {
+    if(document.getElementById("date-warning").style.display === "block") return; 
+
     const walletRadio = document.getElementById("wallet-radio");
     const walletWarning = document.getElementById("wallet-warning");
 
@@ -488,7 +533,6 @@
       const checkedDriver = document.querySelector('input[name="driver_id"]:checked');
       if(checkedDriver) checkedDriver.checked = false;
       document.querySelectorAll('.driver-card').forEach(c => c.classList.remove('selected'));
-      
     } else {
       document.getElementById("opt-driver").classList.add("selected");
       document.getElementById("driver-section").style.display = "block";
@@ -508,7 +552,7 @@
       el.addEventListener("change", updatePrice);
   });
 
-  // --- Re-Added Slider Logic ---
+  // Slider Logic
   let slideIndex = 0;
   const track = document.getElementById("imageTrack");
   const dots = document.querySelectorAll(".dot");
@@ -533,18 +577,11 @@
     updateSlider();
   }
 
-  // --- Lightbox Logic ---
+  // Lightbox Logic
   const lightbox = document.getElementById("lightbox");
   const lightboxImg = document.getElementById("lightbox-img");
-
-  function openLightbox(src) {
-    lightboxImg.src = src;
-    lightbox.classList.add("show");
-  }
-
-  function closeLightbox() {
-    lightbox.classList.remove("show");
-  }
+  function openLightbox(src) { lightboxImg.src = src; lightbox.classList.add("show"); }
+  function closeLightbox() { lightbox.classList.remove("show"); }
 
 </script>
 

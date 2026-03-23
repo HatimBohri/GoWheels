@@ -468,7 +468,6 @@
 
       <a href="{% url 'vehicles' %}" class="{% if request.resolver_match.url_name == 'vehicles' %}active{% endif %}">Vehicles</a>
       <a href="{% url 'list_vehicle' %}" class="{% if request.resolver_match.url_name == 'list_vehicle' %}active{% endif %}">List Your Vehicle</a>
-      <a href="{% url 'become_driver' %}" class="{% if request.resolver_match.url_name == 'become_driver' %}active{% endif %}">Become a Driver</a>
       <a href="{% url 'helpdesk' %}" class="{% if request.resolver_match.url_name == 'helpdesk' %}active{% endif %}" target="_blank">Helpdesk</a>
       <a href="{% url 'rent_history' %}" class="{% if request.resolver_match.url_name == 'rent_history' %}active{% endif %}">Rent History</a>
     </nav>

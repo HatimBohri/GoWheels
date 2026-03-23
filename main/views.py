@@ -12,20 +12,101 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.mail import send_mail
 from django.db.models import Avg, Count, DurationField, ExpressionWrapper, F, Max, Prefetch, Sum
 from django.db.models.functions import TruncMonth, TruncWeek
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.html import strip_tags
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 # Import all models correctly
-from .models import Driver, DriverApplication, Rental, UserProfile, Vehicle, VehicleImage, Wallet, WalletTransaction, Review
+from .models import Driver, Rental, UserProfile, Vehicle, VehicleImage, Wallet, WalletTransaction, Review
 
 # Configure Stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
+# ==========================================
+# EMAIL HELPER: BOOKING CONFIRMATION
+# ==========================================
+
+def send_booking_confirmation_email(request, rental):
+    """ Generates and sends a professional HTML email purely from views.py """
+    try:
+        # Dynamic Invoice ID
+        year = getattr(rental, 'rented_at', timezone.now()).year
+        booking_id = f"INV-{year}-{rental.id:05d}"
+        domain_url = request.build_absolute_uri('/')
+        
+        # Safely parse dates (handles both Date objects and string formats from session)
+        start_dt = rental.start_date if isinstance(rental.start_date, date) else datetime.strptime(rental.start_date, "%Y-%m-%d").date()
+        end_dt = rental.end_date if isinstance(rental.end_date, date) else datetime.strptime(rental.end_date, "%Y-%m-%d").date()
+        
+        start_str = start_dt.strftime("%d %b, %Y")
+        end_str = end_dt.strftime("%d %b, %Y")
+        
+        # Determine drive mode text
+        drive_mode = "Self-Drive"
+        if rental.drive_type == 'driver' and rental.driver:
+            drive_mode = f"With Chauffeur ({rental.driver.name})"
+
+        # 1. Define the HTML as an f-string with inline CSS
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family: 'Inter', Arial, sans-serif; background-color: #f5f7fa; margin: 0; padding: 20px;">
+            <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <div style="background-color: #ff6a2a; padding: 30px 20px; text-align: center; color: #ffffff;">
+                    <h1 style="margin: 0; font-size: 24px;">GoWheels Booking Confirmed! 🚀</h1>
+                </div>
+                
+                <div style="padding: 30px; color: #333333; line-height: 1.6;">
+                    <p>Hi <strong>{rental.full_name}</strong>,</p>
+                    <p>Thank you for choosing GoWheels! 🎉 We're thrilled to confirm your vehicle booking. Here are your trip details:</p>
+                    
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                        <p style="margin: 5px 0; font-size: 14px;"><strong>Booking ID:</strong> {booking_id}</p>
+                        <p style="margin: 5px 0; font-size: 14px;"><strong>Vehicle:</strong> {rental.vehicle.vehicle_name}</p>
+                        <p style="margin: 5px 0; font-size: 14px;"><strong>Drive Mode:</strong> {drive_mode}</p>
+                        <p style="margin: 5px 0; font-size: 14px;"><strong>Pickup Location:</strong> {rental.vehicle.pickup_location}</p>
+                        <p style="margin: 5px 0; font-size: 14px;"><strong>Dates:</strong> {start_str} to {end_str}</p>
+                        
+                        <p style="margin: 10px 0 0 0; padding-top: 15px; border-top: 2px solid #e2e8f0; font-size: 18px; color: #ff6a2a;">
+                            <strong>Total Amount:</strong> ₹{rental.total_price}
+                        </p>
+                    </div>
+
+                    <p>Our team is preparing your vehicle. Please make sure to carry a <strong>valid ID</strong> and your <strong>driving license</strong> at the time of pickup.</p>
+                    
+                    <center>
+                        <a href="{domain_url}dashboard/history/" style="display: inline-block; padding: 12px 24px; background-color: #121212; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; margin-top: 20px;">View Booking Dashboard</a>
+                    </center>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        # 2. Automatically create a plain-text version
+        text_content = strip_tags(html_content)
+
+        # 3. Send using standard send_mail
+        send_mail(
+            subject=f"Booking Confirmed: {rental.vehicle.vehicle_name} 🚗 | GoWheels",
+            message=text_content,
+            from_email=settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'noreply@gowheels.com',
+            recipient_list=[request.user.email],
+            fail_silently=True,
+            html_message=html_content
+        )
+        print(f"🔥 [DEVELOPER CONSOLE] Confirmation email sent to {request.user.email}")
+        
+    except Exception as e:
+        print(f"❌ [EMAIL ERROR] Failed to send confirmation: {e}")
 
 
 # ==========================================
@@ -34,14 +115,10 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def home(request):
     pending_review = None
-    
-    # Check for completed trips that have NO review yet to show the popup!
     if request.user.is_authenticated:
         today = timezone.now().date()
         pending_review = Rental.objects.filter(
-            user=request.user,
-            end_date__lt=today,
-            review__isnull=True
+            user=request.user, end_date__lt=today, review__isnull=True
         ).select_related('vehicle').order_by('-end_date').first()
         
     return render(request, 'home.html', {'pending_review': pending_review})
@@ -63,7 +140,6 @@ def generate_captcha_text(length=5):
     chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
     return ''.join(random.choice(chars) for _ in range(length))
 
-
 def captcha_image(request):
     captcha_text = generate_captcha_text()
     request.session['captcha_code'] = captcha_text
@@ -71,23 +147,18 @@ def captcha_image(request):
     width, height = 160, 60
     image = Image.new("RGB", (width, height), (255, 255, 255))
     draw = ImageDraw.Draw(image)
-
-    # Load font (Ensure this path is correct for your OS)
     font = ImageFont.truetype(r"C:\Windows\Fonts\arial.ttf", 36)
 
-    # Draw noise dots
     for _ in range(1200):
         x = random.randint(0, width)
         y = random.randint(0, height)
         draw.point((x, y), fill=(0, 0, 255))
 
-    # Draw text with slight randomness
     for i, char in enumerate(captcha_text):
         x = 15 + i * 28 + random.randint(-3, 3)
         y = random.randint(5, 15)
         draw.text((x, y), char, font=font, fill=(0, 0, 0))
 
-    # Apply blur
     image = image.filter(ImageFilter.GaussianBlur(0.6))
 
     buffer = io.BytesIO()
@@ -103,21 +174,15 @@ def captcha_image(request):
 
 @csrf_exempt
 def send_otp_api(request):
-    """ Generates and sends a real OTP via Email (or SMS) """
     if request.method == "POST":
         email = request.POST.get("email")
-        
         if not email:
             return JsonResponse({"status": "error", "message": "Email is required."})
 
-        # 1. Generate 6-digit code
         otp_code = str(random.randint(100000, 999999))
-        
-        # 2. Save to session securely
         request.session['saved_otp'] = otp_code
         request.session['otp_email'] = email
 
-        # 3. Send Real Email
         try:
             send_mail(
                 subject='GoWheels - Your Verification Code',
@@ -126,9 +191,7 @@ def send_otp_api(request):
                 recipient_list=[email],
                 fail_silently=True,
             )
-            print(f"🔥 [DEVELOPER CONSOLE] OTP for {email}: {otp_code}")
             return JsonResponse({"status": "success", "message": "OTP Sent Successfully!"})
-            
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)})
 
@@ -147,13 +210,30 @@ def login_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
+        lockout_key = f"lockout_{username}"
+        attempts_key = f"attempts_{username}"
+
+        if cache.get(lockout_key):
+            messages.error(request, "Too many failed attempts. Garage locked for 2 minutes.")
+            return render(request, 'login.html')
+
         user = authenticate(request, username=username, password=password)
+        
         if user:
+            cache.delete(attempts_key)
             login(request, user)
             messages.success(request, f"Welcome back, {user.first_name or username}!")
             return redirect('home')
         else:
-            messages.error(request, "Invalid username or password!")
+            attempts = cache.get(attempts_key, 0) + 1
+            cache.set(attempts_key, attempts, timeout=300)
+            
+            if attempts >= 5:
+                cache.set(lockout_key, True, timeout=120)
+                cache.delete(attempts_key) 
+                messages.error(request, "Account temporarily locked due to 5 failed attempts. Try again in 2 minutes.")
+            else:
+                messages.error(request, f"Invalid username or password! ({5 - attempts} attempts remaining)")
 
     return render(request, 'login.html')
 
@@ -184,14 +264,7 @@ def signup_view(request):
             messages.error(request, "Invalid or Expired OTP. Please try again.")
             return render(request, "signup.html")
 
-        user = User.objects.create_user(
-            username=username, 
-            email=email, 
-            password=password,
-            first_name=first_name,
-            last_name=last_name
-        )
-        
+        user = User.objects.create_user(username=username, email=email, password=password, first_name=first_name, last_name=last_name)
         user.profile.phone_number = phone_number
         user.profile.save()
 
@@ -203,10 +276,6 @@ def signup_view(request):
 
     return render(request, "signup.html")
 
-
-# ==========================================
-# FORGOT PASSWORD FLOW
-# ==========================================
 
 def forgot_password(request):
     if request.method == "POST":
@@ -225,8 +294,6 @@ def forgot_password(request):
                 [email],
                 fail_silently=True,
             )
-            print(f"🔥 [RESET OTP] for {email}: {otp_code}")
-            
             messages.success(request, "If that email exists, an OTP has been sent.")
             return redirect('reset_password')
         else:
@@ -277,14 +344,10 @@ def reset_password(request):
 def list_vehicle(request):
     if request.method == "POST":
         vehicle = Vehicle.objects.create(
-            owner=request.user,
-            contact_number=request.POST['contact_number'],
-            vehicle_name=request.POST['vehicle_name'],
-            vehicle_type=request.POST['vehicle_type'],
-            category=request.POST['category'],
-            price_per_day=request.POST['price_per_day'],
-            seats=request.POST.get('seats') or None,
-            fuel_type=request.POST['fuel_type'],
+            owner=request.user, contact_number=request.POST['contact_number'],
+            vehicle_name=request.POST['vehicle_name'], vehicle_type=request.POST['vehicle_type'],
+            category=request.POST['category'], price_per_day=request.POST['price_per_day'],
+            seats=request.POST.get('seats') or None, fuel_type=request.POST['fuel_type'],
             pickup_location=request.POST['pickup_location'],
         )
 
@@ -313,7 +376,6 @@ def vehicles(request):
     max_price = request.GET.get('max_price')
     sort = request.GET.get('sort')
     seats = request.GET.get('seats')
-
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
 
@@ -329,105 +391,82 @@ def vehicles(request):
         try:
             start = datetime.strptime(start_date, "%Y-%m-%d").date()
             end = datetime.strptime(end_date, "%Y-%m-%d").date()
-
             if start <= end:
-                booked_ids = Rental.objects.filter(
-                    start_date__lte=end,
-                    end_date__gte=start
-                ).values_list("vehicle_id", flat=True)
+                booked_ids = Rental.objects.filter(start_date__lte=end, end_date__gte=start).values_list("vehicle_id", flat=True)
                 qs = qs.exclude(id__in=booked_ids)
         except ValueError:
             messages.error(request, "Invalid date format used in filter.")
 
     if selected_categories and "All" not in selected_categories:
         search_cats = []
-        for c in selected_categories:
-            search_cats.extend([c, c.lower(), c.capitalize(), c.upper(), c.title()])
+        for c in selected_categories: search_cats.extend([c, c.lower(), c.capitalize(), c.upper(), c.title()])
         qs = qs.filter(category__in=search_cats)
 
     if selected_vehicle_types:
         search_types = []
-        for vt in selected_vehicle_types:
-            search_types.extend([vt, vt.lower(), vt.capitalize(), vt.upper()])
+        for vt in selected_vehicle_types: search_types.extend([vt, vt.lower(), vt.capitalize(), vt.upper()])
         qs = qs.filter(vehicle_type__in=search_types)
 
     if selected_fuels:
         search_fuels = []
-        for f in selected_fuels:
-            search_fuels.extend([f, f.lower(), f.capitalize(), f.upper()])
+        for f in selected_fuels: search_fuels.extend([f, f.lower(), f.capitalize(), f.upper()])
         qs = qs.filter(fuel_type__in=search_fuels)
 
     if seats:
         try:
             seats_val = int(seats)
-            if seats_val == 12:
-                qs = qs.filter(seats__gte=12)
-            else:
-                qs = qs.filter(seats=seats_val)
-        except ValueError:
-            pass
+            qs = qs.filter(seats__gte=12) if seats_val == 12 else qs.filter(seats=seats_val)
+        except ValueError: pass
 
     today = timezone.now().date()
     if status_filters:
         if "available" in status_filters and "soon" not in status_filters:
-            qs = qs.filter(available=True).exclude(
-                rental__start_date__lte=today,
-                rental__end_date__gte=today
-            )
+            qs = qs.filter(available=True).exclude(rental__start_date__lte=today, rental__end_date__gte=today)
         elif "soon" in status_filters and "available" not in status_filters:
-            qs = qs.filter(
-                available=True,
-                rental__start_date__lte=today,
-                rental__end_date__gte=today
-            ).distinct()
+            qs = qs.filter(available=True, rental__start_date__lte=today, rental__end_date__gte=today).distinct()
         elif "available" in status_filters and "soon" in status_filters:
             qs = qs.filter(available=True)
 
-    if sort == "price_low":
-        qs = qs.order_by("price_per_day")
-    elif sort == "price_high":
-        qs = qs.order_by("-price_per_day")
-    else:
-        qs = qs.order_by("-created_at")
+    if sort == "price_low": qs = qs.order_by("price_per_day")
+    elif sort == "price_high": qs = qs.order_by("-price_per_day")
+    else: qs = qs.order_by("-created_at")
 
     for v in qs:
         v.front_image = v.images.filter(image_type="front").first()
-        v.is_booked_today = v.is_booked()
+        
+        # Robust fallback to guarantee the "is_booked_today" flag works
+        is_booked_now = Rental.objects.filter(vehicle=v, start_date__lte=today, end_date__gte=today).exists()
+        v.is_booked_today = getattr(v, 'is_booked', lambda: is_booked_now)() if hasattr(v, 'is_booked') else is_booked_now
+        
         if v.is_booked_today:
-            v.available_from = v.next_available_date()
+            # Find the date it will be free again
+            next_rental = Rental.objects.filter(vehicle=v, end_date__gte=today).order_by('-end_date').first()
+            if next_rental:
+                v.available_from = next_rental.end_date + timedelta(days=1)
 
     return render(request, "vehicles.html", {
-        "vehicles": qs,
-        "categories": Vehicle.CATEGORY_CHOICES,
-        "fuel_choices": Vehicle.FUEL_CHOICES,
-        "selected_categories": selected_categories,
-        "selected_vehicle_types": selected_vehicle_types,
-        "selected_fuels": selected_fuels,
-        "selected_seats": seats, 
-        "selected_statuses": status_filters, 
-        "request": request,
+        "vehicles": qs, "categories": Vehicle.CATEGORY_CHOICES, "fuel_choices": Vehicle.FUEL_CHOICES,
+        "selected_categories": selected_categories, "selected_vehicle_types": selected_vehicle_types,
+        "selected_fuels": selected_fuels, "selected_seats": seats, "selected_statuses": status_filters, "request": request,
     })
 
 
 @login_required
 def your_vehicles(request):
     vehicles = Vehicle.objects.filter(owner=request.user).order_by('-created_at')
-
     booked_count = 0
+    today = timezone.now().date()
+    
     for v in vehicles:
         v.front_image = v.images.filter(image_type="front").first()
-        v.is_booked_today = v.is_booked()
-        if v.is_booked_today:
-            booked_count += 1
+        is_booked_now = Rental.objects.filter(vehicle=v, start_date__lte=today, end_date__gte=today).exists()
+        v.is_booked_today = getattr(v, 'is_booked', lambda: is_booked_now)() if hasattr(v, 'is_booked') else is_booked_now
+        if v.is_booked_today: booked_count += 1
 
     earnings_data = Rental.objects.filter(vehicle__owner=request.user).aggregate(total=Sum('total_price'))
     total_earnings = earnings_data['total'] or 0
 
-    return render(request, "your_vehicles.html", {
-        "vehicles": vehicles,
-        "booked_count": booked_count, 
-        "total_earnings": total_earnings 
-    })
+    return render(request, "your_vehicles.html", {"vehicles": vehicles, "booked_count": booked_count, "total_earnings": total_earnings})
 
 
 # ==========================================
@@ -440,18 +479,18 @@ def vehicle_booked_dates(request, vehicle_id):
 
 
 def is_vehicle_available(vehicle, start_date, end_date):
-    return not Rental.objects.filter(
-        vehicle=vehicle,
-        start_date__lte=end_date,
-        end_date__gte=start_date
-    ).exists()
+    return not Rental.objects.filter(vehicle=vehicle, start_date__lte=end_date, end_date__gte=start_date).exists()
 
 
 @login_required
 def rent_vehicle(request, vehicle_id):
     vehicle = get_object_or_404(Vehicle, id=vehicle_id)
-    driver_applications = DriverApplication.objects.filter(status="approved")
+    available_drivers = Driver.objects.filter(available=True)
     user_wallet, _ = Wallet.objects.get_or_create(user=request.user)
+
+    # Fetch all upcoming bookings for this vehicle to pass to frontend JSON
+    future_rentals = Rental.objects.filter(vehicle=vehicle, end_date__gte=timezone.now().date())
+    booked_dates_list = [{'start': r.start_date.strftime("%Y-%m-%d"), 'end': r.end_date.strftime("%Y-%m-%d")} for r in future_rentals]
 
     if request.method == "POST":
         captcha_input = request.POST.get("captcha_input", "").upper()
@@ -492,7 +531,7 @@ def rent_vehicle(request, vehicle_id):
             selected_driver = Driver.objects.get(id=int(driver_id))
             total_price += days * selected_driver.price_per_day
 
-        # PAYMENT LOGIC
+        # --- PAYMENT LOGIC ---
         if payment_mode == 'wallet':
             if user_wallet.balance >= total_price:
                 user_wallet.balance -= total_price
@@ -501,13 +540,16 @@ def rent_vehicle(request, vehicle_id):
                     wallet=user_wallet, amount=total_price, transaction_type='DEBIT',
                     description=f"Rental: {vehicle.vehicle_name}", status='SUCCESS'
                 )
-                Rental.objects.create(
+                
+                rental = Rental.objects.create(
                     user=request.user, vehicle=vehicle, driver=selected_driver,
                     start_date=start, end_date=end, total_price=total_price,
                     full_name=full_name, age=age, phone_number=phone_number,
                     drive_type=drive_type, payment_mode='wallet',
                     aadhaar_image=aadhaar_image, license_image=license_image
                 )
+                
+                send_booking_confirmation_email(request, rental)
                 messages.success(request, f"Booking Successful! ₹{total_price} paid via Wallet.")
                 return redirect("rent_history")
             else:
@@ -521,7 +563,7 @@ def rent_vehicle(request, vehicle_id):
                 'phone_number': phone_number, 'drive_type': drive_type, 'driver_id': driver_id,
                 'payment_mode': 'online'
             }
-            domain_url = 'http://127.0.0.1:8000/'
+            domain_url = request.build_absolute_uri('/')
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=[{
@@ -533,19 +575,23 @@ def rent_vehicle(request, vehicle_id):
             )
             return redirect(checkout_session.url, code=303)
 
-        else:
-            Rental.objects.create(
+        else: # CASH
+            rental = Rental.objects.create(
                 user=request.user, vehicle=vehicle, driver=selected_driver,
                 start_date=start, end_date=end, total_price=total_price,
                 full_name=full_name, age=age, phone_number=phone_number,
                 drive_type=drive_type, payment_mode='cash',
                 aadhaar_image=aadhaar_image, license_image=license_image
             )
+            
+            send_booking_confirmation_email(request, rental)
             messages.success(request, "Booking Confirmed! Please pay cash on pickup.")
             return redirect("rent_history")
 
     return render(request, "rent_vehicle.html", {
-        "vehicle": vehicle, "driver_applications": driver_applications, "wallet_balance": user_wallet.balance,
+        "vehicle": vehicle, "available_drivers": available_drivers, 
+        "wallet_balance": user_wallet.balance,
+        "booked_dates_json": json.dumps(booked_dates_list) # Safely pass JSON list to frontend
     })
 
 
@@ -556,14 +602,17 @@ def finalize_booking(request):
     vehicle = Vehicle.objects.get(id=data['vehicle_id'])
     selected_driver = Driver.objects.get(id=int(data['driver_id'])) if data.get('driver_id') else None
 
-    Rental.objects.create(
+    rental = Rental.objects.create(
         user=request.user, vehicle=vehicle, driver=selected_driver,
         start_date=data['start_date'], end_date=data['end_date'],
         total_price=data['total_price'], full_name=data['full_name'],
         age=data['age'], phone_number=data['phone_number'],
         drive_type=data['drive_type'], payment_mode=data['payment_mode'],
     )
+    
     del request.session['booking_data']
+    send_booking_confirmation_email(request, rental)
+    
     messages.success(request, "Booking Confirmed Successfully!")
     return redirect("rent_history")
 
@@ -584,10 +633,7 @@ def submit_review(request):
             driver_rating_val = int(driver_rating) if driver_rating else None
 
             Review.objects.create(
-                rental=rental,
-                vehicle=rental.vehicle,
-                driver=rental.driver,
-                user=request.user,
+                rental=rental, vehicle=rental.vehicle, driver=rental.driver, user=request.user,
                 cleanliness=int(request.POST.get('cleanliness', 5)),
                 performance=int(request.POST.get('performance', 5)),
                 comfort=int(request.POST.get('comfort', 5)),
@@ -595,9 +641,7 @@ def submit_review(request):
                 comment=request.POST.get('comment', '')
             )
             
-            if rental.driver and driver_rating_val:
-                rental.driver.update_rating()
-                
+            if rental.driver and driver_rating_val: rental.driver.update_rating()
             messages.success(request, "Review submitted! Thank you for your feedback.")
         
     return redirect('rent_history')
@@ -690,19 +734,17 @@ def rent_history(request):
 
     rentals = []
     for r in rentals_qs.order_by(sort_by):
-        r.invoice_no = f"INV-{r.rented_at.year}-{r.id:05d}"
+        r.invoice_no = f"INV-{getattr(r, 'rented_at', r.start_date).year}-{r.id:05d}"
         if r.start_date <= today <= r.end_date: r.status_label = "Active"
         elif r.start_date > today: r.status_label = "Upcoming"
         else: r.status_label = "Completed"
         
         r.vehicle.front_image = r.vehicle.front_images[0] if hasattr(r.vehicle, 'front_images') and r.vehicle.front_images else None
         
-        # Calculate Detailed Bill
         days = (r.end_date - r.start_date).days + 1
         r.days_count = days
         r.vehicle_fare = r.vehicle.price_per_day * days
         r.driver_fare = r.driver.price_per_day * days if r.drive_type == 'driver' and r.driver else 0
-        
         rentals.append(r)
 
     return render(request, "rent_history.html", {
@@ -711,63 +753,6 @@ def rent_history(request):
         "remaining": remaining, "cat_labels": json.dumps(cat_labels), "cat_values": json.dumps(cat_values),
         "time_labels": json.dumps(time_labels), "time_values": json.dumps(time_values), "status_filter": status_filter,
     })
-
-
-# ==========================================
-# DRIVERS
-# ==========================================
-
-@login_required
-def become_driver(request):
-    application = DriverApplication.objects.filter(user=request.user).first()
-    
-    if request.method == "POST":
-        full_name = request.POST.get("full_name")
-        age = request.POST.get("age")
-        phone_number = request.POST.get("phone_number")
-        experience_years = request.POST.get("experience_years")
-        price_per_day = request.POST.get("price_per_day")
-        aadhaar_image = request.FILES.get("aadhaar_image")
-        license_image = request.FILES.get("license_image")
-        profile_photo = request.FILES.get("profile_photo")
-
-        if application and application.status == 'rejected':
-            application.full_name = full_name
-            application.age = age
-            application.phone_number = phone_number
-            application.experience_years = experience_years
-            application.price_per_day = price_per_day
-            if aadhaar_image: application.aadhaar_image = aadhaar_image
-            if license_image: application.license_image = license_image
-            if profile_photo: application.profile_photo = profile_photo
-            application.status = 'pending'
-            application.save()
-        elif not application:
-            DriverApplication.objects.create(
-                user=request.user, full_name=full_name, age=age, phone_number=phone_number,
-                experience_years=experience_years, price_per_day=price_per_day,
-                aadhaar_image=aadhaar_image, license_image=license_image,
-                profile_photo=profile_photo, status='pending'
-            )
-
-        messages.success(request, "Your application has been submitted! It is now under review.")
-        return redirect("become_driver")
-
-    context = {'status': 'new'}
-    if application:
-        context['status'] = application.status
-        if application.status == 'approved':
-            driver = Driver.objects.filter(application=application).first()
-            if driver:
-                total_earned = Rental.objects.filter(driver=driver).aggregate(Sum('total_price'))['total_price__sum'] or 0
-                trips_completed = Rental.objects.filter(driver=driver, end_date__lt=date.today()).count()
-                context['driver'] = driver
-                context['total_earned'] = total_earned
-                context['trips_completed'] = trips_completed
-            else:
-                context['status'] = 'pending'
-
-    return render(request, "become_driver.html", context)
 
 
 # ==========================================
@@ -789,7 +774,7 @@ def create_checkout_session(request):
             amount_inr = int(amount_str)
             amount_paise = amount_inr * 100 
             request.session['recharge_amount'] = amount_inr
-            domain_url = 'http://127.0.0.1:8000/'
+            domain_url = request.build_absolute_uri('/')
             
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],

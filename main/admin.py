@@ -3,7 +3,6 @@ from .models import (
     Vehicle, 
     VehicleImage, 
     Rental, 
-    DriverApplication, 
     Driver, 
     Wallet, 
     WalletTransaction,
@@ -29,53 +28,6 @@ class VehicleAdmin(admin.ModelAdmin):
 
 
 # ==========================================
-# DRIVER APPLICATION ADMIN (With Approval Action)
-# ==========================================
-
-@admin.register(DriverApplication)
-class DriverApplicationAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'user', 'status', 'applied_at')
-    list_filter = ('status',)
-    search_fields = ('full_name', 'user__username')
-    actions = ['approve_driver']
-
-    @admin.action(description="Approve selected driver applications")
-    def approve_driver(self, request, queryset):
-        created = 0
-        skipped = 0
-
-        for app in queryset:
-            # Skip if already approved
-            if app.status == 'approved':
-                skipped += 1
-                continue
-
-            # Create driver
-            Driver.objects.create(
-                application=app,  # <--- ADD THIS EXACT LINE HERE!
-                name=app.full_name,
-                age=app.age,
-                phone_number=app.phone_number,
-                experience_years=app.experience_years,
-                rating=5.0,
-                price_per_day=app.price_per_day,
-                aadhaar_image=app.aadhaar_image,
-                license_image=app.license_image,
-                photo=app.profile_photo,
-                available=True
-            )
-
-            # Update application status
-            app.status = 'approved'
-            app.save()
-            created += 1
-
-        self.message_user(
-            request,
-            f"{created} driver(s) created, {skipped} already approved."
-        )
-
-# ==========================================
 # DRIVER ADMIN
 # ==========================================
 
@@ -84,6 +36,8 @@ class DriverAdmin(admin.ModelAdmin):
     list_display = ('name', 'age', 'experience_years', 'rating', 'price_per_day', 'available')
     list_editable = ('available',)
     search_fields = ('name',)
+    # Add fields to make it easy to upload photos directly from Admin
+    fields = ('name', 'age', 'phone_number', 'experience_years', 'rating', 'price_per_day', 'photo', 'aadhaar_image', 'license_image', 'available')
 
 
 # ==========================================

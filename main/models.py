@@ -117,61 +117,11 @@ class VehicleImage(models.Model):
 # 2. DRIVER MODELS
 # ==========================================
 
-class DriverApplication(models.Model):
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-    ]
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    full_name = models.CharField(max_length=100)
-    age = models.IntegerField()
-    phone_number = models.CharField(max_length=15)
-    experience_years = models.IntegerField()
-    rating = models.FloatField(default=5.0)
-    price_per_day = models.IntegerField()
-    aadhaar_image = models.ImageField(upload_to='driver_docs/aadhaar/')
-    license_image = models.ImageField(upload_to='driver_docs/license/')
-    profile_photo = models.ImageField(upload_to='driver_docs/profile/')
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
-    applied_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.full_name} ({self.user.username})"
-
-    def save(self, *args, **kwargs):
-        # 1. Save the application first
-        super().save(*args, **kwargs)
-        
-        # 2. Check if it was just approved AND doesn't have a linked driver yet
-        if self.status == 'approved' and not hasattr(self, 'driver'):
-            # Import Driver HERE to avoid Circular Dependency/NameError
-            from .models import Driver 
-            
-            # Automatically spawn the linked Driver profile!
-            Driver.objects.create(
-                application=self,
-                name=self.full_name,
-                age=self.age,
-                phone_number=self.phone_number,
-                experience_years=self.experience_years,
-                rating=5.0,
-                price_per_day=self.price_per_day,
-                aadhaar_image=self.aadhaar_image,
-                license_image=self.license_image,
-                photo=self.profile_photo,
-                available=True
-            )
+# ==========================================
+# 2. DRIVER MODELS
+# ==========================================
 
 class Driver(models.Model):
-    application = models.OneToOneField(
-        DriverApplication,
-        on_delete=models.CASCADE,
-        related_name="driver",
-        null=True,
-        blank=True
-    )
     name = models.CharField(max_length=100)
     age = models.IntegerField()
     phone_number = models.CharField(max_length=15)
