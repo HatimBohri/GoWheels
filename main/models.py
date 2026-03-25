@@ -13,6 +13,7 @@ class Vehicle(models.Model):
     VEHICLE_TYPE_CHOICES = [
         ('car', 'Car'),
         ('bike', 'Bike'),
+        ('truck', 'Truck'),
     ]
 
     FUEL_CHOICES = [
@@ -20,6 +21,7 @@ class Vehicle(models.Model):
         ('Diesel', 'Diesel'),
         ('Electric', 'Electric'),
         ('Hybrid', 'Hybrid'),
+        ('CNG', 'CNG'),  
     ]
 
     CATEGORY_CHOICES = [
@@ -42,11 +44,14 @@ class Vehicle(models.Model):
         ('Cruiser', 'Cruiser'),
         ('Adventure (ADV)', 'Adventure (ADV)'),
         ('Electric Motorcycle', 'Electric Motorcycle'),
+        ('Minibus', 'Minibus'),
     ]
 
     SEATS_CHOICES = [
         (2, '2'),
         (4, '4'),
+        (5, '5'),  
+        (7, '7'),  
         (8, '8'),
         (12, '12+'),
     ]
@@ -136,6 +141,12 @@ class Driver(models.Model):
     def __str__(self):
         return self.name
 
+    def update_rating(self):
+        reviews = self.reviews.exclude(driver_rating__isnull=True)
+        if reviews.exists():
+            total = sum(r.driver_rating for r in reviews)
+            self.rating = round(total / reviews.count(), 1)
+            self.save()
 
 # ==========================================
 # 3. RENTAL MODEL

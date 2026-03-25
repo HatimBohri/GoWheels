@@ -90,15 +90,12 @@
       font-size: 1.4rem;
     }
 
-    .logo span {
-      background: var(--primary);
-      color: #000;
-      border-radius: 50%;
-      width: 34px;
-      height: 34px;
-      display: grid;
-      place-items: center;
-      font-weight: 800;
+    .logo img {
+      width: 38px;         /* Slightly larger for a professional look */
+      height: 38px;
+      border-radius: 50%;  /* Keeps that clean, circular app-icon look */
+      object-fit: cover;   /* Ensures the image doesn't stretch weirdly */
+      border: 2px solid var(--primary); /* Optional: Adds a nice orange ring around your logo */
     }
 
     /* NAVBAR STYLES WITH ACTIVE STATE */
@@ -447,6 +444,53 @@
   top: 50%;
   transform: translateY(-50%);
 }
+
+/* =========================================
+   NAVBAR BRAND LOGO & ICON STYLING
+   ========================================= */
+.brand-logo-container {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Perfect spacing between the image and text */
+    text-decoration: none;
+    transition: transform 0.2s ease;
+}
+
+/* Subtle scale effect when hovering over the logo */
+.brand-logo-container:hover {
+    transform: scale(1.02);
+}
+
+.brand-icon {
+    height: 40px; /* Adjust this to match your navbar height */
+    width: auto;
+    object-fit: contain;
+    /* Optional: Gives the image a slight glowing shadow matching your theme */
+    filter: drop-shadow(0 4px 8px rgba(255, 106, 42, 0.25)); 
+}
+
+.brand-text {
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800; /* Extra bold */
+    color: var(--text-main); /* Automatically switches Black/White based on theme */
+    letter-spacing: -0.5px;
+    line-height: 1;
+}
+
+.brand-text span {
+    color: var(--primary); /* Your signature GoWheels Orange */
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+    .brand-icon {
+        height: 32px; /* Slightly smaller image on mobile */
+    }
+    .brand-text {
+        font-size: 1.5rem; /* Slightly smaller text on mobile */
+    }
+}
     </style>
 
     {% block extra_css %}{% endblock %}
@@ -456,9 +500,10 @@
     <header class="main-header">
   <div class="header-box">
     <div class="logo">
-      <a href="{% url 'home' %}">
-        <span>⚡</span> GoWheels
-      </a>
+      <a href="{% url 'home' %}" class="brand-logo-container">
+  <img src="{% static 'images/GoWheels_logo3.jpg' %}"  alt="GoWheels Icon" class="brand-icon">
+  <span class="brand-text">Go<span>Wheels</span></span>
+</a>
     </div>
 
     <nav>

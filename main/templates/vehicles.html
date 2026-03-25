@@ -121,6 +121,8 @@
       <h4>Seats</h4>
       <label><input type="radio" name="seats" value="2" {% if selected_seats == "2" %}checked{% endif %}> 2</label>
       <label><input type="radio" name="seats" value="4" {% if selected_seats == "4" %}checked{% endif %}> 4</label>
+      <label><input type="radio" name="seats" value="5" {% if selected_seats == "5" %}checked{% endif %}> 5</label>
+      <label><input type="radio" name="seats" value="7" {% if selected_seats == "7" %}checked{% endif %}> 7</label>
       <label><input type="radio" name="seats" value="8" {% if selected_seats == "8" %}checked{% endif %}> 8</label>
       <label><input type="radio" name="seats" value="12" {% if selected_seats == "12" %}checked{% endif %}> 12+</label>
 
@@ -130,10 +132,11 @@
       {% endfor %}
 
       <hr>
+      <hr>
       <h4>Vehicle Type</h4>
       <label><input type="checkbox" name="vehicle_type" value="car" {% if "car" in selected_vehicle_types %}checked{% endif %}>Car</label>
       <label><input type="checkbox" name="vehicle_type" value="bike" {% if "bike" in selected_vehicle_types %}checked{% endif %}>Bike</label>
-
+      <label><input type="checkbox" name="vehicle_type" value="truck" {% if "truck" in selected_vehicle_types %}checked{% endif %}>Truck</label>
       <hr>
       <h4>Fuel</h4>
       {% for value, label in fuel_choices %}

@@ -1,74 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GoWheels – Premium Rentals</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@500;600;700&family=Poppins:wght@500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-  
-  <style>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home | GoWheels{% endblock %}
+
+{% block content %}
+<style>
     /* =========================================
-       1. VARIABLES & RESET
-       ========================================= */
-    :root {
-      --bg-main: #0a0a0a;
-      --bg-card: #121212;
-      --border: rgba(255,255,255,0.08);
-      --primary: #ff6a2a;
-      --primary-glow: rgba(255,106,42,0.35);
-      --text-main: #ffffff;
-      --text-muted: #b5b5b5;
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    /* FONT APPLICATION */
-    body {
-      font-family: 'Roboto', sans-serif;
-      background: radial-gradient(circle at top, #1a1a1a, var(--bg-main));
-      color: var(--text-main);
-      transition: background 0.3s ease, color 0.3s ease;
-      min-height: 100vh;
-    }
-
-    h1, h2, h3, h4, h5, .logo, .app-title { font-family: 'Poppins', sans-serif; }
-    nav a, .btn-primary, .btn-outline, .badge, .feature-box, .account-trigger, button { font-family: 'Open Sans', sans-serif; }
-    a { text-decoration: none; color: inherit; transition: color 0.3s ease; }
-    header, section, .card, .why-card, input, select, footer { transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease; }
-
-    /* =========================================
-       2. HEADER & NAVIGATION
-       ========================================= */
-    .main-header { position: fixed; top: 0; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000; transition: transform 0.4s ease, opacity 0.3s ease; }
-    .header-box { width: 100%; border-radius: 0 0 40px 40px; padding: 12px 40px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); background: color-mix(in srgb, var(--bg-main) 90%, transparent); border-bottom: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 20px rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: space-between; }
-    .logo a { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.4rem; }
-    .logo span { background: var(--primary); color: #000; border-radius: 50%; width: 34px; height: 34px; display: grid; place-items: center; font-weight: 800; }
-    nav a { margin: 0 12px; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; letter-spacing: 0.3px; }
-    nav a:hover { color: var(--text-main); }
-    .btn-outline, .btn-primary { display: inline-flex; align-items: center; justify-content: center; padding: 8px 18px; border-radius: 25px; font-size: 0.9rem; font-weight: 600; letter-spacing: 0.3px; cursor: pointer; transition: all 0.3s ease; text-decoration: none; }
-    .btn-outline { color: var(--text-main); border: 1px solid var(--border); background: transparent; }
-    .btn-primary { background: var(--primary); color: white; border: 1px solid transparent; }
-    .nav-actions { display: flex; align-items: center; gap: 10px; }
-
-    /* Account Dropdown */
-    .account-dropdown { position: relative; cursor: pointer; }
-    .account-trigger { display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 8px 14px; border-radius: 20px; transition: background 0.3s ease; }
-    .account-trigger:hover { background: rgba(255,255,255,0.06); }
-    .account-trigger i { font-size: 1.2rem; }
-    .chevron { font-size: 0.8rem; transition: transform 0.3s ease; }
-    .account-dropdown:hover .chevron { transform: rotate(180deg); }
-    .account-menu { position: absolute; top: 100%; right: 0; margin-top: 8px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 12px; width: 220px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 15px 40px rgba(0,0,0,0.4); opacity: 0; visibility: hidden; transform: translateY(10px); transition: all 0.25s ease; }
-    .account-dropdown:hover .account-menu { opacity: 1; visibility: visible; transform: translateY(0); }
-    .account-menu a, .account-menu button { background: none; border: none; color: var(--text-main); text-align: left; padding: 10px; border-radius: 10px; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; width: 100%; cursor: pointer; font-family: 'Open Sans', sans-serif; font-weight: 600; }
-    .account-menu a:hover, .account-menu button:hover { background: rgba(255,106,42,0.1); color: var(--primary); }
-
-    /* =========================================
-       3. HERO SECTION & SEARCH
+       1. HERO SECTION & SEARCH
        ========================================= */
     .hero { padding: 180px 64px 90px; text-align: center; background: radial-gradient(circle at center, rgba(255,106,42,0.15), transparent 60%); }
     .badge { display: inline-block; padding: 8px 16px; border-radius: 20px; background: rgba(255,106,42,0.15); color: var(--primary); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 24px; }
@@ -110,34 +48,27 @@
       box-shadow: 0 20px 40px rgba(0,0,0,0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
       opacity: 0; visibility: hidden; transform: translateY(15px) scale(0.98); 
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 99; overflow: hidden; 
-      padding: 8px; /* Inner padding makes it look premium */
+      padding: 8px;
     }
     .custom-select-wrapper.open .custom-options { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
     
-    /* Icon and Text Layout */
     .custom-option { 
       display: flex; align-items: center; gap: 12px; padding: 12px 16px; 
       color: var(--text-muted); font-size: 0.95rem; font-weight: 500; 
       cursor: pointer; transition: all 0.2s ease; border-radius: 10px; margin-bottom: 4px;
     }
     .custom-option:last-child { margin-bottom: 0; }
-    
-    /* Icon Styling */
     .custom-option i { font-size: 1.15rem; color: var(--text-muted); transition: all 0.2s ease; }
     
-    /* Hover State */
     .custom-option:hover { background: rgba(255,106,42,0.08); color: var(--text-main); padding-left: 20px; }
     .custom-option:hover i { color: var(--primary); transform: scale(1.1); }
     
-    /* Selected State */
     .custom-option.selected { background: var(--primary); color: #000; font-weight: 700; box-shadow: 0 4px 10px rgba(255,106,42,0.2); }
     .custom-option.selected i { color: #000; }
-    
     .hidden-select { display: none; }
 
-
     /* =========================================
-       4. WHY GRID (FEATURES)
+       2. WHY GRID (FEATURES)
        ========================================= */
     .why-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 40px; padding: 1px 64px; }
     .why-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px; padding: 32px 24px; text-align: center; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: default; }
@@ -148,7 +79,7 @@
     .why-card p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; }
 
     /* =========================================
-       5. APP FEATURES
+       3. APP FEATURES
        ========================================= */
     .app-features-scattered { padding: 140px 20px; text-align: center; position: relative; overflow: hidden; background: radial-gradient(circle at top left, rgba(255,0,100,0.08), transparent 40%), radial-gradient(circle at bottom right, rgba(0,150,255,0.08), transparent 40%); }
     .app-title { font-size: 2.8rem; margin-bottom: 100px; font-weight: 700; }
@@ -175,7 +106,7 @@
     .box5 { top: 80px; right: 60px; } .box6 { top: 240px; right: 20px; } .box7 { top: 400px; right: 60px; } .box8 { top: 560px; right: 120px; }
 
     /* =========================================
-       6. CTA & CAR ANIMATION
+       4. CTA & CAR ANIMATION
        ========================================= */
     .cta { margin: 100px 64px; border-radius: 30px; padding: 80px 40px; text-align: center; background: linear-gradient(135deg, #f0f0f0, #ffffff); color: #000; position: relative; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
     .cta h2 { font-size: 2.4rem; margin-bottom: 14px; position: relative; z-index: 2; font-weight: 700; }
@@ -198,34 +129,118 @@
     @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-2px); } }
 
     /* =========================================
-       7. FOOTER & MISC
+       5. PROFESSIONAL MODERN FOOTER
        ========================================= */
-    footer { background: var(--bg-main); border-top: 1px solid var(--border); color: var(--text-muted); padding: 60px 64px; }
-    footer .row { display: flex; flex-wrap: wrap; gap: 30px; }
-    footer h5 { color: var(--text-main); font-weight: 700; margin-bottom: 16px; font-size: 1.1rem; }
-    footer .footer-link { display: block; color: var(--text-muted); text-decoration: none; margin-bottom: 8px; font-size: 0.9rem; transition: color 0.3s ease; font-family: 'Open Sans', sans-serif; font-weight: 500; }
-    footer .footer-link:hover { color: var(--primary); }
-    footer .footer-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-    footer p { font-size: 0.9rem; line-height: 1.5; color: var(--text-muted); font-family: 'Roboto', sans-serif; }
-    footer .social-links i { font-size: 1.3rem; color: var(--text-muted); margin-right: 12px; transition: color 0.3s ease, transform 0.3s ease; }
-    footer .social-links i:hover { color: var(--primary); transform: scale(1.2); }
-
-    body.light { --bg-main: #f5f5f5; --bg-card: #ffffff; --border: rgba(0,0,0,0.12); --primary: #ff6a2a; --primary-glow: rgba(255,106,42,0.25); --text-main: #111111; --text-muted: #555555; background: radial-gradient(circle at top, #ffffff, #eaeaea); }
-
-    @media(max-width: 1000px){ .search-box, .why-grid { grid-template-columns: 1fr; } .why-grid { grid-template-columns: repeat(2, 1fr); } header .header-box { padding: 12px 20px; } header { padding: 0; } .phone-wrapper { height: auto; display: flex; flex-direction: column; align-items: center; } .feature-box { position: static; margin: 15px 0; animation: none; } .phone { position: relative; margin: 40px 0; } .glow { display: none; } }
-    @media(max-width: 900px){ .hero, .section { padding-left: 32px; padding-right: 32px; } footer { padding: 40px 32px; } }
-    @media(max-width: 768px){ footer .row { flex-direction: column; } footer .col-md-4, footer .col-md-2 { width: 100%; } }
-    @media(max-width: 600px){ .why-grid { grid-template-columns: 1fr; } }
+    .site-footer {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      padding: 90px 64px 30px;
+      margin-top: 60px;
+      font-family: 'Open Sans', sans-serif;
+      position: relative;
+    }
+    .footer-grid {
+      display: grid; grid-template-columns: 2.5fr 1fr 1fr 1.5fr; gap: 50px;
+      max-width: 1250px; margin: 0 auto; padding-bottom: 60px; border-bottom: 1px solid var(--border);
+    }
+    .footer-brand { display: flex; flex-direction: column; gap: 18px; }
+    .footer-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; margin-bottom: 5px; }
+    .footer-logo img { height: 36px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(255, 106, 42, 0.2));}
+    .footer-logo-text { font-family: 'Poppins', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
+    .footer-logo-text span { color: var(--primary); }
+    .footer-brand p { color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; max-width: 320px; }
+    .contact-info { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .contact-row { display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
+    .contact-row i { color: var(--primary); font-size: 1.1rem; }
+    .social-links { display: flex; gap: 12px; margin-top: 10px; }
+    .social-links a { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--bg-main); color: var(--text-muted); border: 1px solid var(--border); transition: all 0.3s ease; font-size: 1rem; text-decoration: none; }
+    .social-links a:hover { background: var(--primary); color: #fff; border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 10px 20px var(--primary-glow); }
+    .footer-col h4 { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 1.1rem; margin-bottom: 24px; color: var(--text-main); letter-spacing: 0.5px; }
+    .footer-links { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 16px; }
+    .footer-links a { color: var(--text-muted); text-decoration: none; font-size: 0.95rem; transition: all 0.2s ease; display: inline-flex; align-items: center; font-weight: 500; cursor: pointer; }
+    .footer-links a:hover { color: var(--primary); transform: translateX(6px); }
     
-  </style>
-</head>
-<body>
+    /* App Badges */
+    .app-badges { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+    .app-badge { display: flex; align-items: center; gap: 12px; background: var(--bg-main); border: 1px solid var(--border); padding: 8px 16px; border-radius: 12px; color: var(--text-main); text-decoration: none; transition: 0.2s ease; max-width: 180px; cursor: pointer; }
+    .app-badge:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
+    .app-badge i { font-size: 1.6rem; }
+    .app-badge-text { display: flex; flex-direction: column; }
+    .app-badge-text span:first-child { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+    .app-badge-text span:last-child { font-size: 0.9rem; font-weight: 600; font-family: 'Poppins', sans-serif; line-height: 1.1; }
 
-{% extends 'base.html' %}
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; max-width: 1250px; margin: 0 auto; padding-top: 30px; color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
+    .footer-bottom-links { display: flex; gap: 24px; }
+    .footer-bottom-links a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; position: relative; cursor: pointer;}
+    .footer-bottom-links a:hover { color: var(--text-main); }
 
-{% block title %}Home | GoWheels{% endblock %}
+    /* =========================================
+       6. GLOBAL POPUP MODALS & TOASTS
+       ========================================= */
+    .policy-modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        display: flex; justify-content: center; align-items: center;
+        z-index: 99999; opacity: 0; visibility: hidden;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .policy-modal-overlay.active { opacity: 1; visibility: visible; }
+    
+    .policy-modal-box {
+        background: var(--bg-card); border: 1px solid var(--border);
+        width: 90%; max-width: 750px; max-height: 85vh; border-radius: 24px;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.5); position: relative;
+        transform: translateY(30px) scale(0.95); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        display: flex; flex-direction: column; overflow: hidden;
+    }
+    .policy-modal-overlay.active .policy-modal-box { transform: translateY(0) scale(1); }
 
-{% block content %}
+    .modal-header {
+        padding: 24px 30px; border-bottom: 1px solid var(--border);
+        display: flex; justify-content: space-between; align-items: center;
+        background: var(--bg-card); z-index: 10;
+    }
+    .modal-header h3 { margin: 0; font-family: 'Poppins', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--text-main); }
+    .btn-close-modal {
+        background: var(--bg-main); border: 1px solid var(--border);
+        color: var(--text-muted); width: 36px; height: 36px; border-radius: 50%;
+        display: grid; place-items: center; cursor: pointer; transition: 0.2s; font-size: 1.1rem;
+    }
+    .btn-close-modal:hover { background: var(--primary-glow); color: var(--primary); border-color: var(--primary); transform: rotate(90deg); }
+
+    .modal-body {
+        padding: 30px; overflow-y: auto; color: var(--text-muted); line-height: 1.7;
+        font-family: 'Open Sans', sans-serif; font-size: 0.95rem; scroll-behavior: smooth;
+    }
+    .modal-body::-webkit-scrollbar { width: 6px; }
+    .modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+    
+    .modal-body h4 { color: var(--text-main); font-family: 'Poppins', sans-serif; margin: 24px 0 10px; font-size: 1.1rem; font-weight: 600; }
+    .modal-body h4:first-child { margin-top: 0; }
+    .modal-body ul { margin-bottom: 20px; padding-left: 20px; }
+    .modal-body li { margin-bottom: 8px; }
+    .modal-body p { margin-bottom: 16px; }
+
+    /* Hidden Content Templates */
+    .policy-content-template { display: none; }
+
+    /* App Coming Soon Toast */
+    .app-toast {
+        position: fixed; top: 30px; left: 50%; transform: translate(-50%, -150%);
+        background: var(--bg-card); border: 1px solid var(--primary); border-radius: 50px;
+        padding: 14px 24px; display: flex; align-items: center; gap: 12px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.3), 0 0 20px var(--primary-glow); z-index: 100000;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--text-main);
+    }
+    .app-toast.show { transform: translate(-50%, 0); }
+    .app-toast i { color: var(--primary); font-size: 1.3rem; }
+
+    /* MEDIA QUERIES */
+    @media(max-width: 1050px){ .search-box, .why-grid { grid-template-columns: 1fr; } .why-grid { grid-template-columns: repeat(2, 1fr); } .phone-wrapper { height: auto; display: flex; flex-direction: column; align-items: center; } .feature-box { position: static; margin: 15px 0; animation: none; } .phone { position: relative; margin: 40px 0; } .glow { display: none; } .footer-grid { grid-template-columns: 1fr 1fr; gap: 50px; } }
+    @media(max-width: 900px){ .hero, .why-grid, .cta, .site-footer { padding-left: 32px; padding-right: 32px; } }
+    @media(max-width: 600px){ .why-grid { grid-template-columns: 1fr; } .footer-grid { grid-template-columns: 1fr; gap: 40px; } .footer-bottom { flex-direction: column; gap: 15px; text-align: center; } .app-badges { flex-direction: row; flex-wrap: wrap; } .policy-modal-box { width: 95%; max-height: 90vh; } .modal-body { padding: 20px; } }
+</style>
 
 <section class="hero">
   <div class="badge">Choose. Book. Vroom!</div>
@@ -233,36 +248,32 @@
   <p>From everyday commutes to unforgettable road trips — choose a vehicle that fits your journey.</p>
   
   <form method="GET" action="{% url 'vehicles' %}" class="search-box" id="home-search-form">
-    
     <div class="input-group">
       <i class="bi bi-car-front"></i>
       <div class="custom-select-wrapper" id="vehicle-dropdown">
-        <div class="custom-select-trigger">
-          <span class="trigger-text">Vehicle Type</span>
-          <i class="bi bi-chevron-down arrow"></i>
-        </div>
+        <div class="custom-select-trigger"><span class="trigger-text">Vehicle Type</span><i class="bi bi-chevron-down arrow"></i></div>
         <div class="custom-options">
           <span class="custom-option" data-value="car"><i class="bi bi-car-front-fill"></i> Car</span>
           <span class="custom-option" data-value="bike"><i class="bi bi-bicycle"></i> Bike</span>
+          <span class="custom-option" data-value="truck"><i class="bi bi-truck"></i> Truck</span>
         </div>
         <select name="vehicle_type" class="hidden-select">
           <option value="">Vehicle Type</option>
           <option value="car">Car</option>
           <option value="bike">Bike</option>
+          <option value="truck">Truck</option>
         </select>
       </div>
     </div>
-
     <div class="input-group">
       <i class="bi bi-people"></i>
       <div class="custom-select-wrapper" id="seats-dropdown">
-        <div class="custom-select-trigger">
-          <span class="trigger-text">Seats</span>
-          <i class="bi bi-chevron-down arrow"></i>
-        </div>
+        <div class="custom-select-trigger"><span class="trigger-text">Seats</span><i class="bi bi-chevron-down arrow"></i></div>
         <div class="custom-options">
           <span class="custom-option" data-value="2"><i class="bi bi-person-fill"></i> 2 Seats</span>
           <span class="custom-option" data-value="4"><i class="bi bi-people-fill"></i> 4 Seats</span>
+          <span class="custom-option" data-value="5"><i class="bi bi-people-fill"></i> 5 Seats</span>
+          <span class="custom-option" data-value="7"><i class="bi bi-person-plus-fill"></i> 7 Seats</span>
           <span class="custom-option" data-value="8"><i class="bi bi-person-lines-fill"></i> 8 Seats</span>
           <span class="custom-option" data-value="12"><i class="bi bi-collection-fill"></i> 12+ Seats</span>
         </div>
@@ -270,24 +281,15 @@
           <option value="">Seats</option>
           <option value="2">2 Seats</option>
           <option value="4">4 Seats</option>
+          <option value="5">5 Seats</option>
+          <option value="7">7 Seats</option>
           <option value="8">8 Seats</option>
           <option value="12">12+ Seats</option>
         </select>
       </div>
     </div>
-
-    <div class="input-group">
-      <i class="bi bi-calendar-event"></i>
-      <input type="text" name="start_date" id="home_start_date" placeholder="Start Date" 
-             onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
-    </div>
-
-    <div class="input-group">
-      <i class="bi bi-calendar-check-fill"></i>
-      <input type="text" name="end_date" id="home_end_date" placeholder="End Date" 
-             onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
-    </div>
-
+    <div class="input-group"><i class="bi bi-calendar-event"></i><input type="text" name="start_date" id="home_start_date" placeholder="Start Date" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'"></div>
+    <div class="input-group"><i class="bi bi-calendar-check-fill"></i><input type="text" name="end_date" id="home_end_date" placeholder="End Date" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'"></div>
     <button type="submit">Search Vehicles</button>
   </form>
 </section>
@@ -324,15 +326,9 @@
     <div class="car-container">
       <svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="bodyRed" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#d90000" /><stop offset="50%" stop-color="#a60000" /><stop offset="100%" stop-color="#800000" />
-          </linearGradient>
-          <linearGradient id="windowTint" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#222" /><stop offset="100%" stop-color="#000" />
-          </linearGradient>
-          <radialGradient id="rimMetal" cx="50%" cy="50%" r="50%">
-            <stop offset="70%" stop-color="#ccc" /><stop offset="90%" stop-color="#666" /><stop offset="100%" stop-color="#111" />
-          </radialGradient>
+          <linearGradient id="bodyRed" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#d90000" /><stop offset="50%" stop-color="#a60000" /><stop offset="100%" stop-color="#800000" /></linearGradient>
+          <linearGradient id="windowTint" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#222" /><stop offset="100%" stop-color="#000" /></linearGradient>
+          <radialGradient id="rimMetal" cx="50%" cy="50%" r="50%"><stop offset="70%" stop-color="#ccc" /><stop offset="90%" stop-color="#666" /><stop offset="100%" stop-color="#111" /></radialGradient>
         </defs>
         <g class="car-body-group">
           <rect x="15" y="85" width="35" height="100" rx="8" fill="#1a1a1a" stroke="#000" stroke-width="2"/>
@@ -375,128 +371,292 @@
   </div>
 </section>
 
-<footer class="footer py-5">
-  <div class="container text-center text-md-start">
-    <div class="row">
-      <div class="col-md-4 mb-4">
-        <div class="footer-logo mb-3">
-          <span style="background: var(--primary); color: #000; border-radius: 50%; width: 34px; height: 34px; display: inline-grid; place-items: center; font-weight: 800;">⚡</span>
-          <span style="margin-left: 8px; font-weight: 700; font-size: 1.2rem; font-family: 'Poppins', sans-serif;">GoWheels</span>
-        </div>
-        <p>Premium vehicle rentals made simple. Browse, book, and hit the road—anytime, anywhere.</p>
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="{% url 'home' %}" class="footer-logo">
+        <img src="{% static 'images/GoWheels_logo3.jpg' %}" alt="GoWheels Logo">
+        <span class="footer-logo-text">Go<span>Wheels</span></span>
+      </a>
+      <p>Your ultimate destination for premium vehicle rentals. Choose, book, and vroom to your next adventure with confidence.</p>
+      
+      <div class="contact-info">
+        <div class="contact-row"><i class="bi bi-geo-alt-fill"></i> 123 Mobility Avenue, Dhule, MH 424001</div>
+        <div class="contact-row"><i class="bi bi-envelope-fill"></i> support@gowheels.com</div>
+        <div class="contact-row"><i class="bi bi-telephone-fill"></i> +91 98765 43210</div>
       </div>
-      <div class="col-md-2 mb-4">
-        <h5>Quick Links</h5>
-        <ul class="list-unstyled" style="padding-left: 0; margin-top: 12px;">
-          <li><a href="{% url 'home' %}" class="footer-link">Home</a></li>
-          <li><a href="{% url 'vehicles' %}" class="footer-link">Vehicles</a></li>
-          <li><a href="{% url 'offers' %}" class="footer-link">Offers</a></li>
-          <li><a href="{% url 'helpdesk' %}" class="footer-link">Helpdesk</a></li>
-        </ul>
+
+      <div class="social-links">
+        <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+        <a href="#" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+        <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+        <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
       </div>
-      <div class="col-md-2 mb-4">
-        <h5>Account</h5>
-        <ul class="list-unstyled" style="padding-left: 0; margin-top: 12px;">
-          {% if user.is_authenticated %}
-            <li><a href="{% url 'rent_history' %}" class="footer-link">Rent History</a></li>
-            <li><a href="{% url 'list_vehicle' %}" class="footer-link">List Your Vehicle</a></li>
-            <li><a href="{% url 'logout' %}" class="footer-link">Log Out</a></li>
-          {% else %}
-            <li><a href="{% url 'login' %}" class="footer-link">Log In</a></li>
-            <li><a href="{% url 'signup' %}" class="footer-link">Sign Up</a></li>
-          {% endif %}
-        </ul>
+    </div>
+    
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul class="footer-links">
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li><a href="{% url 'vehicles' %}">Browse Fleet</a></li>
+        <li><a onclick="openPolicyModal('faq')">Help Center / FAQ</a></li>
+        <li><a href="mailto:support@gowheels.com">Contact Support</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Legal & Policies</h4>
+      <ul class="footer-links">
+        <li><a onclick="openPolicyModal('tos')">Terms of Service</a></li>
+        <li><a onclick="openPolicyModal('privacy')">Privacy Policy</a></li>
+        <li><a onclick="openPolicyModal('refund')">Refund Policy</a></li>
+        <li><a onclick="openPolicyModal('insurance')">Insurance Rules</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Get the App</h4>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 15px; line-height: 1.5;">Manage bookings and unlock vehicles instantly with the GoWheels app.</p>
+      <div class="app-badges">
+        <a onclick="showAppComingSoon()" class="app-badge">
+          <i class="bi bi-apple"></i>
+          <div class="app-badge-text"><span>Download on the</span><span>App Store</span></div>
+        </a>
+        <a onclick="showAppComingSoon()" class="app-badge">
+          <i class="bi bi-google-play"></i>
+          <div class="app-badge-text"><span>GET IT ON</span><span>Google Play</span></div>
+        </a>
       </div>
-      <div class="col-md-4 mb-4">
-        <h5>Contact Us</h5>
-        <p style="margin-top: 12px;">support@gowheels.com<br/>+91 8888 123 456</p><br>
-        <div class="social-links mt-2">
-          <a href="" class="footer-link me-2"><i class="bi bi-facebook"> Facebook</i></a>
-          <a href="https://www.instagram.com/gowhe_els?igsh=MTluejg5NmYzcjZsaw==" class="footer-link me-2"><i class="bi bi-instagram"> Instagram</i></a>
-          <a href="#" class="footer-link me-2"><i class="bi bi-twitter"> X</i></a>
-        </div>
-      </div>
+    </div>
+  </div>
+  
+  <div class="footer-bottom">
+    <div class="copyright">&copy; <script>document.write(new Date().getFullYear())</script> GoWheels Inc. All rights reserved.</div>
+    <div class="footer-bottom-links">
+      <a onclick="openPolicyModal('sitemap')">Sitemap</a>
+      <a onclick="openPolicyModal('security')">Security</a>
+      <a onclick="openPolicyModal('cookies')">Cookie Preferences</a>
     </div>
   </div>
 </footer>
 
+<div id="appToast" class="app-toast">
+    <i class="bi bi-phone-vibrate"></i> Our mobile app is launching soon! Stay tuned.
+</div>
+
+<div id="policyModal" class="policy-modal-overlay">
+    <div class="policy-modal-box">
+        <div class="modal-header">
+            <h3 id="modalTitle">Policy</h3>
+            <button class="btn-close-modal" onclick="closePolicyModal()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body" id="modalBodyContent">
+            </div>
+    </div>
+</div>
+
+<div id="content-faq" class="policy-content-template">
+    <h4>1. What documents do I need to rent a vehicle?</h4>
+    <p>For self-drive rentals, you must provide a valid Original Driving License and a government-issued photo ID (Aadhaar Card or Passport). For chauffeur-driven rides, only a valid photo ID is required.</p>
+    <h4>2. Is fuel included in the rental price?</h4>
+    <p>No. GoWheels operates on a "Level-to-Level" fuel policy. You must return the vehicle with the same amount of fuel it had when you picked it up to avoid refuelling penalties.</p>
+    <h4>3. How do security deposits work?</h4>
+    <p>A refundable security deposit is held securely in your GoWheels Wallet during your trip. It is released back to your original payment method within 3-5 business days after a successful, damage-free vehicle return.</p>
+    <h4>4. Can I cross state borders?</h4>
+    <p>Yes, our vehicles possess All-India tourist permits. However, any state-specific entry taxes or border permits are the responsibility of the renter to pay at the toll checkpoints.</p>
+</div>
+
+<div id="content-tos" class="policy-content-template">
+    <h4>1. Acceptance of Terms</h4>
+    <p>By accessing or using the GoWheels platform, you agree to be bound by these Terms of Service. You must be at least 18 years old and possess a valid driving license to rent a self-drive vehicle.</p>
+    <h4>2. Vehicle Use Rules</h4>
+    <ul>
+        <li>Vehicles must not be used for racing, towing, or off-road driving.</li>
+        <li>Smoking and consumption of alcohol inside the vehicle is strictly prohibited.</li>
+        <li>The renter is fully responsible for any traffic violations, parking fines, or toll charges incurred during the rental period.</li>
+    </ul>
+    <h4>3. Liability and Damages</h4>
+    <p>You agree to return the vehicle in the same condition it was provided. GoWheels reserves the right to charge your wallet or payment method for any damages, excessive cleaning fees, or late return penalties.</p>
+</div>
+
+<div id="content-privacy" class="policy-content-template">
+    <h4>1. Information We Collect</h4>
+    <p>We collect information necessary to provide our rental services, including your name, contact details, payment information, driving license copies, and location data during active trips for safety and tracking purposes.</p>
+    <h4>2. How We Use Your Data</h4>
+    <p>Your data is used to verify your identity, process transactions, provide customer support, and improve our services. We do not sell your personal information to third-party marketers.</p>
+    <h4>3. Data Security</h4>
+    <p>GoWheels employs industry-standard AES-256 encryption to protect your sensitive data. Payment processing is handled by secure, PCI-DSS compliant third-party gateways (e.g., Stripe, Razorpay).</p>
+</div>
+
+<div id="content-refund" class="policy-content-template">
+    <h4>1. Booking Cancellations</h4>
+    <p>All bookings made on GoWheels are final. Due to the logistical nature of vehicle dispatching, <strong>cancellations are not permitted</strong> once a booking is confirmed.</p>
+    <h4>2. Security Deposit Refunds</h4>
+    <p>Security deposits are initiated for refund immediately after the vehicle is returned and inspected. Please allow 3 to 5 business days for the funds to reflect in your bank account or credit card statement.</p>
+    <h4>3. Exceptions</h4>
+    <p>In the rare event that GoWheels is unable to provide the booked vehicle due to maintenance issues or prior accidents, a full 100% refund (including rental fees) will be issued instantly to your GoWheels Wallet or original payment method.</p>
+</div>
+
+<div id="content-insurance" class="policy-content-template">
+    <h4>1. Standard Coverage</h4>
+    <p>All GoWheels rentals include basic comprehensive insurance and third-party liability coverage. This protects you against major financial loss in the event of an unavoidable accident.</p>
+    <h4>2. Renter Deductible (Liability)</h4>
+    <p>In the event of damage to the GoWheels vehicle, the renter is liable to pay a standard deductible (usually up to ₹10,000 depending on the vehicle class). Damage costs exceeding this deductible are covered by our insurance.</p>
+    <h4>3. Accident Protocol</h4>
+    <p>If an accident occurs, you must immediately notify GoWheels Support and file a local police report (FIR) if a third party is involved. Failure to report an accident immediately may void the insurance coverage.</p>
+</div>
+
+<div id="content-sitemap" class="policy-content-template">
+    <h4>Main Navigation</h4>
+    <ul>
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li><a href="{% url 'vehicles' %}">Browse Fleet</a></li>
+        <li><a href="{% url 'list_vehicle' %}">List Your Vehicle</a></li>
+    </ul>
+    <h4>User Dashboard</h4>
+    <ul>
+        <li>My Profile</li>
+        <li>Rent History & Active Trips</li>
+        <li>GoWheels Wallet</li>
+    </ul>
+</div>
+
+<div id="content-security" class="policy-content-template">
+    <h4>1. Platform Security</h4>
+    <p>GoWheels is built on a modern, secure architecture. We force HTTPS/SSL on all pages to ensure your connection to our servers is fully encrypted and safe from interception.</p>
+    <h4>2. Payment Security</h4>
+    <p>We do not store your raw credit card numbers on our servers. All financial transactions are tokenized and processed directly by our PCI-DSS Level 1 compliant payment partners.</p>
+    <h4>3. Identity Verification</h4>
+    <p>User documents (Licenses, Aadhaar) are stored in secure, access-controlled cloud buckets and are only accessible by authorized GoWheels verification staff.</p>
+</div>
+
+<div id="content-cookies" class="policy-content-template">
+    <h4>1. Essential Cookies</h4>
+    <p>We use essential cookies to maintain your login session, remember your vehicle search dates, and process your bookings securely. These cannot be disabled as the platform will not function without them.</p>
+    <h4>2. Analytics Cookies</h4>
+    <p>We use anonymized analytics cookies (like Google Analytics) to understand how users navigate our site so we can improve the UI/UX. You can clear these at any time via your browser settings.</p>
+    <h4>3. Managing Preferences</h4>
+    <p>By continuing to use GoWheels, you consent to our use of these necessary cookies. To manage or clear cookies, please refer to the "Privacy and Security" settings in your web browser.</p>
+</div>
+
 <script>
-  // Wrap in DOMContentLoaded so Django loads the script safely
+  // ==========================================
+  // MODAL LOGIC
+  // ==========================================
+  function openPolicyModal(policyType) {
+      const modal = document.getElementById('policyModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalBody = document.getElementById('modalBodyContent');
+      
+      // Get the hidden content
+      const contentSource = document.getElementById('content-' + policyType);
+      
+      if(contentSource) {
+          // Set Title based on the type
+          const titles = {
+              'faq': 'Help Center / FAQ',
+              'tos': 'Terms of Service',
+              'privacy': 'Privacy Policy',
+              'refund': 'Refund Policy',
+              'insurance': 'Insurance Rules',
+              'sitemap': 'Website Sitemap',
+              'security': 'Security Information',
+              'cookies': 'Cookie Preferences'
+          };
+          
+          modalTitle.innerText = titles[policyType];
+          modalBody.innerHTML = contentSource.innerHTML; // Inject content
+          
+          // Show Modal
+          modal.classList.add('active');
+          document.body.style.overflow = 'hidden'; // Prevent background scrolling
+      }
+  }
+
+  function closePolicyModal() {
+      const modal = document.getElementById('policyModal');
+      modal.classList.remove('active');
+      document.body.style.overflow = 'auto'; // Restore background scrolling
+  }
+
+  // Close modal when clicking outside the box
+  document.getElementById('policyModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+          closePolicyModal();
+      }
+  });
+
+  // ==========================================
+  // APP COMING SOON TOAST LOGIC
+  // ==========================================
+  function showAppComingSoon() {
+      const toast = document.getElementById('appToast');
+      toast.classList.add('show');
+      
+      // Hide after 3.5 seconds
+      setTimeout(() => {
+          toast.classList.remove('show');
+      }, 3500);
+  }
+
+  // ==========================================
+  // EXISTING HOMEPAGE LOGIC (Dropdowns & Dates)
+  // ==========================================
   document.addEventListener("DOMContentLoaded", () => {
-    
-    // --- Custom Aesthetic Dropdown Logic ---
+    // Custom Aesthetic Dropdowns
     document.querySelectorAll('.custom-select-wrapper').forEach(wrapper => {
       const trigger = wrapper.querySelector('.custom-select-trigger');
       const triggerText = wrapper.querySelector('.trigger-text');
       const options = wrapper.querySelectorAll('.custom-option');
       const hiddenSelect = wrapper.querySelector('.hidden-select');
 
-      // Toggle dropdown open/close
       if(trigger) {
         trigger.addEventListener('click', function(e) {
-          e.stopPropagation(); // Stops the window click from instantly closing it
-          
-          // Close other open dropdowns first
+          e.stopPropagation(); 
           document.querySelectorAll('.custom-select-wrapper.open').forEach(other => {
             if (other !== wrapper) other.classList.remove('open');
           });
-          
           wrapper.classList.toggle('open');
         });
       }
 
-      // Handle option selection
       options.forEach(option => {
         option.addEventListener('click', function() {
-          // Remove selected class from others
           options.forEach(opt => opt.classList.remove('selected'));
-          
-          // Add selected class to clicked
           this.classList.add('selected');
           
-          // Update the displayed text (strips the icon HTML out and just gets the text)
           if(triggerText) {
             triggerText.textContent = this.textContent.trim();
-            // Make text brighter to show it's selected
             triggerText.style.color = "var(--text-main)"; 
           }
-          
-          // Update the hidden select so Django receives the value
           if(hiddenSelect) {
             hiddenSelect.value = this.getAttribute('data-value');
           }
-          
-          // Close dropdown
           wrapper.classList.remove('open');
         });
       });
     });
 
-    // Close dropdowns when clicking anywhere else on the page
     window.addEventListener('click', function() {
       document.querySelectorAll('.custom-select-wrapper.open').forEach(wrapper => {
         wrapper.classList.remove('open');
       });
     });
 
-    // --- Homepage Date Validation Logic ---
+    // Date Validation
     const searchForm = document.getElementById('home-search-form');
     if (searchForm) {
       const homeStart = document.getElementById('home_start_date');
       const homeEnd = document.getElementById('home_end_date');
-
-      // Make sure users can't pick dates in the past
       const today = new Date().toISOString().split('T')[0];
       
       if(homeStart && homeEnd) {
         homeStart.addEventListener('focus', function() { this.setAttribute('min', today); });
         homeEnd.addEventListener('focus', function() { 
-          // If start date is chosen, end date must be after it
           if(homeStart.value) { this.setAttribute('min', homeStart.value); }
           else { this.setAttribute('min', today); }
         });
 
-        // Prevent submitting the form with mismatched dates
         searchForm.addEventListener('submit', function(e) {
           if ((homeStart.value && !homeEnd.value) || (!homeStart.value && homeEnd.value)) {
             e.preventDefault();
@@ -505,85 +665,6 @@
         });
       }
     }
-
-    // --- Theme Toggle Logic ---
-    const checkbox = document.getElementById("themeCheckbox");
-    const body = document.body;
-    if (localStorage.getItem("theme") === "light") {
-      body.classList.add("light");
-      if(checkbox) checkbox.checked = false; 
-    } else {
-      body.classList.remove("light");
-      if(checkbox) checkbox.checked = true; 
-    }
-    
-    if(checkbox) {
-        checkbox.addEventListener("change", () => {
-          if (checkbox.checked) {
-            body.classList.remove("light");
-            localStorage.setItem("theme", "dark");
-          } else {
-            body.classList.add("light");
-            localStorage.setItem("theme", "light");
-          }
-        });
-    }
   });
 </script>
-{% if pending_review %}
-<style>
-  .review-toast {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      background: var(--bg-card);
-      border: 1px solid var(--primary);
-      border-radius: 20px;
-      padding: 24px;
-      display: flex;
-      gap: 18px;
-      align-items: flex-start;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.5), 0 0 20px var(--primary-glow);
-      z-index: 9999;
-      transform: translateX(120%);
-      animation: slideInToast 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 1s;
-      font-family: 'Open Sans', sans-serif;
-  }
-  .review-toast .toast-icon {
-      font-size: 2rem;
-      color: var(--primary);
-      background: var(--primary-glow);
-      width: 55px;
-      height: 55px;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      flex-shrink: 0;
-  }
-  .review-toast h4 { margin: 0 0 5px; font-size: 1.1rem; font-family: 'Poppins', sans-serif; font-weight: 700;}
-  .review-toast p { margin: 0 0 15px; font-size: 0.9rem; color: var(--text-muted); max-width: 250px; line-height: 1.4; }
-  .review-toast .toast-btn { display: block; width: 100%; text-align: center; border-radius: 12px; padding: 12px; }
-  .toast-close { position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.4rem; transition: 0.2s;}
-  .toast-close:hover { color: var(--primary); transform: scale(1.2); }
-  @keyframes slideInToast { to { transform: translateX(0); } }
-  
-  /* Mobile adjustment */
-  @media(max-width: 600px){
-      .review-toast { right: 15px; left: 15px; bottom: 15px; width: auto; max-width: none; }
-  }
-</style>
-
-<div class="review-toast" id="reviewToast">
-  <div class="toast-icon"><i class="bi bi-star-fill"></i></div>
-  <div class="toast-content">
-      <h4>How was your trip?</h4>
-      <p>You recently completed a ride with the <strong>{{ pending_review.vehicle.vehicle_name }}</strong>. Please leave a review!</p>
-      <a href="{% url 'rent_history' %}?review={{ pending_review.id }}" class="btn-primary toast-btn">Rate Your Experience</a>
-  </div>
-  <button class="toast-close" onclick="document.getElementById('reviewToast').style.display='none'"><i class="bi bi-x"></i></button>
-</div>
-{% endif %}
 {% endblock %}
-
-</body>
-</html>

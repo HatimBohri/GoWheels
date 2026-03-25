@@ -35,75 +35,161 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 # ==========================================
 
 def send_booking_confirmation_email(request, rental):
-    """ Generates and sends a professional HTML email purely from views.py """
+    """ Generates and sends a premium HTML email with full billing details """
     try:
-        # Dynamic Invoice ID
+        # 1. Dynamic Invoice & Dates
         year = getattr(rental, 'rented_at', timezone.now()).year
         booking_id = f"INV-{year}-{rental.id:05d}"
         domain_url = request.build_absolute_uri('/')
         
-        # Safely parse dates (handles both Date objects and string formats from session)
         start_dt = rental.start_date if isinstance(rental.start_date, date) else datetime.strptime(rental.start_date, "%Y-%m-%d").date()
         end_dt = rental.end_date if isinstance(rental.end_date, date) else datetime.strptime(rental.end_date, "%Y-%m-%d").date()
         
         start_str = start_dt.strftime("%d %b, %Y")
         end_str = end_dt.strftime("%d %b, %Y")
         
-        # Determine drive mode text
+        # 2. Calculate Billing Details
+        days = (end_dt - start_dt).days + 1
+        vehicle_rate = rental.vehicle.price_per_day
+        vehicle_total = vehicle_rate * days
+        
         drive_mode = "Self-Drive"
+        driver_row_html = ""
+        
+        # If a driver was selected, calculate their fare separately
         if rental.drive_type == 'driver' and rental.driver:
-            drive_mode = f"With Chauffeur ({rental.driver.name})"
+            drive_mode = f"Chauffeur ({rental.driver.name})"
+            driver_rate = rental.driver.price_per_day
+            driver_total = driver_rate * days
+            driver_row_html = f"""
+            <tr>
+                <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555;">Driver Fare ({days} Days @ ₹{driver_rate}/day)</td>
+                <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; text-align: right; font-weight: 500;">₹{driver_total}</td>
+            </tr>
+            """
+            
+        # Format Payment Mode
+        payment_modes = {'cash': 'Cash on Pickup', 'online': 'Online Payment', 'wallet': 'Paid via Wallet'}
+        payment_display = payment_modes.get(rental.payment_mode, rental.payment_mode.title())
 
-        # 1. Define the HTML as an f-string with inline CSS
+        # 3. Define the Premium HTML
         html_content = f"""
         <!DOCTYPE html>
         <html>
-        <body style="font-family: 'Inter', Arial, sans-serif; background-color: #f5f7fa; margin: 0; padding: 20px;">
-            <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                <div style="background-color: #ff6a2a; padding: 30px 20px; text-align: center; color: #ffffff;">
-                    <h1 style="margin: 0; font-size: 24px;">GoWheels Booking Confirmed! 🚀</h1>
-                </div>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+        </head>
+        <body style="font-family: 'Poppins', Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 40px 10px;">
+            
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
                 
-                <div style="padding: 30px; color: #333333; line-height: 1.6;">
-                    <p>Hi <strong>{rental.full_name}</strong>,</p>
-                    <p>Thank you for choosing GoWheels! 🎉 We're thrilled to confirm your vehicle booking. Here are your trip details:</p>
-                    
-                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                        <p style="margin: 5px 0; font-size: 14px;"><strong>Booking ID:</strong> {booking_id}</p>
-                        <p style="margin: 5px 0; font-size: 14px;"><strong>Vehicle:</strong> {rental.vehicle.vehicle_name}</p>
-                        <p style="margin: 5px 0; font-size: 14px;"><strong>Drive Mode:</strong> {drive_mode}</p>
-                        <p style="margin: 5px 0; font-size: 14px;"><strong>Pickup Location:</strong> {rental.vehicle.pickup_location}</p>
-                        <p style="margin: 5px 0; font-size: 14px;"><strong>Dates:</strong> {start_str} to {end_str}</p>
-                        
-                        <p style="margin: 10px 0 0 0; padding-top: 15px; border-top: 2px solid #e2e8f0; font-size: 18px; color: #ff6a2a;">
-                            <strong>Total Amount:</strong> ₹{rental.total_price}
-                        </p>
+                <div style="background-color: #121212; padding: 40px 20px; text-align: center;">
+                    <div style="display: inline-block; background-color: #ff6a2a; color: #000; border-radius: 50%; width: 44px; height: 44px; line-height: 44px; font-size: 22px; font-weight: bold; margin-bottom: 15px;">⚡</div>
+                    <h1 style="margin: 0; color: #ffffff; font-size: 26px; font-weight: 700; letter-spacing: 0.5px;">Booking Confirmed!</h1>
+                    <p style="color: #a0a0a0; margin: 10px 0 0 0; font-size: 15px;">Your vehicle is reserved and ready.</p>
+                </div>
+
+                <div style="padding: 40px 30px;">
+                    <p style="margin: 0 0 20px 0; font-size: 16px; color: #333333;">Hi <strong>{rental.full_name}</strong>,</p>
+                    <p style="margin: 0 0 30px 0; font-size: 15px; color: #555555; line-height: 1.6;">Thank you for choosing <strong>GoWheels</strong>. Below is the complete summary of your itinerary and billing details.</p>
+
+                    <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #121212; border-bottom: 2px solid #ff6a2a; display: inline-block; padding-bottom: 4px;">Trip Itinerary</h3>
+                    <div style="background-color: #fafbfc; border: 1px solid #eaeef2; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+                        <table width="100%" cellpadding="0" cellspacing="0" style="font-size: 14px; color: #444444;">
+                            <tr>
+                                <td style="padding: 8px 0; color: #888;">Booking ID</td>
+                                <td style="padding: 8px 0; text-align: right; font-weight: 600; color: #121212;">{booking_id}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #888;">Vehicle</td>
+                                <td style="padding: 8px 0; text-align: right; font-weight: 500;">{rental.vehicle.vehicle_name}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #888;">Dates</td>
+                                <td style="padding: 8px 0; text-align: right; font-weight: 500;">{start_str} to {end_str}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #888;">Drive Mode</td>
+                                <td style="padding: 8px 0; text-align: right; font-weight: 500;">{drive_mode}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #888;">Pickup Location</td>
+                                <td style="padding: 8px 0; text-align: right; font-weight: 500;">{rental.vehicle.pickup_location}</td>
+                            </tr>
+                        </table>
                     </div>
 
-                    <p>Our team is preparing your vehicle. Please make sure to carry a <strong>valid ID</strong> and your <strong>driving license</strong> at the time of pickup.</p>
-                    
-                    <center>
-                        <a href="{domain_url}dashboard/history/" style="display: inline-block; padding: 12px 24px; background-color: #121212; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; margin-top: 20px;">View Booking Dashboard</a>
-                    </center>
+                    <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #121212; border-bottom: 2px solid #ff6a2a; display: inline-block; padding-bottom: 4px;">Payment Summary</h3>
+                    <div style="background-color: #ffffff; border: 1px solid #eaeef2; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                        <table width="100%" cellpadding="0" cellspacing="0" style="font-size: 14px; color: #444444;">
+                            <tr>
+                                <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555;">Vehicle Fare ({days} Days @ ₹{vehicle_rate}/day)</td>
+                                <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; text-align: right; font-weight: 500;">₹{vehicle_total}</td>
+                            </tr>
+                            {driver_row_html}
+                            <tr>
+                                <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555;">Payment Method</td>
+                                <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; text-align: right; font-weight: 600; color: #28a745;">{payment_display}</td>
+                            </tr>
+                        </table>
+
+                        <div style="margin-top: 15px; text-align: right;">
+                            <span style="font-size: 13px; color: #888888; text-transform: uppercase; letter-spacing: 1px;">Total Amount</span><br>
+                            <span style="font-size: 28px; color: #ff6a2a; font-weight: 700;">₹{rental.total_price}</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 35px; background: linear-gradient(135deg, rgba(255,106,42,0.08), rgba(255,106,42,0.02)); border-left: 4px solid #ff6a2a; padding: 18px 22px; border-radius: 0 10px 10px 0;">
+
+    <p style="margin: 0 0 12px 0; font-size: 15px; color: #121212; font-weight: 600; letter-spacing: 0.3px;">
+        Pickup Guidelines
+    </p>
+
+    <ul style="margin: 0; padding-left: 18px; font-size: 13.5px; color: #444; line-height: 1.7;">
+        <li>Please carry your original <strong>Driving License</strong> and <strong>Aadhaar Card</strong> for identity verification.</li>
+        <li>Kindly arrive at least <strong>15 minutes prior</strong> to your scheduled pickup time.</li>
+        <li>Ensure your <strong>driving license is valid</strong> and not expired.</li>
+        <li>Thoroughly inspect the <strong>vehicle’s condition</strong> (interior & exterior) before departure.</li>
+        <li>Confirm availability of all required documents (<strong>RC, Insurance, PUC</strong>).</li>
+        <li>Check <strong>fuel level</strong> and basic functionalities (lights, brakes, indicators).</li>
+        <li>In case of delay, please <strong>inform your host in advance</strong>.</li>
+        <li>Vehicle usage is permitted only for the <strong>registered driver</strong>.</li>
+        <li>Follow all <strong>traffic regulations</strong> during your trip.</li>
+        <li>For any assistance, please <strong>contact support or your host immediately</strong>.</li>
+    </ul>
+
+</div>
+
+                    <div style="text-align: center; margin-top: 40px;">
+                        <a href="{domain_url}rent-history/" style="display: inline-block; padding: 16px 36px; background-color: #121212; color: #ffffff; text-decoration: none; border-radius: 30px; font-weight: 600; font-size: 15px; letter-spacing: 0.5px; transition: 0.3s;">Manage My Booking</a>
+                    </div>
                 </div>
+
+                <div style="background-color: #fafbfc; padding: 25px 20px; text-align: center; border-top: 1px solid #eaeef2;">
+                    <p style="margin: 0 0 10px 0; font-size: 13px; color: #888888;">Need assistance? Contact our support team at <a href="mailto:support@gowheels.com" style="color: #ff6a2a; text-decoration: none; font-weight: 500;">support@gowheels.com</a></p>
+                    <p style="margin: 0; font-size: 12px; color: #aaaaaa;">&copy; {year} GoWheels Premium Rentals. All rights reserved.</p>
+                </div>
+
             </div>
         </body>
         </html>
         """
 
-        # 2. Automatically create a plain-text version
+        # 4. Extract plain text automatically for email clients that don't support HTML
         text_content = strip_tags(html_content)
 
-        # 3. Send using standard send_mail
+        # 5. Send Email
         send_mail(
             subject=f"Booking Confirmed: {rental.vehicle.vehicle_name} 🚗 | GoWheels",
             message=text_content,
-            from_email=settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'noreply@gowheels.com',
+            from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[request.user.email],
             fail_silently=True,
             html_message=html_content
         )
-        print(f"🔥 [DEVELOPER CONSOLE] Confirmation email sent to {request.user.email}")
+        print(f"🔥 [DEVELOPER CONSOLE] Premium confirmation email sent to {request.user.email}")
         
     except Exception as e:
         print(f"❌ [EMAIL ERROR] Failed to send confirmation: {e}")

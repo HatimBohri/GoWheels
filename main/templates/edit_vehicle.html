@@ -59,12 +59,13 @@
 
       <div class="input-grid">
         <div class="input-group">
-          <label>Type</label>
-          <select name="vehicle_type" id="vType" required>
-            <option value="car">Car</option>
-            <option value="bike">Bike</option>
-          </select>
-        </div>
+            <label>Type</label>
+            <select name="vehicle_type" required>
+              <option value="car">Car</option>
+              <option value="bike">Bike</option>
+              <option value="truck">Truck</option>
+             </select>
+          </div>
         <div class="input-group">
           <label>Category</label>
           <select name="category" id="vCategory" required>
@@ -103,23 +104,27 @@
           <input type="number" name="price_per_day" value="{{ vehicle.price_per_day }}" required>
         </div>
         <div class="input-group">
-          <label>Seats</label>
-          <select name="seats" id="vSeats" required>
-            <option value="2">2</option>
-            <option value="4">4</option>
-            <option value="8">8</option>
-            <option value="12">12+</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label>Fuel</label>
-          <select name="fuel_type" id="vFuel">
-            <option value="Petrol">Petrol</option>
-            <option value="Diesel">Diesel</option>
-            <option value="Electric">Electric</option>
-            <option value="Hybrid">Hybrid</option>
-          </select>
-        </div>
+            <label>Seats</label>
+            <select name="seats" required>
+              <option value="2" {% if vehicle.seats == 2 %}selected{% endif %}>2</option>
+              <option value="4" {% if vehicle.seats == 4 %}selected{% endif %}>4</option>
+              <option value="5" {% if vehicle.seats == 5 %}selected{% endif %}>5</option>
+              <option value="7" {% if vehicle.seats == 7 %}selected{% endif %}>7</option>
+              <option value="8" {% if vehicle.seats == 8 %}selected{% endif %}>8</option>
+              <option value="12" {% if vehicle.seats == 12 %}selected{% endif %}>12+</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label>Fuel</label>
+            <select name="fuel_type" required>
+              <option value="Petrol" {% if vehicle.fuel_type == 'Petrol' %}selected{% endif %}>Petrol</option>
+              <option value="Diesel" {% if vehicle.fuel_type == 'Diesel' %}selected{% endif %}>Diesel</option>
+              <option value="Electric" {% if vehicle.fuel_type == 'Electric' %}selected{% endif %}>Electric</option>
+              <option value="Hybrid" {% if vehicle.fuel_type == 'Hybrid' %}selected{% endif %}>Hybrid</option>
+              <option value="CNG" {% if vehicle.fuel_type == 'CNG' %}selected{% endif %}>CNG</option>
+            </select>
+          </div>
       </div>
 
       <div class="input-group">
