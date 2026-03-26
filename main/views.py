@@ -670,8 +670,7 @@ def rent_vehicle(request, vehicle_id):
         if discount_amt > total_price:
             discount_amt = total_price
             
-        total_price -= discount_amt
-        total_price = float(total_price)
+        total_price = Decimal(str(total_price)) - Decimal(str(discount_amt))
 
         # --- PAYMENT LOGIC ---
         if payment_mode == 'wallet':
@@ -708,15 +707,22 @@ def rent_vehicle(request, vehicle_id):
                 'special_notes': special_notes,
                 'promo_code': promo_code
             }
+
+            paise_amount = int(Decimal(str(total_price)) * 100)
             domain_url = request.build_absolute_uri('/')
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=[{
-                    'price_data': { 'currency': 'inr', 'product_data': {'name': f"Rent {vehicle.vehicle_name}"}, 'unit_amount': int(total_price * 100) },
+                    'price_data': { 
+                        'currency': 'inr', 
+                        'product_data': {'name': f"Rent {vehicle.vehicle_name}"}, 
+                        'unit_amount': paise_amount, # Use the precise integer calculation
+                    },
                     'quantity': 1,
                 }],
                 mode='payment',
-                success_url=domain_url + 'rent/success/', cancel_url=domain_url + f'rent/{vehicle.id}/',
+                success_url=domain_url + 'rent/success/', 
+                cancel_url=domain_url + f'rent/{vehicle.id}/',
             )
             return redirect(checkout_session.url, code=303)
 
@@ -862,7 +868,7 @@ def rent_history(request):
 
     timeline_qs = rentals_qs.annotate(week=TruncWeek('start_date')).values('week').annotate(total=Sum('total_price')).order_by('week')
     time_labels = [t['week'].strftime("%d %b") for t in timeline_qs]
-    time_values = [t['total'] for t in timeline_qs]
+    time_values = [float(t['total']) if t['total'] else 0 for t in timeline_qs]
 
     stats = rentals_qs.aggregate(total_trips=Count('id'), total_cash=Sum('total_price'), max_days=Max('duration'))
     total_spend = stats['total_cash'] or 0
@@ -879,7 +885,7 @@ def rent_history(request):
 
     cat_data = rentals_qs.values('vehicle__category').annotate(total=Sum('total_price'))
     cat_labels = [c['vehicle__category'] for c in cat_data]
-    cat_values = [c['total'] for c in cat_data]
+    cat_values = [float(c['total']) if c['total'] else 0 for c in cat_data]
 
     rentals = []
     for r in rentals_qs.order_by(sort_by):
