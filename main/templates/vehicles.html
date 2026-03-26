@@ -13,6 +13,7 @@
     --text-main: #ffffff;
     --text-muted: #b5b5b5;
     --star: #facc15; 
+    --track-bg: #333333;
   }
 
   body.light {
@@ -23,6 +24,7 @@
     --primary-glow: rgba(255,106,42,0.25);
     --text-main: #111111;
     --text-muted: #555555;
+    --track-bg: #e0e0e0;
     background: radial-gradient(circle at top, #ffffff, #eaeaea);
   }
 
@@ -37,62 +39,146 @@
   .section h2 { font-size: 2rem; margin-bottom: 10px; }
   .section p { color: var(--text-muted); margin-bottom: 30px; }
 
-  .layout { display: grid; grid-template-columns: 260px 1fr; gap: 60px; align-items: start; }
+  .layout { display: grid; grid-template-columns: 260px 1fr; gap: 40px; align-items: start; }
 
   /* ===== FILTER SIDEBAR ===== */
-  .filter-box { background: var(--bg-card); border: 1px solid var(--border); padding: 18px; border-radius: 18px; position: sticky; top: 120px; height: fit-content; }
-  .filter-box h4 { margin-bottom: 10px; font-size: 0.95rem; }
-  .filter-box label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; margin-bottom: 8px; }
-  .filter-box input[type="checkbox"] { appearance: none; width: 16px; height: 16px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-main); position: relative; cursor: pointer; }
+  .filter-box { 
+    background: var(--bg-card); 
+    border: 1px solid var(--border); 
+    padding: 20px; 
+    border-radius: 18px; 
+    position: sticky; 
+    top: 100px; 
+    max-height: calc(100vh - 120px); 
+    overflow-y: auto; 
+  }
+  
+  .filter-box::-webkit-scrollbar { width: 4px; }
+  .filter-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+  .filter-box h4 { margin-bottom: 12px; font-size: 0.95rem; }
+  .filter-box label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; margin-bottom: 10px; transition: color 0.2s; }
+  .filter-box label:hover { color: var(--text-main); }
+  .filter-box input[type="checkbox"] { appearance: none; width: 16px; height: 16px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-main); position: relative; cursor: pointer; transition: 0.2s; }
   .filter-box input[type="checkbox"]:checked { background: var(--primary); border-color: var(--primary); }
-  .filter-box input[type="checkbox"]:checked::after { content: "✓"; position: absolute; top: -1px; left: 3px; font-size: 12px; color: #000; }
-  .filter-box input[type="range"] { width: 100%; -webkit-appearance: none; height: 6px; border-radius: 999px; background: linear-gradient(90deg, var(--primary), #333); margin: 10px 0 20px; }
-  .filter-box input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--primary); cursor: pointer; }
-  .filter-box select { width: 100%; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main); font-size: 0.85rem; }
-  .filter-box hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+  .filter-box input[type="checkbox"]:checked::after { content: "✓"; position: absolute; top: -1px; left: 3px; font-size: 12px; color: #000; font-weight: bold; }
+  .filter-box input[type="radio"] { accent-color: var(--primary); cursor: pointer; }
+  
+  /* Dynamic Price Slider */
+  .filter-box input[type="range"] { width: 100%; -webkit-appearance: none; height: 6px; border-radius: 999px; background: var(--track-bg); margin: 10px 0 20px; transition: background 0.1s; }
+  .filter-box input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--primary); cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+  
+  .filter-box hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
 
   .filter-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; display: block; }
-  .date-input { width: 90%; padding: 10px 14px; margin-bottom: 10px; background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border); border-radius: 12px; font-size: 0.85rem; font-family: inherit; transition: border 0.2s ease, box-shadow 0.2s ease; }
+  .date-input { width: 100%; padding: 10px 14px; margin-bottom: 12px; background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border); border-radius: 12px; font-size: 0.85rem; font-family: inherit; box-sizing: border-box; transition: border 0.2s ease, box-shadow 0.2s ease; }
   .date-input::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 1; filter: brightness(1.2) invert(0); }
+  body.light .date-input::-webkit-calendar-picker-indicator { filter: none; }
   .date-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-glow); }
 
-  .filter-actions { display: flex; gap: 10px; margin-top: 20px; }
+  /* Aesthetic Sort Dropdown */
+  .aesthetic-select {
+      appearance: none;
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background-color: var(--bg-main);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b5b5b5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
+      color: var(--text-main);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .aesthetic-select:hover { border-color: var(--text-muted); }
+  .aesthetic-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+  .aesthetic-select option { background: var(--bg-card); color: var(--text-main); padding: 10px; }
+
+  .filter-actions { display: flex; gap: 10px; margin-top: 25px; position: sticky; bottom: -20px; background: var(--bg-card); padding: 15px 0 5px 0; border-top: 1px solid var(--border); }
   .filter-actions .btn-primary { flex: 0 0 60%; padding: 12px 16px; border-radius: 999px; font-size: 0.9rem; font-weight: 600; border: none; cursor: pointer; background: var(--primary); color: #000; transition: 0.2s; }
   .filter-actions .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 28px var(--primary-glow); }
   .filter-actions .btn-outline { flex: 0 0 40%; padding: 12px 0; border-radius: 999px; text-align: center; background: rgba(255,255,255,0.04); color: var(--text-muted); border: 1px solid var(--border); font-size: 0.9rem; text-decoration: none;}
-  .filter-actions .btn-outline:hover { color: var(--text-main); border-color: var(--text-main); }
+  .filter-actions .btn-outline:hover { color: var(--text-main); border-color: var(--text-main); background: rgba(255,255,255,0.1); }
+
+  /* ===== MAIN CONTENT AREA ===== */
+  .content-area { display: flex; flex-direction: column; gap: 24px; }
+
+  /* Top Control Bar */
+  .top-controls { display: flex; gap: 15px; align-items: center; justify-content: space-between; background: var(--bg-card); padding: 15px 20px; border-radius: 18px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.1); flex-wrap: wrap; }
+  
+  /* Search Bar Layout */
+  .search-large { position: relative; flex-grow: 1; max-width: 550px; display: flex; align-items: center; }
+  .search-large .search-icon { position: absolute; left: 18px; color: var(--text-muted); font-size: 1.1rem; pointer-events: none; }
+  
+  /* Extra padding on right to fit both 'Clear' and 'Search' buttons */
+  .search-large input { width: 100%; padding: 14px 120px 14px 45px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main); font-size: 0.95rem; transition: 0.2s; box-sizing: border-box; }
+  .search-large input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+  
+  /* Clear Search X */
+  .search-large .clear-search { position: absolute; right: 90px; color: var(--text-muted); font-size: 1.2rem; text-decoration: none; transition: color 0.2s; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .search-large .clear-search:hover { color: var(--primary); transform: scale(1.1); }
+
+  /* Search Button */
+  .search-large .search-btn { position: absolute; right: 8px; background: var(--primary); color: #000; padding: 8px 16px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
+  .search-large .search-btn:hover { filter: brightness(1.1); transform: scale(1.02); }
+
+  .grid-toolbar { display: flex; gap: 8px; }
+  .view-toggle { background: var(--bg-main); border: 1px solid var(--border); color: var(--text-muted); padding: 10px 14px; border-radius: 10px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+  .view-toggle:hover { border-color: var(--text-muted); color: var(--text-main); }
+  .view-toggle.active { color: var(--primary); border-color: var(--primary); background: var(--primary-glow); }
 
   /* ===== VEHICLE GRID ===== */
-  .fleet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 320px)); gap: 28px; align-items: start; }
+  .fleet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px; align-items: start; transition: 0.3s; }
+  
   .fleet-card { background: var(--bg-card); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column; position: relative; transition: transform 0.25s ease, box-shadow 0.25s ease; }
-  .fleet-card:hover { transform: translateY(-12px); box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
+  .fleet-card:hover { transform: translateY(-8px); box-shadow: 0 12px 30px rgba(0,0,0,0.35); border-color: rgba(255,106,42,0.3); }
   .fleet-card img { width: 100%; height: 180px; object-fit: cover; }
   
-  .tag { position: absolute; top: 12px; left: 12px; background: var(--primary); color: #000; padding: 4px 12px; font-size: 0.7rem; border-radius: 999px; font-weight: 700; text-transform: uppercase;}
+  .tag { position: absolute; top: 12px; left: 12px; background: var(--primary); color: #000; padding: 4px 12px; font-size: 0.7rem; border-radius: 999px; font-weight: 700; text-transform: uppercase; z-index: 5;}
   
   .rating-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(250, 204, 21, 0.15); color: var(--star); padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(250, 204, 21, 0.3); }
 
-  .fleet-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .fleet-body { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 8px; flex-grow: 1; }
   .title-row { display: flex; justify-content: space-between; align-items: flex-start; }
-  .title-row h4 { font-size: 1.05rem; font-weight: 700; margin: 0; }
-  .price { font-size: 1rem; font-weight: 800; color: var(--primary); }
+  .title-row h4 { font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--text-main); }
+  .price { font-size: 1.05rem; font-weight: 800; color: var(--primary); }
   
-  .fleet-meta { display: flex; gap: 12px; margin-top: 4px; font-size: 0.8rem; color: var(--text-muted); flex-wrap: wrap; }
+  .fleet-meta { display: flex; gap: 12px; margin-top: 4px; font-size: 0.8rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 12px; }
   
-  .rent-btn { margin-top: 10px; padding: 12px; border-radius: 12px; background: var(--primary); color: #000; font-weight: 700; text-align: center; font-size: 0.9rem; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; text-decoration: none; display: block; }
+  .rent-btn { margin-top: auto; padding: 12px; border-radius: 12px; background: var(--primary); color: #000; font-weight: 700; text-align: center; font-size: 0.9rem; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; text-decoration: none; display: block; }
   .rent-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px var(--primary-glow); }
+
+  /* ===== LIST VIEW STYLES ===== */
+  .fleet-grid.list-view { grid-template-columns: 1fr; }
+  .fleet-grid.list-view .fleet-card { flex-direction: row; height: 210px; }
+  .fleet-grid.list-view .fleet-card img { width: 300px; height: 100%; }
+  .fleet-grid.list-view .fleet-body { padding: 24px; justify-content: center; }
+  .fleet-grid.list-view .rent-btn { margin-top: 0; width: fit-content; align-self: flex-end; padding: 12px 30px; }
+  .fleet-grid.list-view .title-row { flex-direction: column; gap: 8px; }
+  .fleet-grid.list-view .price { font-size: 1.3rem; margin-top: auto; }
 
   /* ===== STATES ===== */
   .unavailable-stamp { position: absolute; top: 35px; right: -95px; background: #dc2626; color: #fff; padding: 8px 90px; font-size: 12px; font-weight: 700; text-transform: uppercase; white-space: nowrap; transform: rotate(35deg); z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.35); }
   
-  /* Fixed Booking Class (REMOVED pointer-events:none to allow future bookings) */
   .fleet-card:has(.unavailable-stamp) img { filter: grayscale(0.4) brightness(0.85); }
   .fleet-card.booked { opacity: 0.85; } 
   
   @media (max-width: 900px) {
-    .layout { grid-template-columns: 1fr; }
-    .filter-box { position: relative; top: 0; }
+    .layout { grid-template-columns: 1fr; gap: 20px; }
+    .filter-box { position: relative; top: 0; max-height: none; }
     .section { padding: 40px 20px; }
+    .fleet-grid.list-view .fleet-card { flex-direction: column; height: auto; }
+    .fleet-grid.list-view .fleet-card img { width: 100%; height: 180px; }
+    .fleet-grid.list-view .rent-btn { width: 100%; }
+    .grid-toolbar { display: none; }
+    .top-controls { padding: 12px; }
+    .search-large { max-width: 100%; }
+    .search-large input { padding-right: 90px; }
+    .search-large .clear-search { right: 80px; }
   }
 </style>
 
@@ -100,11 +186,14 @@
   <h2>Need Wheels? We’ve Got You.</h2>
   <p>Premium cars and bikes for every kind of journey.</p>
 
-  <div class="layout">
-    <form method="get" class="filter-box">
+  <!-- The form wraps the entire layout so search + filters work together -->
+  <form method="get" id="filter-form" class="layout">
+    
+    <!-- Sidebar -->
+    <div class="filter-box">
       <h4>Price Range</h4>
-      <label>Up to ₹<span id="priceValue">{{ request.GET.max_price|default:20000 }}</span></label>
-      <input type="range" min="500" max="20000" step="100" name="max_price" value="{{ request.GET.max_price|default:20000 }}" oninput="document.getElementById('priceValue').textContent=this.value">
+      <label>Up to ₹<span id="priceValue">{{ request.GET.max_price|default:10000 }}</span></label>
+      <input type="range" min="500" max="20000" step="100" name="max_price" id="priceRange" value="{{ request.GET.max_price|default:10000 }}">
 
       <hr>
       <h4>Availability</h4>
@@ -118,7 +207,39 @@
       <label><input type="checkbox" name="status" value="available" {% if 'available' in selected_statuses %}checked{% endif %}> Available</label>
       <label><input type="checkbox" name="status" value="soon" {% if 'soon' in selected_statuses %}checked{% endif %}> Available soon</label>
 
+      <hr>
+      <h4>Vehicle Type</h4>
+      <label><input type="checkbox" name="vehicle_type" value="car" {% if "car" in selected_vehicle_types %}checked{% endif %}> Car</label>
+      <label><input type="checkbox" name="vehicle_type" value="bike" {% if "bike" in selected_vehicle_types %}checked{% endif %}> Bike</label>
+
+      <hr>
+      <h4>Car & Truck Categories</h4>
+      <label><input type="checkbox" name="category" value="Sedan" {% if "Sedan" in selected_categories %}checked{% endif %}> Sedan</label>
+      <label><input type="checkbox" name="category" value="Hatchback" {% if "Hatchback" in selected_categories %}checked{% endif %}> Hatchback</label>
+      <label><input type="checkbox" name="category" value="SUV" {% if "SUV" in selected_categories %}checked{% endif %}> SUV</label>
+      <label><input type="checkbox" name="category" value="Crossover (CUV)" {% if "Crossover (CUV)" in selected_categories %}checked{% endif %}> Crossover (CUV)</label>
+      <label><input type="checkbox" name="category" value="Coupe" {% if "Coupe" in selected_categories %}checked{% endif %}> Coupe</label>
+      <label><input type="checkbox" name="category" value="Convertible" {% if "Convertible" in selected_categories %}checked{% endif %}> Convertible</label>
+      <label><input type="checkbox" name="category" value="MPV/Minivan" {% if "MPV/Minivan" in selected_categories %}checked{% endif %}> MPV/Minivan</label>
+      <label><input type="checkbox" name="category" value="Minibus" {% if "Minibus" in selected_categories %}checked{% endif %}> Minibus</label>
+      <label><input type="checkbox" name="category" value="Pickup Truck" {% if "Pickup Truck" in selected_categories %}checked{% endif %}> Pickup Truck</label>
+
+      <hr>
+      <h4>Bike Categories</h4>
+      <label><input type="checkbox" name="category" value="Touring" {% if "Touring" in selected_categories %}checked{% endif %}> Touring</label>
+      <label><input type="checkbox" name="category" value="Standard (Naked)" {% if "Standard (Naked)" in selected_categories %}checked{% endif %}> Standard (Naked)</label>
+      <label><input type="checkbox" name="category" value="Sportbike" {% if "Sportbike" in selected_categories %}checked{% endif %}> Sportbike</label>
+      <label><input type="checkbox" name="category" value="Cruiser" {% if "Cruiser" in selected_categories %}checked{% endif %}> Cruiser</label>
+      <label><input type="checkbox" name="category" value="Adventure (ADV)" {% if "Adventure (ADV)" in selected_categories %}checked{% endif %}> Adventure (ADV)</label>
+      <label><input type="checkbox" name="category" value="Dual-Sport" {% if "Dual-Sport" in selected_categories %}checked{% endif %}> Dual-Sport</label>
+      <label><input type="checkbox" name="category" value="Off-Road 1 Dirt Bike" {% if "Off-Road 1 Dirt Bike" in selected_categories %}checked{% endif %}> Off-Road 1 Dirt Bike</label>
+      <label><input type="checkbox" name="category" value="Scooter" {% if "Scooter" in selected_categories %}checked{% endif %}> Scooter</label>
+      <label><input type="checkbox" name="category" value="Moped" {% if "Moped" in selected_categories %}checked{% endif %}> Moped</label>
+      <label><input type="checkbox" name="category" value="Electric Motorcycle" {% if "Electric Motorcycle" in selected_categories %}checked{% endif %}> Electric Motorcycle</label>
+
+      <hr>
       <h4>Seats</h4>
+      <label><input type="radio" name="seats" value="" {% if not selected_seats %}checked{% endif %}> Any</label>
       <label><input type="radio" name="seats" value="2" {% if selected_seats == "2" %}checked{% endif %}> 2</label>
       <label><input type="radio" name="seats" value="4" {% if selected_seats == "4" %}checked{% endif %}> 4</label>
       <label><input type="radio" name="seats" value="5" {% if selected_seats == "5" %}checked{% endif %}> 5</label>
@@ -126,17 +247,6 @@
       <label><input type="radio" name="seats" value="8" {% if selected_seats == "8" %}checked{% endif %}> 8</label>
       <label><input type="radio" name="seats" value="12" {% if selected_seats == "12" %}checked{% endif %}> 12+</label>
 
-      <h4>Category</h4>
-      {% for value, label in categories %}
-        <label><input type="checkbox" name="category" value="{{ value }}" {% if value in selected_categories %}checked{% endif %}> {{ label }}</label>
-      {% endfor %}
-
-      <hr>
-      <hr>
-      <h4>Vehicle Type</h4>
-      <label><input type="checkbox" name="vehicle_type" value="car" {% if "car" in selected_vehicle_types %}checked{% endif %}>Car</label>
-      <label><input type="checkbox" name="vehicle_type" value="bike" {% if "bike" in selected_vehicle_types %}checked{% endif %}>Bike</label>
-      <label><input type="checkbox" name="vehicle_type" value="truck" {% if "truck" in selected_vehicle_types %}checked{% endif %}>Truck</label>
       <hr>
       <h4>Fuel</h4>
       {% for value, label in fuel_choices %}
@@ -144,76 +254,162 @@
       {% endfor %}
 
       <hr>
-      <h4>Sort</h4>
-      <select name="sort">
-        <option value="">Newest</option>
-        <option value="price_low" {% if request.GET.sort == "price_low" %}selected{% endif %}>Price ↑</option>
-        <option value="price_high" {% if request.GET.sort == "price_high" %}selected{% endif %}>Price ↓</option>
+      <h4>Sort By</h4>
+      <select name="sort" class="aesthetic-select" onchange="document.getElementById('filter-form').submit();">
+        <option value="">Newest Arrivals</option>
+        <option value="price_low" {% if request.GET.sort == "price_low" %}selected{% endif %}>Price (Low to High)</option>
+        <option value="price_high" {% if request.GET.sort == "price_high" %}selected{% endif %}>Price (High to Low)</option>
       </select>
 
       <div class="filter-actions">
-        <button class="btn-primary" type="submit">Apply</button>
+        <button class="btn-primary" type="submit">Apply Filters</button>
         <a href="{% url 'vehicles' %}" class="btn-outline">Reset</a>
       </div>
-    </form>
-
-    <div class="fleet-grid">
-      {% for v in vehicles %}
-      <div class="fleet-card {% if v.is_booked_today %}booked{% endif %}">
-        <span class="tag">{{ v.category }}</span>
-
-        {% if not v.available %}
-          <div class="unavailable-stamp" style="background: #dc2626;">Offline&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
-        {% elif v.is_booked_today %}
-          <div class="unavailable-stamp" style="background: #eab308;">On Trip&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
-        {% endif %}
-
-        {% if v.front_image %}
-          <img src="{{ v.front_image.image.url }}">
-        {% else %}
-          <img src="https://via.placeholder.com/400x200">
-        {% endif %}
-
-        <div class="fleet-body">
-          <div class="title-row">
-            <h4>{{ v.vehicle_name }}</h4>
-            {% if v.get_avg_rating > 0 %}
-              <div class="rating-badge">
-                <i class="bi bi-star-fill"></i> {{ v.get_avg_rating }} ({{ v.get_review_count }})
-              </div>
-            {% endif %}
-          </div>
-          
-          <span class="price">₹{{ v.price_per_day }}/day</span>
-          
-          <div class="fleet-meta">
-            <span><i class="bi bi-people"></i> {{ v.seats|default:"-" }} Seats</span>
-            <span><i class="bi bi-fuel-pump"></i> {{ v.fuel_type }}</span>
-            <span><i class="bi bi-geo-alt"></i> {{ v.pickup_location|default:"Contact for Location" }}</span>
-          </div>
-
-          {% if not v.available %}
-            <button class="rent-btn" disabled style="background:#2a2a2a; color:#777; cursor:not-allowed; border:none; box-shadow:none;">
-              Currently Offline
-            </button>
-          {% elif v.is_booked_today and v.available_from %}
-            <a href="{% url 'rent_vehicle' v.id %}" class="rent-btn" style="background: transparent; color: var(--text-main); border: 1px solid var(--border);">
-              Available from {{ v.available_from|date:"d M" }}
-            </a>
-          {% else %}
-            <a href="{% url 'rent_vehicle' v.id %}" class="rent-btn">Rent Now</a>
-          {% endif %}
-        </div>
-      </div>
-      {% empty %}
-        <div style="grid-column: 1 / -1; text-align: center; padding: 50px; color: var(--text-muted); background: var(--bg-card); border-radius: 16px; border: 1px dashed var(--border);">
-          <i class="bi bi-car-front" style="font-size: 3rem; margin-bottom: 10px; display: block; opacity: 0.5;"></i>
-          <h3>No vehicles found</h3>
-          <p>Try adjusting your filters to find available rides.</p>
-        </div>
-      {% endfor %}
     </div>
-  </div>
+
+    <!-- Main Content Area -->
+    <div class="content-area">
+        
+        <!-- Top Control Bar -->
+        <div class="top-controls">
+            <!-- Premium Search Bar with Custom Inner Button -->
+            <div class="search-large">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" name="search" placeholder="Search Thar, Sedan, or Location..." value="{{ request.GET.search }}" onkeypress="if(event.key === 'Enter') this.form.submit();">
+                
+                {% if request.GET.search %}
+                <a href="{% url 'vehicles' %}" class="clear-search" title="Clear Search">
+                    <i class="bi bi-x-circle-fill"></i>
+                </a>
+                {% endif %}
+                
+                <button type="submit" class="search-btn">Search</button>
+            </div>
+
+            <!-- View Toggles -->
+            <div class="grid-toolbar">
+                <button type="button" class="view-toggle active" id="btn-grid" onclick="setView('grid')" title="Grid View">
+                    <i class="bi bi-grid-fill"></i>
+                </button>
+                <button type="button" class="view-toggle" id="btn-list" onclick="setView('list')" title="List View">
+                    <i class="bi bi-list-ul"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="fleet-grid" id="fleetContainer">
+          {% for v in vehicles %}
+          <div class="fleet-card {% if v.is_booked_today %}booked{% endif %}">
+            <span class="tag">{{ v.category }}</span>
+
+            {% if not v.available %}
+              <div class="unavailable-stamp" style="background: #dc2626;">Offline&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+            {% elif v.is_booked_today %}
+              <div class="unavailable-stamp" style="background: #eab308; color: #000;">On Trip&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+            {% endif %}
+
+            {% if v.front_image %}
+              <img src="{{ v.front_image.image.url }}">
+            {% else %}
+              <img src="https://via.placeholder.com/400x200?text=No+Image+Available">
+            {% endif %}
+
+            <div class="fleet-body">
+              <div class="title-row">
+                <h4>{{ v.vehicle_name }}</h4>
+                {% if v.get_avg_rating > 0 %}
+                  <div class="rating-badge">
+                    <i class="bi bi-star-fill"></i> {{ v.get_avg_rating }} ({{ v.get_review_count }})
+                  </div>
+                {% endif %}
+              </div>
+              
+              <span class="price">₹{{ v.price_per_day }} <span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted);">/day</span></span>
+              
+              <div class="fleet-meta">
+                <span><i class="bi bi-people"></i> {{ v.seats|default:"-" }} Seats</span>
+                <span><i class="bi bi-fuel-pump"></i> {{ v.fuel_type }}</span>
+                <span><i class="bi bi-geo-alt"></i> {{ v.pickup_location|default:"Contact for Location" }}</span>
+              </div>
+
+              {% if not v.available %}
+                <button class="rent-btn" disabled style="background:#2a2a2a; color:#777; cursor:not-allowed; border:none; box-shadow:none;">
+                  Currently Offline
+                </button>
+              {% elif v.is_booked_today and v.available_from %}
+                <a href="{% url 'rent_vehicle' v.id %}" class="rent-btn" style="background: transparent; color: var(--text-main); border: 1px solid var(--border);">
+                  Available from {{ v.available_from|date:"d M" }}
+                </a>
+              {% else %}
+                <a href="{% url 'rent_vehicle' v.id %}" class="rent-btn">Rent Now</a>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+            <!-- Enhanced Empty State -->
+            <div style="grid-column: 1 / -1; text-align: center; padding: 80px 20px; color: var(--text-muted); background: var(--bg-card); border-radius: 20px; border: 1px dashed var(--border);">
+              <i class="bi bi-search" style="font-size: 3.5rem; margin-bottom: 15px; display: block; opacity: 0.3;"></i>
+              <h3 style="color: var(--text-main); margin-bottom: 8px;">No vehicles found</h3>
+              <p style="margin-bottom: 25px;">We couldn't find any rides matching your current filters or search.</p>
+              <a href="{% url 'vehicles' %}" class="btn-primary" style="display: inline-block; padding: 12px 28px; border-radius: 8px; background: var(--primary); color: #000; text-decoration: none; font-weight: 600;">Clear All Filters</a>
+            </div>
+          {% endfor %}
+        </div>
+    </div>
+
+  </form>
 </section>
+
+<!-- Scripts -->
+<script>
+    // 1. Grid / List View Toggle Logic
+    function setView(viewType) {
+        const container = document.getElementById('fleetContainer');
+        const btnGrid = document.getElementById('btn-grid');
+        const btnList = document.getElementById('btn-list');
+
+        if (viewType === 'list') {
+            container.classList.add('list-view');
+            btnList.classList.add('active');
+            btnGrid.classList.remove('active');
+            localStorage.setItem('vehicleViewPref', 'list');
+        } else {
+            container.classList.remove('list-view');
+            btnGrid.classList.add('active');
+            btnList.classList.remove('active');
+            localStorage.setItem('vehicleViewPref', 'grid');
+        }
+    }
+
+    // 2. Dynamic Price Slider Fill Logic
+    function updateSliderFill() {
+        const slider = document.getElementById('priceRange');
+        const valueDisplay = document.getElementById('priceValue');
+        
+        const val = slider.value;
+        const min = slider.min ? slider.min : 500;
+        const max = slider.max ? slider.max : 20000;
+        const percentage = ((val - min) / (max - min)) * 100;
+        
+        // Fills the track with orange up to the thumb, then keeps the rest empty
+        slider.style.background = `linear-gradient(90deg, var(--primary) ${percentage}%, var(--track-bg) ${percentage}%)`;
+        valueDisplay.textContent = val;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Load user view preference
+        const savedPref = localStorage.getItem('vehicleViewPref');
+        if (savedPref === 'list') {
+            setView('list');
+        }
+
+        // Initialize Slider Track Fill
+        const priceSlider = document.getElementById('priceRange');
+        if (priceSlider) {
+            priceSlider.addEventListener('input', updateSliderFill);
+            updateSliderFill(); // Run once to set initial load position
+        }
+    });
+</script>
 
 {% endblock %}

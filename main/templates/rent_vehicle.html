@@ -29,6 +29,7 @@
       --card-shadow: 0 10px 25px rgba(0,0,0,0.5);
       --error-bg: #3f1010;
       --error-text: #ff6b6b;
+      --success-text: #25D366;
       --whatsapp: #25D366;
     }
 
@@ -44,6 +45,7 @@
       --card-shadow: 0 10px 25px rgba(0,0,0,0.08);
       --error-bg: #fee2e2;
       --error-text: #b91c1c;
+      --success-text: #16a34a;
     }
 
     * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
@@ -52,16 +54,17 @@
     .checkout-container { max-width: 1000px; margin: auto; display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
     .card { background: var(--bg-card); border-radius: 16px; padding: 25px; box-shadow: var(--card-shadow); border: 1px solid var(--border); }
     
-    h2 { margin-bottom: 20px; font-size: 1.6rem; color: var(--text-main); }
+    h2 { margin-bottom: 20px; font-size: 1.6rem; color: var(--text-main); margin-top: 0; }
     h3 { margin-bottom: 15px; font-size: 1.2rem; color: var(--text-main); margin-top: 25px; }
     h3:first-of-type { margin-top: 0; }
     
     .form-group { margin-bottom: 18px; }
     label { font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;}
     
-    input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.95rem; background: var(--input-bg); color: var(--text-main); transition: border-color 0.3s; }
-    input:focus { outline: none; border-color: var(--primary); }
+    input, textarea { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.95rem; background: var(--input-bg); color: var(--text-main); transition: border-color 0.3s; }
+    input:focus, textarea:focus { outline: none; border-color: var(--primary); }
     input[type="file"] { padding: 9px 14px; }
+    textarea { resize: vertical; min-height: 80px; }
     
     .two-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     .summary-item { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; color: var(--text-muted); }
@@ -70,6 +73,23 @@
     .checkout-btn { margin-top: 20px; width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
     .checkout-btn:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 5px 15px var(--primary-glow); }
     .checkout-btn:disabled { background: var(--input-bg); color: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; border: 1px solid var(--border); }
+
+    /* Top Actions */
+    .header-actions { max-width: 1000px; margin: 0 auto 20px auto; display: flex; align-items: center; }
+    .back-btn { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: color 0.3s; }
+    .back-btn:hover { color: var(--primary); }
+
+    /* Promo Code Input Section */
+    .promo-group { display: flex; gap: 10px; margin-bottom: 15px; }
+    .promo-group input { text-transform: uppercase; }
+    .apply-btn { padding: 0 15px; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+    .apply-btn:hover { border-color: var(--primary); color: var(--primary); }
+    #promo-message { font-size: 0.85rem; margin-top: -10px; margin-bottom: 15px; display: none; }
+
+    /* Terms & Conditions Checkbox */
+    .terms-group { display: flex; align-items: flex-start; gap: 10px; margin-top: 15px; }
+    .terms-group input { width: auto; margin-top: 4px; accent-color: var(--primary); cursor: pointer; }
+    .terms-group label { font-size: 0.85rem; font-weight: 400; display: inline; cursor: pointer; }
 
     /* Quick Date Selectors */
     .quick-dates { display: flex; gap: 10px; margin-top: -5px; margin-bottom: 15px; }
@@ -144,7 +164,7 @@
     .driver-price strong { display: block; color: var(--primary); font-size: 1.1rem; }
     .driver-price small { color: var(--text-muted); font-size: 0.75rem; }
     
-    /* ZOMATO STYLE SUCCESS ANIMATION */
+    /* SUCCESS ANIMATION */
     .success-overlay { position: fixed; inset: 0; background: var(--bg-main); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     .success-overlay.show { opacity: 1; pointer-events: all; }
     .success-circle { width: 120px; height: 120px; background: var(--whatsapp); border-radius: 50%; display: grid; place-items: center; color: white; font-size: 60px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; transform: scale(0); box-shadow: 0 10px 30px rgba(37, 211, 102, 0.4); }
@@ -175,6 +195,11 @@
   {% endfor %}
 {% endif %}
 
+<!-- Back Button Header -->
+<div class="header-actions">
+    <a href="/" class="back-btn"><i class="bi bi-arrow-left"></i> Back to Home</a>
+</div>
+
 <form method="post" enctype="multipart/form-data" id="checkout-form">
   {% csrf_token %}
   <div class="checkout-container">
@@ -200,6 +225,12 @@
                  value="{{ user.profile.phone_number|default:'' }}" 
                  required>
         </div>
+      </div>
+
+      <!-- Feature: Special Requests -->
+      <div class="form-group" style="margin-top: 10px;">
+        <label>Special Requests / Trip Notes (Optional)</label>
+        <textarea name="special_notes" placeholder="E.g., I need the car delivered by 10 AM, etc."></textarea>
       </div>
 
       <h3>Rental Duration</h3>
@@ -316,13 +347,13 @@
       
       <div class="summary-item"><span>Vehicle</span><strong>{{ vehicle.vehicle_name }}</strong></div>
       {% if vehicle.avg_rating > 0 %}
-<div class="summary-item">
-    <span>Rating</span>
-    <strong style="color: var(--star, #facc15); display: flex; align-items: center; gap: 5px;">
-        <i class="bi bi-star-fill"></i> {{ vehicle.avg_rating }} <span style="color: var(--text-muted); font-size: 0.8rem; font-weight: normal;">({{ vehicle.review_count }} Reviews)</span>
-    </strong>
-</div>
-{% endif %}
+      <div class="summary-item">
+          <span>Rating</span>
+          <strong style="color: var(--star, #facc15); display: flex; align-items: center; gap: 5px;">
+              <i class="bi bi-star-fill"></i> {{ vehicle.avg_rating }} <span style="color: var(--text-muted); font-size: 0.8rem; font-weight: normal;">({{ vehicle.review_count }} Reviews)</span>
+          </strong>
+      </div>
+      {% endif %}
       <div class="summary-item"><span>Category</span><strong>{{ vehicle.category }}</strong></div>
       <div class="summary-item"><span>Pickup</span><strong style="max-width: 60%; text-align: right;">{{ vehicle.pickup_location|default:"Contact Host" }}</strong></div>
       
@@ -334,16 +365,31 @@
             <span>Vehicle Host</span>
           </div>
         </div>
-        <a href="https://wa.me/91{{ vehicle.contact_number|urlencode }}?text=Hi%20{% if vehicle.owner.first_name %}{{ vehicle.owner.first_name|urlencode }}{% else %}{{ vehicle.owner.username|urlencode }}{% endif %}!%20I%20am%20interested%20in%20renting%20your%20{{ vehicle.vehicle_name|urlencode }}%20via%20GoWheels." target="_blank" class="whatsapp-btn">
-          <i class="bi bi-whatsapp"></i> Chat on WhatsApp
-        </a>
+        <a href="javascript:void(0);" onclick="openWhatsApp('{{ vehicle.contact_number|escapejs }}', '{{ vehicle.vehicle_name|escapejs }}')" class="whatsapp-btn">
+  <i class="bi bi-whatsapp"></i> Chat on WhatsApp
+</a>
       </div>
 
       <div class="summary-item"><span>Price/Day</span><span>₹{{ vehicle.price_per_day }}</span></div>
       <div class="summary-item"><span>Days</span><span id="total_days">0</span></div>
       <div class="summary-item"><span>Driver Fee</span><span id="driver_fee">₹0</span></div>
+      
+      <!-- Feature: Promo Code Discount Row -->
+      <div class="summary-item" id="discount_row" style="display: none; color: var(--success-text);">
+          <span>Discount</span><span id="discount_amt">-₹0</span>
+      </div>
+
       <hr style="border-color: var(--border);">
       <div class="summary-item" style="font-size: 1.25rem;"><strong>Total</strong><strong id="total_price" style="color: var(--primary);">₹0</strong></div>
+
+      <!-- Feature: Promo Code Input Box -->
+      <div style="margin-top: 20px;">
+          <div class="promo-group">
+              <input type="text" id="promo_code" name="promo_code" placeholder="Enter Promo Code">
+              <button type="button" class="apply-btn" onclick="applyPromo()">Apply</button>
+          </div>
+          <div id="promo-message"></div>
+      </div>
 
       <div id="date-warning" class="message-box">⚠️ This vehicle is already booked for some or all of the selected dates. Please choose different dates.</div>
 
@@ -356,6 +402,12 @@
         <input type="text" name="captcha_input" placeholder="Enter text" required style="text-transform:uppercase;">
       </div>
 
+      <!-- Feature: Terms & Conditions Checkbox -->
+      <div class="terms-group">
+          <input type="checkbox" id="terms" name="terms" required>
+          <label for="terms">I agree to the <a href="#" style="color: var(--primary); text-decoration: none;">Terms & Conditions</a> and the cancellation policy.</label>
+      </div>
+
       <button type="submit" class="checkout-btn" id="confirm-btn">Confirm Booking</button>
     </div>
 
@@ -366,7 +418,10 @@
   // Pull booked dates securely from the Django context
   const bookedRanges = JSON.parse('{{ booked_dates_json|safe|default:"[]" }}');
 
-  // NEW: Instantly show users the booked dates on page load
+  // Check if the user is new from the Django context
+  const isNewUser = {{ is_new_user|yesno:"true,false" }};
+
+  // Instantly show users the booked dates on page load
   const bookedListSpan = document.getElementById('booked-dates-list');
   const bookedDisplay = document.getElementById('booked-dates-display');
   
@@ -397,7 +452,10 @@
   const endDate = document.getElementById("end_date");
   const pricePerDay = parseFloat("{{ vehicle.price_per_day }}");
   const userBalance = parseFloat("{{ wallet_balance|default:0 }}");
+  
   let currentTotal = 0;
+  let activeDiscountType = null; // "flat" or "percent"
+  let activeDiscountValue = 0;
 
   // Timezone safe "today" function
   function getLocalDateString(dateObj) {
@@ -486,10 +544,132 @@
         document.getElementById("driver_fee").innerText = "₹0";
       }
       
+      // 3. APPLY DISCOUNTS
+      const discountRow = document.getElementById("discount_row");
+      const msgBox = document.getElementById("promo-message");
+      let discountAmt = 0;
+
+      // Conditional check for LONG10
+      if (document.getElementById("promo_code").value.toUpperCase() === "LONG10" && days < 5 && activeDiscountType !== null) {
+          activeDiscountType = null;
+          activeDiscountValue = 0;
+          msgBox.innerText = "LONG10 requires a minimum of 5 days.";
+          msgBox.style.color = "var(--error-text)";
+      }
+      
+      // Conditional check for VIP25
+      if (document.getElementById("promo_code").value.toUpperCase() === "VIP25" && total < 10000 && activeDiscountType !== null) {
+          activeDiscountType = null;
+          activeDiscountValue = 0;
+          msgBox.innerText = "VIP25 requires a minimum booking value of ₹10,000.";
+          msgBox.style.color = "var(--error-text)";
+      }
+
+      if (activeDiscountType === "flat") {
+          discountAmt = activeDiscountValue;
+      } else if (activeDiscountType === "percent") {
+          discountAmt = total * activeDiscountValue;
+      }
+
+      if (discountAmt > 0) {
+          // Prevent discount from making total negative
+          if (discountAmt > total) discountAmt = total;
+          total = total - discountAmt;
+          document.getElementById('discount_amt').innerText = "-₹" + discountAmt.toFixed(0);
+          discountRow.style.display = "flex";
+      } else {
+          discountRow.style.display = "none";
+      }
+
       currentTotal = total;
-      document.getElementById("total_price").innerText = "₹" + total;
+      document.getElementById("total_price").innerText = "₹" + total.toFixed(0);
       checkWalletBalance();
     }
+  }
+
+  function applyPromo() {
+      const codeInput = document.getElementById("promo_code").value.trim().toUpperCase();
+      const msgBox = document.getElementById("promo-message");
+      const days = parseInt(document.getElementById("total_days").innerText) || 0;
+      
+      // Calculate base total to check if it's over ₹10,000 for VIP25
+      let baseTotal = days * pricePerDay;
+      const driveTypeInput = document.querySelector('input[name="drive_type"]:checked');
+      if (driveTypeInput && driveTypeInput.value === "driver") {
+          const driver = document.querySelector('input[name="driver_id"]:checked');
+          if (driver) baseTotal += parseFloat(driver.dataset.fee) * days;
+      }
+
+      activeDiscountType = null;
+      activeDiscountValue = 0;
+
+      if (codeInput === "VIP25") {
+          if (baseTotal >= 10000) {
+              activeDiscountType = "percent";
+              activeDiscountValue = 0.25;
+              msgBox.innerText = "VIP Applied! 25% off.";
+              msgBox.style.color = "var(--success-text)";
+          } else {
+              msgBox.innerText = "VIP25 requires a minimum booking value of ₹10,000.";
+              msgBox.style.color = "var(--error-text)";
+          }
+          msgBox.style.display = "block";
+      }
+      else if (codeInput === "FIRST200") {
+          if (isNewUser) {
+              activeDiscountType = "flat";
+              activeDiscountValue = 200;
+              msgBox.innerText = "Welcome Aboard! ₹200 off applied.";
+              msgBox.style.color = "var(--success-text)";
+          } else {
+              msgBox.innerText = "FIRST200 is only valid for your very first booking.";
+              msgBox.style.color = "var(--error-text)";
+          }
+          msgBox.style.display = "block";
+      }
+      else if (codeInput === "EASY500") {
+          activeDiscountType = "flat";
+          activeDiscountValue = 500;
+          msgBox.innerText = "Easy Discount! ₹500 off applied.";
+          msgBox.style.color = "var(--success-text)";
+          msgBox.style.display = "block";
+      } 
+      else if (codeInput === "GO10") {
+          activeDiscountType = "percent";
+          activeDiscountValue = 0.10;
+          msgBox.innerText = "GoWheels Special! 10% off applied.";
+          msgBox.style.color = "var(--success-text)";
+          msgBox.style.display = "block";
+      }
+      else if (codeInput === "LONG10") {
+          if (days >= 5) {
+              activeDiscountType = "percent";
+              activeDiscountValue = 0.10;
+              msgBox.innerText = "Long Haul Special! 10% off applied.";
+              msgBox.style.color = "var(--success-text)";
+          } else {
+              msgBox.innerText = "Long Haul Special requires 5 or more days.";
+              msgBox.style.color = "var(--error-text)";
+          }
+          msgBox.style.display = "block";
+      } 
+      else if (codeInput === "WEEKEND150") {
+          activeDiscountType = "flat";
+          activeDiscountValue = 150;
+          msgBox.innerText = "Weekend Warrior! ₹150 off applied.";
+          msgBox.style.color = "var(--success-text)";
+          msgBox.style.display = "block";
+      } 
+      else if (codeInput === "") {
+          msgBox.style.display = "none";
+      } 
+      else {
+          msgBox.innerText = "Invalid Promo Code.";
+          msgBox.style.color = "var(--error-text)";
+          msgBox.style.display = "block";
+      }
+      
+      updatePrice(); // Recalculate based on new variables
   }
 
   function checkWalletBalance() {
@@ -583,6 +763,25 @@
   function openLightbox(src) { lightboxImg.src = src; lightbox.classList.add("show"); }
   function closeLightbox() { lightbox.classList.remove("show"); }
 
+  // Bulletproof WhatsApp Link Generator
+  function openWhatsApp(rawNumber, vehicleName) {
+      if (!rawNumber || rawNumber.trim() === '') {
+          alert("Sorry, the host hasn't provided a valid contact number.");
+          return;
+      }
+      
+      // 1. Remove all spaces, dashes, brackets, and + signs
+      let cleanNumber = rawNumber.replace(/\D/g, '');
+      
+      // 2. If it's a standard 10-digit Indian number, automatically add the 91 country code
+      if (cleanNumber.length === 10) {
+          cleanNumber = '91' + cleanNumber;
+      }
+      
+      // 3. Create the secure message and open WhatsApp
+      const text = encodeURIComponent(`Hi! I am interested in renting your ${vehicleName} via GoWheels.`);
+      window.open(`https://wa.me/${cleanNumber}?text=${text}`, '_blank');
+  }
 </script>
 
 </body>

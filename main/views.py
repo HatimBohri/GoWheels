@@ -22,6 +22,8 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django.db.models import Q
+from decimal import Decimal
 
 # Import all models correctly
 from .models import Driver, Rental, UserProfile, Vehicle, VehicleImage, Wallet, WalletTransaction, Review
@@ -71,6 +73,16 @@ def send_booking_confirmation_email(request, rental):
         # Format Payment Mode
         payment_modes = {'cash': 'Cash on Pickup', 'online': 'Online Payment', 'wallet': 'Paid via Wallet'}
         payment_display = payment_modes.get(rental.payment_mode, rental.payment_mode.title())
+
+        # Check for Promo Code Display
+        promo_row_html = ""
+        if hasattr(rental, 'promo_code') and rental.promo_code:
+            promo_row_html = f"""
+            <tr>
+                <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #25D366; font-weight: 600;">Promo Applied ({rental.promo_code})</td>
+                <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; text-align: right; font-weight: 600; color: #25D366;">Discount Included</td>
+            </tr>
+            """
 
         # 3. Define the Premium HTML
         html_content = f"""
@@ -129,6 +141,7 @@ def send_booking_confirmation_email(request, rental):
                                 <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; text-align: right; font-weight: 500;">₹{vehicle_total}</td>
                             </tr>
                             {driver_row_html}
+                            {promo_row_html}
                             <tr>
                                 <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555;">Payment Method</td>
                                 <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; text-align: right; font-weight: 600; color: #28a745;">{payment_display}</td>
@@ -453,6 +466,19 @@ def list_vehicle(request):
 def vehicles(request):
     qs = Vehicle.objects.all()
 
+    # ==========================================
+    # 1. PROFESSIONAL MULTI-COLUMN SEARCH LOGIC
+    # ==========================================
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        # This searches the Name, Category, Vehicle Type, AND Pickup Location
+        qs = qs.filter(
+            Q(vehicle_name__icontains=search_query) |
+            Q(category__icontains=search_query) |
+            Q(vehicle_type__icontains=search_query) |
+            Q(pickup_location__icontains=search_query)
+        )
+
     selected_categories = [c for c in request.GET.getlist('category') if c]
     selected_vehicle_types = [vt for vt in request.GET.getlist('vehicle_type') if vt]
     selected_fuels = [f for f in request.GET.getlist('fuel_type') if f]
@@ -574,6 +600,9 @@ def rent_vehicle(request, vehicle_id):
     available_drivers = Driver.objects.filter(available=True)
     user_wallet, _ = Wallet.objects.get_or_create(user=request.user)
 
+    # 1. Check if this user has ever rented before (for FIRST200)
+    is_new_user = not Rental.objects.filter(user=request.user).exists()
+
     # Fetch all upcoming bookings for this vehicle to pass to frontend JSON
     future_rentals = Rental.objects.filter(vehicle=vehicle, end_date__gte=timezone.now().date())
     booked_dates_list = [{'start': r.start_date.strftime("%Y-%m-%d"), 'end': r.end_date.strftime("%Y-%m-%d")} for r in future_rentals]
@@ -598,6 +627,9 @@ def rent_vehicle(request, vehicle_id):
         aadhaar_image = request.FILES.get("aadhaar_image")
         license_image = request.FILES.get("license_image")
 
+        special_notes = request.POST.get("special_notes", "")
+        promo_code = request.POST.get("promo_code", "").strip().upper()
+
         try:
             start = datetime.strptime(start_date, "%Y-%m-%d").date()
             end = datetime.strptime(end_date, "%Y-%m-%d").date()
@@ -617,6 +649,30 @@ def rent_vehicle(request, vehicle_id):
             selected_driver = Driver.objects.get(id=int(driver_id))
             total_price += days * selected_driver.price_per_day
 
+        # --- APPLY BACKEND PROMO CODE LOGIC ---
+        base_total = total_price
+        discount_amt = 0
+
+        if promo_code == "VIP25" and base_total >= 10000:
+            discount_amt = base_total * 0.25
+        elif promo_code == "FIRST200" and is_new_user:
+            discount_amt = 200
+        elif promo_code == "EASY500":
+            discount_amt = 500
+        elif promo_code == "GO10":
+            discount_amt = base_total * 0.10
+        elif promo_code == "LONG10" and days >= 5:
+            discount_amt = base_total * 0.10
+        elif promo_code == "WEEKEND150":
+            discount_amt = 150
+            
+        # Make sure the discount doesn't exceed the total price
+        if discount_amt > total_price:
+            discount_amt = total_price
+            
+        total_price -= discount_amt
+        total_price = float(total_price)
+
         # --- PAYMENT LOGIC ---
         if payment_mode == 'wallet':
             if user_wallet.balance >= total_price:
@@ -632,7 +688,8 @@ def rent_vehicle(request, vehicle_id):
                     start_date=start, end_date=end, total_price=total_price,
                     full_name=full_name, age=age, phone_number=phone_number,
                     drive_type=drive_type, payment_mode='wallet',
-                    aadhaar_image=aadhaar_image, license_image=license_image
+                    aadhaar_image=aadhaar_image, license_image=license_image,
+                    special_notes=special_notes, promo_code=promo_code
                 )
                 
                 send_booking_confirmation_email(request, rental)
@@ -647,7 +704,9 @@ def rent_vehicle(request, vehicle_id):
                 'vehicle_id': vehicle.id, 'start_date': start_date, 'end_date': end_date,
                 'total_price': float(total_price), 'full_name': full_name, 'age': age,
                 'phone_number': phone_number, 'drive_type': drive_type, 'driver_id': driver_id,
-                'payment_mode': 'online'
+                'payment_mode': 'online',
+                'special_notes': special_notes,
+                'promo_code': promo_code
             }
             domain_url = request.build_absolute_uri('/')
             checkout_session = stripe.checkout.Session.create(
@@ -667,7 +726,8 @@ def rent_vehicle(request, vehicle_id):
                 start_date=start, end_date=end, total_price=total_price,
                 full_name=full_name, age=age, phone_number=phone_number,
                 drive_type=drive_type, payment_mode='cash',
-                aadhaar_image=aadhaar_image, license_image=license_image
+                aadhaar_image=aadhaar_image, license_image=license_image,
+                special_notes=special_notes, promo_code=promo_code
             )
             
             send_booking_confirmation_email(request, rental)
@@ -677,7 +737,8 @@ def rent_vehicle(request, vehicle_id):
     return render(request, "rent_vehicle.html", {
         "vehicle": vehicle, "available_drivers": available_drivers, 
         "wallet_balance": user_wallet.balance,
-        "booked_dates_json": json.dumps(booked_dates_list) # Safely pass JSON list to frontend
+        "booked_dates_json": json.dumps(booked_dates_list),
+        "is_new_user": is_new_user
     })
 
 
@@ -694,6 +755,8 @@ def finalize_booking(request):
         total_price=data['total_price'], full_name=data['full_name'],
         age=data['age'], phone_number=data['phone_number'],
         drive_type=data['drive_type'], payment_mode=data['payment_mode'],
+        special_notes=data.get('special_notes', ''),
+        promo_code=data.get('promo_code', ''),
     )
     
     del request.session['booking_data']

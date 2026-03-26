@@ -25,27 +25,27 @@ class Vehicle(models.Model):
     ]
 
     CATEGORY_CHOICES = [
-        ('All', 'All'),
-        ('Touring', 'Touring'),
-        ('Sedan', 'Sedan'),
-        ('Hatchback', 'Hatchback'),
-        ('SUV', 'SUV'),
-        ('Dual-Sport', 'Dual-Sport'),
-        ('Crossover (CUV)', 'Crossover (CUV)'),
-        ('Off-Road 1 Dirt Bike', 'Off-Road 1 Dirt Bike'),
-        ('Coupe', 'Coupe'),
-        ('Scooter', 'Scooter'),
-        ('MPV/Minivan', 'MPV/Minivan'),
-        ('Moped', 'Moped'),
-        ('Convertible', 'Convertible'),
-        ('Pickup Truck', 'Pickup Truck'),
-        ('Standard (Naked)', 'Standard (Naked)'),
-        ('Sportbike', 'Sportbike'),
-        ('Cruiser', 'Cruiser'),
-        ('Adventure (ADV)', 'Adventure (ADV)'),
-        ('Electric Motorcycle', 'Electric Motorcycle'),
-        ('Minibus', 'Minibus'),
-    ]
+            ('All', 'All'),
+            ('Touring', 'Touring'),
+            ('Sedan', 'Sedan'),
+            ('Hatchback', 'Hatchback'),
+            ('SUV', 'SUV'),
+            ('Dual-Sport', 'Dual-Sport'),
+            ('Crossover (CUV)', 'Crossover (CUV)'),
+            ('Off-Road 1 Dirt Bike', 'Off-Road 1 Dirt Bike'),
+            ('Coupe', 'Coupe'),
+            ('Scooter', 'Scooter'),
+            ('MPV/Minivan', 'MPV/Minivan'),
+            ('Moped', 'Moped'),
+            ('Convertible', 'Convertible'),
+            ('Pickup Truck', 'Pickup Truck'),
+            ('Standard (Naked)', 'Standard (Naked)'),
+            ('Sportbike', 'Sportbike'),
+            ('Cruiser', 'Cruiser'),
+            ('Adventure (ADV)', 'Adventure (ADV)'),
+            ('Electric Motorcycle', 'Electric Motorcycle'),
+            ('Minibus', 'Minibus'),
+        ]
 
     SEATS_CHOICES = [
         (2, '2'),
@@ -176,6 +176,9 @@ class Rental(models.Model):
     phone_number = models.CharField(max_length=15)
     aadhaar_image = models.ImageField(upload_to='documents/aadhaar/')
     license_image = models.ImageField(upload_to='documents/license/')
+
+    special_notes = models.TextField(blank=True, null=True, help_text="Any special requests from the user.")
+    promo_code = models.CharField(max_length=20, blank=True, null=True, help_text="Coupon code used during checkout.")
     
     drive_type = models.CharField(max_length=10, choices=DRIVE_TYPE_CHOICES, default='self')
     payment_mode = models.CharField(max_length=10, choices=PAYMENT_MODE_CHOICES, default='cash')

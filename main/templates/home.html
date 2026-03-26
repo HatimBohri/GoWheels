@@ -6,9 +6,31 @@
 {% block content %}
 <style>
     /* =========================================
+       0. PROMO STRIP
+       ========================================= */
+    .promo-strip {
+        background: var(--primary);
+        color: #000;
+        text-align: center;
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        position: relative;
+        z-index: 100;
+    }
+    .promo-strip a {
+        color: #000;
+        text-decoration: underline;
+        margin-left: 10px;
+        font-weight: 800;
+        transition: opacity 0.2s;
+    }
+    .promo-strip a:hover { opacity: 0.7; }
+
+    /* =========================================
        1. HERO SECTION & SEARCH
        ========================================= */
-    .hero { padding: 180px 64px 90px; text-align: center; background: radial-gradient(circle at center, rgba(255,106,42,0.15), transparent 60%); }
+    .hero { padding: 140px 64px 90px; text-align: center; background: radial-gradient(circle at center, rgba(255,106,42,0.15), transparent 60%); }
     .badge { display: inline-block; padding: 8px 16px; border-radius: 20px; background: rgba(255,106,42,0.15); color: var(--primary); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 24px; }
     .hero h1 { font-size: 3rem; line-height: 1.2; margin-bottom: 20px; font-weight: 700; }
     .hero h1 span { color: var(--primary); }
@@ -68,7 +90,7 @@
     .hidden-select { display: none; }
 
     /* =========================================
-       2. WHY GRID (FEATURES)
+       2. WHY GRID & CATEGORIES
        ========================================= */
     .why-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 40px; padding: 1px 64px; }
     .why-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px; padding: 32px 24px; text-align: center; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: default; }
@@ -78,8 +100,22 @@
     .why-card h4 { margin: 12px 0 22px; font-weight: 600; font-size: 1.1rem; }
     .why-card p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; }
 
+    /* Shared Title Styles */
+    .section-title { font-size: 2.4rem; font-weight: 700; margin-bottom: 15px; }
+
     /* =========================================
-       3. APP FEATURES
+       3. HOW IT WORKS 
+       ========================================= */
+    .how-it-works { padding: 100px 64px; text-align: center; }
+    .step-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; max-width: 1100px; margin: 0 auto; }
+    .step-card { position: relative; padding: 30px 20px; }
+    .step-num { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 5rem; font-weight: 800; color: rgba(255,106,42,0.08); line-height: 1; z-index: 0; user-select: none; }
+    .step-icon { font-size: 2.5rem; color: var(--primary); margin-bottom: 20px; position: relative; z-index: 1; display: inline-block; padding: 15px; background: var(--bg-card); border-radius: 50%; border: 1px solid var(--border); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+    .step-card h4 { font-size: 1.3rem; font-weight: 700; margin-bottom: 15px; position: relative; z-index: 1; }
+    .step-card p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; position: relative; z-index: 1; max-width: 280px; margin: 0 auto; }
+
+    /* =========================================
+       4. APP FEATURES
        ========================================= */
     .app-features-scattered { padding: 140px 20px; text-align: center; position: relative; overflow: hidden; background: radial-gradient(circle at top left, rgba(255,0,100,0.08), transparent 40%), radial-gradient(circle at bottom right, rgba(0,150,255,0.08), transparent 40%); }
     .app-title { font-size: 2.8rem; margin-bottom: 100px; font-weight: 700; }
@@ -106,7 +142,7 @@
     .box5 { top: 80px; right: 60px; } .box6 { top: 240px; right: 20px; } .box7 { top: 400px; right: 60px; } .box8 { top: 560px; right: 120px; }
 
     /* =========================================
-       4. CTA & CAR ANIMATION
+       5. CTA & CAR ANIMATION
        ========================================= */
     .cta { margin: 100px 64px; border-radius: 30px; padding: 80px 40px; text-align: center; background: linear-gradient(135deg, #f0f0f0, #ffffff); color: #000; position: relative; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
     .cta h2 { font-size: 2.4rem; margin-bottom: 14px; position: relative; z-index: 2; font-weight: 700; }
@@ -129,7 +165,7 @@
     @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-2px); } }
 
     /* =========================================
-       5. PROFESSIONAL MODERN FOOTER
+       6. PROFESSIONAL MODERN FOOTER
        ========================================= */
     .site-footer {
       background: var(--bg-card);
@@ -175,7 +211,7 @@
     .footer-bottom-links a:hover { color: var(--text-main); }
 
     /* =========================================
-       6. GLOBAL POPUP MODALS & TOASTS
+       7. GLOBAL POPUP MODALS & TOASTS
        ========================================= */
     .policy-modal-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -221,10 +257,8 @@
     .modal-body li { margin-bottom: 8px; }
     .modal-body p { margin-bottom: 16px; }
 
-    /* Hidden Content Templates */
     .policy-content-template { display: none; }
 
-    /* App Coming Soon Toast */
     .app-toast {
         position: fixed; top: 30px; left: 50%; transform: translate(-50%, -150%);
         background: var(--bg-card); border: 1px solid var(--primary); border-radius: 50px;
@@ -237,10 +271,16 @@
     .app-toast i { color: var(--primary); font-size: 1.3rem; }
 
     /* MEDIA QUERIES */
-    @media(max-width: 1050px){ .search-box, .why-grid { grid-template-columns: 1fr; } .why-grid { grid-template-columns: repeat(2, 1fr); } .phone-wrapper { height: auto; display: flex; flex-direction: column; align-items: center; } .feature-box { position: static; margin: 15px 0; animation: none; } .phone { position: relative; margin: 40px 0; } .glow { display: none; } .footer-grid { grid-template-columns: 1fr 1fr; gap: 50px; } }
-    @media(max-width: 900px){ .hero, .why-grid, .cta, .site-footer { padding-left: 32px; padding-right: 32px; } }
-    @media(max-width: 600px){ .why-grid { grid-template-columns: 1fr; } .footer-grid { grid-template-columns: 1fr; gap: 40px; } .footer-bottom { flex-direction: column; gap: 15px; text-align: center; } .app-badges { flex-direction: row; flex-wrap: wrap; } .policy-modal-box { width: 95%; max-height: 90vh; } .modal-body { padding: 20px; } }
+    @media(max-width: 1050px){ .search-box, .why-grid { grid-template-columns: 1fr; } .why-grid, .step-grid { grid-template-columns: repeat(2, 1fr); } .phone-wrapper { height: auto; display: flex; flex-direction: column; align-items: center; } .feature-box { position: static; margin: 15px 0; animation: none; } .phone { position: relative; margin: 40px 0; } .glow { display: none; } .footer-grid { grid-template-columns: 1fr 1fr; gap: 50px; } }
+    @media(max-width: 900px){ .hero, .why-grid, .cta, .site-footer, .how-it-works { padding-left: 32px; padding-right: 32px; } }
+    @media(max-width: 600px){ .why-grid, .step-grid { grid-template-columns: 1fr; } .footer-grid { grid-template-columns: 1fr; gap: 40px; } .footer-bottom { flex-direction: column; gap: 15px; text-align: center; } .app-badges { flex-direction: row; flex-wrap: wrap; } .policy-modal-box { width: 95%; max-height: 90vh; } .modal-body { padding: 20px; } }
 </style>
+
+<!-- FEATURE: Promo Strip -->
+<div class="promo-strip">
+    🎉 Huge Savings Alert! Get 25% off on luxury vehicles or ₹200 off your first ride. 
+    <a href="{% url 'offers' %}">View All Promo Codes</a>
+</div>
 
 <section class="hero">
   <div class="badge">Choose. Book. Vroom!</div>
@@ -298,8 +338,33 @@
   <div class="why-card"><div class="icon-wrapper"><i class="bi bi-calendar-check"></i></div><h4>Flexible Booking</h4><p>Book for days, weeks, or months</p></div>
   <div class="why-card"><div class="icon-wrapper"><i class="bi bi-headset"></i></div><h4>24/7 Support</h4><p>Round-the-clock assistance wherever you go.</p></div>
   <div class="why-card"><div class="icon-wrapper"><i class="bi bi-clock-history"></i></div><h4>Instant Booking</h4><p>Reserve your ride in under 60 seconds.</p></div>
-  <div class="why-card"><div class="icon-wrapper"><i class="bi bi-car-front-fill"></i></div><h4>Wide Selection</h4><p>Choose from various vehicle categories</p></div>
+  <div class="why-card"><div class="icon-wrapper"><i class="bi bi-shield-check"></i></div><h4>Fully Insured</h4><p>Comprehensive coverage for peace of mind.</p></div>
 </div>
+
+<!-- FEATURE: How It Works -->
+<section class="how-it-works">
+    <h2 class="section-title">How It Works</h2>
+    <div class="step-grid">
+        <div class="step-card">
+            <div class="step-num">01</div>
+            <div class="step-icon"><i class="bi bi-search"></i></div>
+            <h4>Search & Select</h4>
+            <p>Enter your dates and browse our verified fleet to find your perfect vehicle.</p>
+        </div>
+        <div class="step-card">
+            <div class="step-num">02</div>
+            <div class="step-icon"><i class="bi bi-credit-card-2-front"></i></div>
+            <h4>Book Instantly</h4>
+            <p>Upload your driving license and pay securely via Wallet, Stripe, or Cash on Delivery.</p>
+        </div>
+        <div class="step-card">
+            <div class="step-num">03</div>
+            <div class="step-icon"><i class="bi bi-key-fill"></i></div>
+            <h4>Drive Away</h4>
+            <p>Pick up the keys from the host, inspect the vehicle, and enjoy your journey!</p>
+        </div>
+    </div>
+</section>
 
 <section class="app-features-scattered">
   <h2 class="app-title">What’s waiting for you <br> on the app?</h2>

@@ -18,7 +18,7 @@
 
     .page-header { 
         text-align: center; 
-        margin-bottom: 50px; 
+        margin-bottom: 40px; 
     }
     .page-header h1 { 
         font-size: 2.2rem; 
@@ -33,6 +33,30 @@
         max-width: 600px; 
         margin: 0 auto; 
         font-family: 'Open Sans', sans-serif; 
+    }
+
+    /* Filter Tabs */
+    .offer-filters {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
+    }
+    .filter-btn {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text-main);
+        padding: 8px 20px;
+        border-radius: 30px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
     }
 
     /* Grid Layout */
@@ -50,7 +74,7 @@
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        transition: transform 0.2s, box-shadow 0.2s;
+        transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
         box-shadow: 0 8px 24px rgba(0,0,0,0.08);
     }
     
@@ -61,14 +85,22 @@
     .offer-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 15px 35px var(--primary-glow);
+        border-color: var(--primary);
     }
 
     .card-img-wrapper {
         position: relative;
         height: 180px;
+        background: var(--input-bg); /* Fallback background */
+        display: flex;
+        align-items: center;
+        justify-content: center;
         overflow: hidden;
+        color: var(--border);
+        font-size: 4rem;
     }
 
+    /* Ensure images fill the wrapper properly */
     .card-img-wrapper img {
         width: 100%;
         height: 100%;
@@ -92,6 +124,7 @@
         font-weight: 700;
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         font-family: 'Open Sans', sans-serif;
+        z-index: 2;
     }
 
     /* Card Body */
@@ -128,7 +161,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 12px;
+        margin-bottom: 15px;
     }
 
     .coupon-code {
@@ -155,7 +188,32 @@
     .btn-copy:hover {
         background: var(--primary);
         border-color: var(--primary);
-        color: #000;
+        color: #fff;
+    }
+
+    /* Actions & Meta */
+    .card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .book-btn {
+        display: block;
+        text-align: center;
+        background: var(--input-bg);
+        color: var(--text-main);
+        text-decoration: none;
+        padding: 10px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: 0.3s;
+        border: 1px solid var(--border);
+    }
+    .book-btn:hover {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
     }
 
     .offer-meta {
@@ -165,9 +223,37 @@
         font-size: 0.8rem;
         color: var(--text-muted);
         border-top: 1px solid var(--border);
-        padding-top: 15px;
-        margin-top: 5px;
+        padding-top: 12px;
         font-family: 'Open Sans', sans-serif;
+    }
+    .offer-meta span.highlight {
+        color: #eab308;
+        font-weight: 600;
+    }
+
+    /* Toast Notification */
+    #toast {
+        position: fixed;
+        bottom: -60px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #25D366;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-weight: 600;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        transition: bottom 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        z-index: 1000;
+        pointer-events: none;
+    }
+    #toast.show {
+        bottom: 30px;
+    }
+
+    /* Hide class for JS filtering */
+    .hidden {
+        display: none !important;
     }
 </style>
 {% endblock %}
@@ -177,12 +263,20 @@
     
     <div class="page-header">
         <h1>Exclusive Deals</h1>
-        <p>Save on your next adventure with our curated offers.</p>
+        <p>Grab a code, apply it at checkout, and hit the road for less.</p>
     </div>
 
-    <div class="offers-grid">
+    <!-- Filter Tabs -->
+    <div class="offer-filters">
+        <button class="filter-btn active" onclick="filterOffers('all')">All Deals</button>
+        <button class="filter-btn" onclick="filterOffers('flat')">Flat Discounts</button>
+        <button class="filter-btn" onclick="filterOffers('percent')">Percentage Off</button>
+    </div>
+
+    <div class="offers-grid" id="offersGrid">
       
-        <div class="offer-card">
+        <!-- Offer 1: Welcome -->
+        <div class="offer-card" data-type="flat">
             <div class="card-img-wrapper">
                 <div class="promo-badge">₹200 OFF</div>
                 <img src="{% static 'images/first ride.png' %}" alt="First Ride">
@@ -190,57 +284,134 @@
             <div class="card-body">
                 <h3 class="offer-title">Welcome Aboard</h3>
                 <p class="offer-desc">New to GoWheels? Enjoy a flat discount on your very first ride with us. No minimum booking required.</p>
-                
                 <div class="coupon-container">
                     <span class="coupon-code">FIRST200</span>
                     <button class="btn-copy" onclick="copyCode('FIRST200', this)">Copy</button>
                 </div>
-                
-                <div class="offer-meta">
-                    <span><i class="bi bi-calendar3"></i> Valid till Jan 31</span>
-                    <span>All Vehicles</span>
+                <div class="card-actions">
+                    <a href="/vehicles/" class="book-btn">Find a Vehicle</a>
+                    <div class="offer-meta">
+                        <span class="highlight"><i class="bi bi-star-fill"></i> New Users Only</span>
+                        <span>All Vehicles</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="offer-card">
+        <!-- Offer 2: Easy Discount -->
+        <div class="offer-card" data-type="flat">
+            <div class="card-img-wrapper">
+                <div class="promo-badge">₹500 OFF</div>
+                <!-- Make sure to add an image named 'easy_discount.png' to your static folder, or change the name below -->
+                <img src="{% static 'images/easy_discount.png' %}" alt="Easy Savings">
+            </div>
+            <div class="card-body">
+                <h3 class="offer-title">Easy Savings</h3>
+                <p class="offer-desc">Need a quick getaway? Get a flat ₹500 off instantly on your next rental. No strings attached.</p>
+                <div class="coupon-container">
+                    <span class="coupon-code">EASY500</span>
+                    <button class="btn-copy" onclick="copyCode('EASY500', this)">Copy</button>
+                </div>
+                <div class="card-actions">
+                    <a href="/vehicles/" class="book-btn">Find a Vehicle</a>
+                    <div class="offer-meta">
+                        <span><i class="bi bi-check-circle"></i> No Minimum</span>
+                        <span>All Vehicles</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Offer 3: GoWheels Special -->
+        <div class="offer-card" data-type="percent">
+            <div class="card-img-wrapper">
+                <div class="promo-badge">10% SAVINGS</div>
+                <!-- Make sure to add an image named 'gowheels_special.png' to your static folder, or change the name below -->
+                <img src="{% static 'images/gowheels_special.png' %}" alt="GoWheels Special">
+            </div>
+            <div class="card-body">
+                <h3 class="offer-title">GoWheels Special</h3>
+                <p class="offer-desc">Our signature discount! Get a flat 10% off your entire booking total, including driver fees.</p>
+                <div class="coupon-container">
+                    <span class="coupon-code">GO10</span>
+                    <button class="btn-copy" onclick="copyCode('GO10', this)">Copy</button>
+                </div>
+                <div class="card-actions">
+                    <a href="/vehicles/" class="book-btn">Find a Vehicle</a>
+                    <div class="offer-meta">
+                        <span><i class="bi bi-check-circle"></i> No Minimum</span>
+                        <span>All Vehicles</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Offer 4: Long Haul -->
+        <div class="offer-card" data-type="percent">
             <div class="card-img-wrapper">
                 <div class="promo-badge">10% SAVINGS</div>
                 <img src="{% static 'images/long drive.png' %}" alt="Long Drive">
             </div>
             <div class="card-body">
                 <h3 class="offer-title">Long Haul Special</h3>
-                <p class="offer-desc">Planning a road trip? Get 10% off instantly when you book any vehicle for 5 days or more.</p>
-                
+                <p class="offer-desc">Planning an extended road trip? Get 10% off instantly when you book any vehicle for 5 days or more.</p>
                 <div class="coupon-container">
                     <span class="coupon-code">LONG10</span>
                     <button class="btn-copy" onclick="copyCode('LONG10', this)">Copy</button>
                 </div>
-                
-                <div class="offer-meta">
-                    <span><i class="bi bi-calendar3"></i> Valid till Feb 28</span>
-                    <span>Min. 5 Days</span>
+                <div class="card-actions">
+                    <a href="/vehicles/" class="book-btn">Find a Vehicle</a>
+                    <div class="offer-meta">
+                        <span class="highlight"><i class="bi bi-calendar-range"></i> Min. 5 Days</span>
+                        <span>All Vehicles</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="offer-card">
+        <!-- Offer 5: Weekend -->
+        <div class="offer-card" data-type="flat">
             <div class="card-img-wrapper">
                 <div class="promo-badge">WEEKEND DEAL</div>
                 <img src="{% static 'images/weekend.png' %}" alt="Weekend">
             </div>
             <div class="card-body">
                 <h3 class="offer-title">Weekend Warrior</h3>
-                <p class="offer-desc">Make the most of your weekends. Flat ₹150 off on all rentals booked for Saturday & Sunday.</p>
-                
+                <p class="offer-desc">Make the most of your weekends. Flat ₹150 off on rentals to help you escape the city.</p>
                 <div class="coupon-container">
                     <span class="coupon-code">WEEKEND150</span>
                     <button class="btn-copy" onclick="copyCode('WEEKEND150', this)">Copy</button>
                 </div>
-                
-                <div class="offer-meta">
-                    <span><i class="bi bi-calendar3"></i> Valid till Jan 31</span>
-                    <span>Min. 2 Days</span>
+                <div class="card-actions">
+                    <a href="/vehicles/" class="book-btn">Find a Vehicle</a>
+                    <div class="offer-meta">
+                        <span><i class="bi bi-check-circle"></i> No Minimum</span>
+                        <span>All Vehicles</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Offer 6: VIP Huge Savings -->
+        <div class="offer-card" data-type="percent">
+            <div class="card-img-wrapper">
+                <div class="promo-badge" style="background:#121212; color:#FFD700;">25% MASSIVE SAVINGS</div>
+                <!-- Make sure to add an image named 'vip_savings.png' to your static folder, or change the name below -->
+                <img src="{% static 'images/vip_savings.png' %}" alt="VIP Savings">
+            </div>
+            <div class="card-body">
+                <h3 class="offer-title">VIP Elite Savings</h3>
+                <p class="offer-desc">Going big? Get a massive 25% off when your total booking value exceeds ₹10,000. Perfect for luxury rides.</p>
+                <div class="coupon-container">
+                    <span class="coupon-code">VIP25</span>
+                    <button class="btn-copy" onclick="copyCode('VIP25', this)">Copy</button>
+                </div>
+                <div class="card-actions">
+                    <a href="/vehicles/" class="book-btn">Find a Vehicle</a>
+                    <div class="offer-meta">
+                        <span class="highlight"><i class="bi bi-cash-coin"></i> Min. ₹10,000 Order</span>
+                        <span>All Vehicles</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -248,25 +419,54 @@
     </div>
 </div>
 
+<!-- Global Toast Notification -->
+<div id="toast"><i class="bi bi-check-circle-fill"></i> Coupon Code Copied!</div>
+
 <script>
-    // Copy Code Function with visual feedback
+    // Copy Code Function with global toast notification
     function copyCode(code, btnElement) {
         navigator.clipboard.writeText(code).then(() => {
-            // Visual feedback on the button
+            // Button feedback
             const originalText = btnElement.innerText;
             btnElement.innerText = "Copied!";
             btnElement.style.background = "var(--primary)";
-            btnElement.style.color = "#000";
+            btnElement.style.color = "#fff";
             
-            // Revert back after 2 seconds
+            // Show global toast
+            const toast = document.getElementById("toast");
+            toast.innerText = `Code ${code} Copied!`;
+            toast.classList.add("show");
+
+            // Revert after 2 seconds
             setTimeout(() => {
                 btnElement.innerText = originalText;
                 btnElement.style.background = "";
                 btnElement.style.color = "";
-            }, 2000);
+                toast.classList.remove("show");
+            }, 2500);
         }).catch(err => {
             console.error('Failed to copy', err);
             alert("Failed to copy code. Please select and copy manually.");
+        });
+    }
+
+    // Filter Function
+    function filterOffers(type) {
+        // Update active button state
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+
+        // Filter cards
+        const cards = document.querySelectorAll('.offer-card');
+        cards.forEach(card => {
+            if (type === 'all' || card.getAttribute('data-type') === type) {
+                card.classList.remove('hidden');
+                // Tiny animation reset
+                card.style.opacity = '0';
+                setTimeout(() => card.style.opacity = '1', 50);
+            } else {
+                card.classList.add('hidden');
+            }
         });
     }
 </script>
