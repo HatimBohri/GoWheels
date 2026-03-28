@@ -9,6 +9,10 @@ from .models import (
     Review
 )
 
+admin.site.site_header = "GoWheels Admin Page"
+admin.site.site_title = "GoWheels Admin Portal"
+admin.site.index_title = "Welcome to GoWheels admin Dashboard"
+
 # ==========================================
 # VEHICLE ADMIN
 # ==========================================

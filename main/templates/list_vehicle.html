@@ -5,372 +5,521 @@
 
 {% block extra_css %}
 <style>
-    /* ================= WIZARD VARIABLES ================= */
     :root {
       --input-bg: #1a1a1a;
+      --error-text: #ff4d4f;
+      --section-bg: #121212;
     }
     body.light {
-      --input-bg: #f0f0f0;
+      --input-bg: #f8f9fa;
+      --error-text: #dc2626;
+      --section-bg: #ffffff;
     }
 
-    /* ================= MAIN FORM CONTAINER ================= */
     .main-container {
-      flex: 1; display: flex; justify-content: center; align-items: center; padding: 120px 20px 60px;
+      max-width: 1100px;
+      margin: 120px auto 80px;
+      padding: 0 20px;
     }
 
-    .wizard-card {
-      background: var(--bg-card);
-      width: 100%; max-width: 900px;
-      border-radius: 24px; padding: 40px;
-      border: 1px solid var(--border);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-      position: relative; overflow: hidden;
+    .page-header {
+      text-align: center;
+      margin-bottom: 40px;
     }
-
-    /* PROGRESS BAR */
-    .progress-container { margin-bottom: 40px; position: relative; }
-    .progress-line { position: absolute; top: 50%; left: 0; width: 100%; height: 2px; background: var(--border); transform: translateY(-50%); z-index: 1; }
-    .progress-fill { position: absolute; top: 50%; left: 0; height: 2px; background: var(--primary); width: 0%; transform: translateY(-50%); z-index: 1; transition: 0.4s ease; }
-    
-    .progress-bar-steps { display: flex; justify-content: space-between; position: relative; z-index: 2; }
-    .step-indicator {
-      width: 40px; height: 40px; border-radius: 50%; background: var(--bg-card); border: 2px solid var(--border);
-      display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--text-muted); transition: 0.4s ease;
+    .page-header h1 {
+      font-size: 2.5rem;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 10px;
+    }
+    .page-header p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
       font-family: 'Open Sans', sans-serif;
     }
-    .step-indicator.active { background: var(--primary); border-color: var(--primary); color: #000; box-shadow: 0 0 15px var(--primary-glow); }
-    .step-indicator.completed { background: #28c76f; border-color: #28c76f; color: #fff; }
 
-    /* FORM STYLES */
-    .step-content { display: none; animation: fadeIn 0.5s ease; }
-    .step-content.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    /* ================= FORM SECTIONS ================= */
+    .form-section {
+      background: var(--section-bg);
+      border-radius: 20px;
+      padding: 35px 40px;
+      margin-bottom: 30px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .form-section:hover {
+      box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+      border-color: rgba(255,106,42,0.2);
+    }
 
-    .step-content h2 { margin-bottom: 8px; font-size: 1.8rem; color: var(--text-main); }
-    p.desc { color: var(--text-muted); margin-bottom: 30px; font-size: 0.95rem; font-family: 'Open Sans', sans-serif;}
+    .section-title {
+      font-size: 1.4rem;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-title i {
+      color: var(--primary);
+      font-size: 1.6rem;
+      background: rgba(255,106,42,0.1);
+      padding: 8px;
+      border-radius: 10px;
+    }
 
-    .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-    .input-group { margin-bottom: 20px; }
+    /* ================= INPUTS & GRIDS ================= */
+    .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+    .input-grid.three-cols { grid-template-columns: repeat(3, 1fr); }
+    .input-group { position: relative; }
     
-    .input-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); font-family: 'Open Sans', sans-serif; }
+    .input-group label {
+      display: block; margin-bottom: 8px; font-size: 0.9rem; font-weight: 600; 
+      color: var(--text-muted); font-family: 'Open Sans', sans-serif;
+    }
+    .input-group label span.optional {
+      font-weight: 400; font-size: 0.8rem; color: #888; margin-left: 5px;
+    }
     
     .input-group input, .input-group select {
       width: 100%; padding: 14px 16px; border-radius: 12px;
       border: 1px solid var(--border); background: var(--input-bg);
-      color: var(--text-main); font-size: 1rem; outline: none; transition: 0.3s;
-      font-family: 'Open Sans', sans-serif;
+      color: var(--text-main); font-size: 1rem; outline: none; transition: all 0.3s;
+      font-family: 'Open Sans', sans-serif; box-sizing: border-box;
     }
-    .input-group input:focus, .input-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(255,106,42,0.1); }
+    .input-group input:focus, .input-group select:focus { 
+      border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-glow); 
+      background: var(--bg-card); 
+    }
+    
+    /* Error State */
+    .input-group.error input, .input-group.error select { border-color: var(--error-text); background: rgba(255, 77, 79, 0.05); }
+    .error-msg { color: var(--error-text); font-size: 0.8rem; margin-top: 6px; font-weight: 600; display: none; position: absolute; }
+    .input-group.error .error-msg { display: block; }
 
-    /* FILE UPLOAD */
+    /* Aesthetic Select Dropdown */
+    .aesthetic-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b5b5b5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      background-size: 16px;
+      cursor: pointer;
+    }
+
+    /* ================= FILE UPLOAD ================= */
     .file-upload-box {
       border: 2px dashed var(--border); border-radius: 16px; padding: 30px;
       text-align: center; cursor: pointer; position: relative; background: rgba(255,255,255,0.02); transition: 0.3s;
+      display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 180px; overflow: hidden;
     }
     .file-upload-box:hover { border-color: var(--primary); background: rgba(255,106,42,0.05); }
-    .file-upload-box input { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; }
-    .file-upload-box p { font-family: 'Open Sans', sans-serif; font-size: 0.9rem; color: var(--text-muted); margin-top: 8px; }
-    .upload-icon { font-size: 2rem; color: var(--text-muted); margin-bottom: 10px; }
-    .upload-preview { width: 100%; height: 150px; object-fit: cover; border-radius: 12px; display: none; margin-top: 15px; }
+    .file-upload-box input { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; z-index: 10; }
+    
+    .upload-placeholder { pointer-events: none; transition: 0.3s; }
+    .upload-placeholder p { font-family: 'Open Sans', sans-serif; font-size: 0.95rem; color: var(--text-muted); margin-top: 10px; font-weight: 600; }
+    .upload-icon { font-size: 2.2rem; color: var(--text-muted); }
+    
+    /* Single Upload Preview */
+    .upload-preview-wrapper { position: absolute; inset: 0; display: none; z-index: 5; }
+    .upload-preview-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+    .upload-preview-wrapper .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; color: #fff; font-weight: 600; }
+    .upload-preview-wrapper .overlay i { font-size: 1.5rem; margin-bottom: 5px; }
+    .file-upload-box:hover .upload-preview-wrapper .overlay { opacity: 1; }
 
     /* MULTIPLE FILE UPLOAD PREVIEW */
-    .multi-preview-grid {
-      display: flex; gap: 12px; flex-wrap: wrap; margin-top: 15px;
-    }
-    .multi-preview-grid img {
-      width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);
-      animation: fadeIn 0.3s ease;
-    }
+    .multi-preview-grid { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 20px; }
+    .multi-preview-item { position: relative; width: 100px; height: 100px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); animation: fadeIn 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+    .multi-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+    .remove-btn { position: absolute; top: 4px; right: 4px; background: rgba(220, 38, 38, 0.9); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 20; transition: 0.2s; }
+    .remove-btn:hover { background: #ff0000; transform: scale(1.1); }
 
-    /* WIZARD BUTTONS */
-    .btn-row { display: flex; justify-content: space-between; margin-top: 40px; }
-    .wizard-btn { padding: 12px 30px; border-radius: 30px; border: none; font-weight: 700; cursor: pointer; font-size: 1rem; transition: 0.3s; font-family: 'Open Sans', sans-serif; }
-    .wizard-btn-primary { background: var(--primary); color: #fff; }
-    .wizard-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px var(--primary-glow); }
-    .wizard-btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
-    .wizard-btn-secondary:hover { border-color: var(--text-main); color: var(--text-main); }
+    /* ================= SUBMIT AREA ================= */
+    .submit-area {
+      background: var(--section-bg);
+      border-radius: 20px; padding: 30px 40px;
+      border: 1px solid var(--primary);
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 10px 40px var(--primary-glow);
+    }
+    .submit-text h3 { margin: 0 0 5px; font-family: 'Poppins', sans-serif; color: var(--text-main); font-size: 1.3rem;}
+    .submit-text p { margin: 0; color: var(--text-muted); font-size: 0.95rem;}
+    
+    .submit-btn {
+      padding: 16px 40px; border-radius: 30px; border: none; font-weight: 700; cursor: pointer; 
+      font-size: 1.1rem; transition: 0.3s; font-family: 'Open Sans', sans-serif; 
+      background: var(--primary); color: #000; display: flex; align-items: center; gap: 10px;
+    }
+    .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 25px var(--primary-glow); }
 
     /* Responsive */
-    @media (max-width: 768px) {
-      .input-grid { grid-template-columns: 1fr !important; }
-      .wizard-card { padding: 25px; }
+    @media (max-width: 900px) {
+      .input-grid, .input-grid.three-cols { grid-template-columns: 1fr; gap: 20px; }
+      .form-section { padding: 25px 20px; }
+      .submit-area { flex-direction: column; text-align: center; gap: 20px; padding: 25px 20px; }
+      .submit-btn { width: 100%; justify-content: center; }
     }
+    
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="main-container">
-  <div class="wizard-card">
-    
-    <div class="progress-container">
-      <div class="progress-line"></div>
-      <div class="progress-fill" id="progressFill"></div>
-      <div class="progress-bar-steps">
-        <div class="step-indicator active" data-step="1">1</div>
-        <div class="step-indicator" data-step="2">2</div>
-        <div class="step-indicator" data-step="3">3</div>
+  
+  <div class="page-header">
+      <h1>List Your Vehicle</h1>
+      <p>Turn your idle vehicle into earning potential in just a few minutes.</p>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" id="vehicleForm" novalidate>
+    {% csrf_token %}
+
+    <div class="form-section">
+      <div class="section-title">
+        <i class="bi bi-person-vcard"></i> Basic Details
+      </div>
+      
+      <div class="input-grid">
+        <div class="input-group">
+          <label>Owner Full Name</label>
+          <input type="text" name="owner_name" value="{{ request.user.first_name }} {{ request.user.last_name }}" placeholder="John Doe" required>
+          <span class="error-msg"><i class="bi bi-exclamation-circle"></i> Owner name is required</span>
+        </div>
+        <div class="input-group">
+          <label>Contact Number</label>
+          <input type="tel" name="contact_number" value="{{ request.user.profile.phone_number|default:'' }}" placeholder="10-digit mobile number" required>
+          <span class="error-msg"><i class="bi bi-exclamation-circle"></i> Valid contact number is required</span>
+        </div>
+        <div class="input-group">
+          <label>Vehicle Name & Model</label>
+          <input type="text" name="vehicle_name" placeholder="e.g. Mahindra Thar 4x4 2023" required>
+          <span class="error-msg"><i class="bi bi-exclamation-circle"></i> Vehicle name is required</span>
+        </div>
+        <div class="input-group">
+          <label>Rent Price (per day)</label>
+          <input type="number" name="price_per_day" placeholder="₹ 2500" min="100" required>
+          <span class="error-msg"><i class="bi bi-exclamation-circle"></i> Valid price is required</span>
+        </div>
       </div>
     </div>
 
-    <form method="POST" enctype="multipart/form-data" id="vehicleForm">
-      {% csrf_token %}
+    <div class="form-section">
+      <div class="section-title">
+        <i class="bi bi-gear-wide-connected"></i> Specifications
+      </div>
 
-      <div class="step-content active" id="step1">
-        <h2>Owner Details</h2>
-        <p class="desc">Start by telling us who owns this vehicle.</p>
+      <div class="input-grid three-cols">
+        <div class="input-group">
+          <label>Vehicle Type</label>
+          <select name="vehicle_type" class="aesthetic-select" required>
+            <option value="" disabled selected>Select type...</option>
+            <option value="car">Car</option>
+            <option value="bike">Bike</option>
+          </select>
+          <span class="error-msg">Required</span>
+        </div>
+
+        <div class="input-group">
+          <label>Category</label>
+          <select name="category" class="aesthetic-select" required>
+            <option value="" disabled selected>Select category...</option>
+            <optgroup label="Cars & Four Wheelers">
+              <option value="Sedan">Sedan</option>
+              <option value="Hatchback">Hatchback</option>
+              <option value="SUV">SUV</option>
+              <option value="Crossover (CUV)">Crossover (CUV)</option>
+              <option value="Coupe">Coupe</option>
+              <option value="MPV/Minivan">MPV/Minivan</option>
+              <option value="Convertible">Convertible</option>
+              <option value="Pickup Truck">Pickup Truck</option>
+            </optgroup>
+            <optgroup label="Bikes & Two Wheelers">
+              <option value="Standard (Naked)">Standard (Naked)</option>
+              <option value="Sportbike">Sportbike</option>
+              <option value="Cruiser">Cruiser</option>
+              <option value="Touring">Touring</option>
+              <option value="Adventure (ADV)">Adventure (ADV)</option>
+              <option value="Dual-Sport">Dual-Sport</option>
+              <option value="Off-Road 1 Dirt Bike">Off-Road / Dirt Bike</option>
+              <option value="Scooter">Scooter</option>
+              <option value="Moped">Moped</option>
+              <option value="Electric Motorcycle">Electric Motorcycle</option>
+            </optgroup>
+            <optgroup label="Other">
+              <option value="All">Other / All</option>
+            </optgroup>
+          </select>
+          <span class="error-msg">Required</span>
+        </div>
+
+        <div class="input-group">
+          <label>Seats</label>
+          <select name="seats" class="aesthetic-select" required>
+            <option value="" disabled selected>Seats...</option>
+            <option value="2">2</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="12">12+</option> 
+          </select>
+          <span class="error-msg">Required</span>
+        </div>
         
-        <div class="input-grid">
-          <div class="input-group">
-            <label>Owner Name</label>
-            <input type="text" name="owner_name" value="{{ request.user.first_name }} {{ request.user.last_name }}" placeholder="John Doe" required>
-          </div>
-          <div class="input-group">
-            <label>Contact Number</label>
-            <input type="tel" name="contact_number" value="{{ request.user.phone_number }}" required>
-          </div>
+        <div class="input-group">
+          <label>Fuel Type</label>
+          <select name="fuel_type" class="aesthetic-select" required>
+            <option value="" disabled selected>Fuel...</option>
+            <option value="Petrol">Petrol</option>
+            <option value="Diesel">Diesel</option>
+            <option value="Electric">Electric</option>
+            <option value="Hybrid">Hybrid</option>
+            <option value="CNG">CNG</option>
+          </select>
+          <span class="error-msg">Required</span>
         </div>
-        
-        <div class="btn-row" style="justify-content: flex-end;">
-          <button type="button" class="wizard-btn wizard-btn-primary" onclick="nextStep(2)">Next Step <i class="bi bi-arrow-right"></i></button>
+
+        <div class="input-group" style="grid-column: span 2;">
+          <label>Pickup Location <span class="optional">(Optional - Leave blank if you deliver)</span></label>
+            <input type="text" name="pickup_location" placeholder="e.g. Bandra West, Mumbai or 'Anywhere in City'">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-title">
+        <i class="bi bi-images"></i> Vehicle Photos
+      </div>
+      <p style="color: var(--text-muted); margin-top: -10px; margin-bottom: 20px; font-size: 0.95rem;">Clear, well-lit photos drastically increase your chances of getting booked.</p>
+
+      <div class="input-grid three-cols">
+        <div class="input-group">
+            <div class="file-upload-box">
+              <div class="upload-placeholder" id="place1">
+                  <i class="bi bi-car-front upload-icon"></i>
+                  <p>Front View <span style="color:var(--error-text);">*</span></p>
+              </div>
+              <input type="file" name="image_front" accept="image/*" onchange="previewImage(this, 'prev1', 'place1')" required>
+              <div class="upload-preview-wrapper" id="prev1-wrap">
+                  <img id="prev1">
+                  <div class="overlay"><i class="bi bi-camera"></i> Change Photo</div>
+              </div>
+            </div>
+            <span class="error-msg" style="bottom: -20px;"><i class="bi bi-exclamation-circle"></i> Required</span>
+        </div>
+
+        <div class="input-group">
+            <div class="file-upload-box">
+              <div class="upload-placeholder" id="place2">
+                  <i class="bi bi-car-front-fill upload-icon"></i>
+                  <p>Back View <span style="color:var(--error-text);">*</span></p>
+              </div>
+              <input type="file" name="image_back" accept="image/*" onchange="previewImage(this, 'prev2', 'place2')" required>
+              <div class="upload-preview-wrapper" id="prev2-wrap">
+                  <img id="prev2">
+                  <div class="overlay"><i class="bi bi-camera"></i> Change Photo</div>
+              </div>
+            </div>
+            <span class="error-msg" style="bottom: -20px;"><i class="bi bi-exclamation-circle"></i> Required</span>
+        </div>
+
+        <div class="input-group">
+            <div class="file-upload-box">
+              <div class="upload-placeholder" id="place3">
+                  <i class="bi bi-speedometer2 upload-icon"></i>
+                  <p>Interior / Dash <span style="color:var(--error-text);">*</span></p>
+              </div>
+              <input type="file" name="image_inside" accept="image/*" onchange="previewImage(this, 'prev3', 'place3')" required>
+              <div class="upload-preview-wrapper" id="prev3-wrap">
+                  <img id="prev3">
+                  <div class="overlay"><i class="bi bi-camera"></i> Change Photo</div>
+              </div>
+            </div>
+            <span class="error-msg" style="bottom: -20px;"><i class="bi bi-exclamation-circle"></i> Required</span>
         </div>
       </div>
 
-      <div class="step-content" id="step2">
-        <h2>Vehicle Specs</h2>
-        <p class="desc">Enter the technical details of your ride.</p>
-
-        <div class="input-grid">
-          <div class="input-group">
-            <label>Vehicle Name & Model</label>
-            <input type="text" name="vehicle_name" placeholder="e.g. Honda City 2022" required>
+      <h4 style="margin-top: 35px; margin-bottom: 15px; color: var(--text-main); font-size: 1.1rem; font-family: 'Poppins', sans-serif;">Additional Photos <span style="font-weight:400; color:#888; font-size:0.9rem;">(Optional)</span></h4>
+      
+      <div class="file-upload-box" style="padding: 40px; min-height: 140px;">
+          <div class="upload-placeholder" style="display: flex; flex-direction: column; align-items: center;">
+              <i class="bi bi-images upload-icon" id="multi-icon"></i>
+              <p id="multi-text">Click or drag multiple photos here (Sides, Trunk, Scratches)</p>
           </div>
-          <div class="input-group">
-            <label>Type</label>
-            <select name="vehicle_type" required>
-              <option value="car">Car</option>
-              <option value="bike">Bike</option>
-              <option value="truck">Truck</option> 
-            </select>
-          </div>
-        </div>
-
-        <div class="input-grid">
-          
-          <div class="input-group">
-            <label>Category</label>
-            <select name="category" required>
-              <option value="" disabled selected>Select category...</option>
-              
-              <optgroup label="Cars & Four Wheelers">
-                <option value="Sedan">Sedan</option>
-                <option value="Hatchback">Hatchback</option>
-                <option value="SUV">SUV</option>
-                <option value="Crossover (CUV)">Crossover (CUV)</option>
-                <option value="Coupe">Coupe</option>
-                <option value="MPV/Minivan">MPV/Minivan</option>
-                <option value="Convertible">Convertible</option>
-                <option value="Pickup Truck">Pickup Truck</option>
-              </optgroup>
-
-              <optgroup label="Bikes & Two Wheelers">
-                <option value="Standard (Naked)">Standard (Naked)</option>
-                <option value="Sportbike">Sportbike</option>
-                <option value="Cruiser">Cruiser</option>
-                <option value="Touring">Touring</option>
-                <option value="Adventure (ADV)">Adventure (ADV)</option>
-                <option value="Dual-Sport">Dual-Sport</option>
-                <option value="Off-Road 1 Dirt Bike">Off-Road / Dirt Bike</option>
-                <option value="Scooter">Scooter</option>
-                <option value="Moped">Moped</option>
-                <option value="Electric Motorcycle">Electric Motorcycle</option>
-              </optgroup>
-
-              <optgroup label="Other">
-                <option value="All">Other / All</option>
-              </optgroup>
-            </select>
-          </div>
-          
-          <div class="input-group">
-            <label>Rent Price (per day)</label>
-            <input type="number" name="price_per_day" placeholder="₹ 2000" required>
-          </div>
-
-        </div>
-
-        <div class="input-grid" style="grid-template-columns: repeat(3, 1fr);">
-          <div class="input-group">
-            <label>Seats</label>
-            <select name="seats" required>
-              <option value="" disabled selected>Seats...</option>
-              <option value="2">2</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-              <option value="7">7</option>
-              <option value="8">8</option>
-              <option value="12">12+</option> 
-            </select>
-          </div>
-          <div class="input-group">
-            <label>Fuel</label>
-            <select name="fuel_type">
-              <option value="Petrol">Petrol</option>
-              <option value="Diesel">Diesel</option>
-              <option value="Electric">Electric</option>
-              <option value="Hybrid">Hybrid</option>
-              <option value="CNG">CNG</option>
-            </select>
-          </div>
-          <div class="input-group">
-            <label>Pickup Location</label>
-              <input type="text" name="pickup_location" placeholder="City (Optional)">
-          </div>
-        </div>
-
-        <div class="btn-row">
-          <button type="button" class="wizard-btn wizard-btn-secondary" onclick="nextStep(1)"><i class="bi bi-arrow-left"></i> Back</button>
-          <button type="button" class="wizard-btn wizard-btn-primary" onclick="nextStep(3)">Next Step <i class="bi bi-arrow-right"></i></button>
-        </div>
+          <input type="file" name="additional_images" id="additional_images" accept="image/*" multiple onchange="previewMultipleImages(this, 'extra-previews')">
       </div>
+      <div id="extra-previews" class="multi-preview-grid"></div>
+    </div>
 
-      <div class="step-content" id="step3">
-        <h2>Upload Photos</h2>
-        <p class="desc">Clear photos increase your chances of getting booked.</p>
-
-        <div class="input-grid" style="grid-template-columns: repeat(3, 1fr);">
-          <div class="file-upload-box">
-            <i class="bi bi-car-front upload-icon"></i>
-            <p>Front View <span style="color:var(--error-text);">*</span></p>
-            <input type="file" name="image_front" accept="image/*" onchange="previewImage(this, 'prev1')" required>
-            <img id="prev1" class="upload-preview">
-          </div>
-
-          <div class="file-upload-box">
-            <i class="bi bi-car-front-fill upload-icon"></i>
-            <p>Back View <span style="color:var(--error-text);">*</span></p>
-            <input type="file" name="image_back" accept="image/*" onchange="previewImage(this, 'prev2')" required>
-            <img id="prev2" class="upload-preview">
-          </div>
-
-          <div class="file-upload-box">
-            <i class="bi bi-speedometer2 upload-icon"></i>
-            <p>Interior <span style="color:var(--error-text);">*</span></p>
-            <input type="file" name="image_inside" accept="image/*" onchange="previewImage(this, 'prev3')" required>
-            <img id="prev3" class="upload-preview">
-          </div>
+    <div class="submit-area">
+        <div class="submit-text">
+            <h3>Ready to publish?</h3>
+            <p>By submitting, you agree to GoWheels Host Guidelines.</p>
         </div>
+        <button type="submit" class="submit-btn" id="submitBtn">
+            Publish Listing <i class="bi bi-rocket-takeoff-fill"></i>
+        </button>
+    </div>
 
-        <h4 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-main); font-size: 1.1rem; font-family: 'Open Sans', sans-serif;">Additional Photos (Optional)</h4>
-        <div class="file-upload-box" style="padding: 40px;">
-            <i class="bi bi-images upload-icon" id="multi-icon"></i>
-            <p id="multi-text">Click or drag multiple photos here (Sides, Trunk, Details)</p>
-            <input type="file" name="additional_images" accept="image/*" multiple onchange="previewMultipleImages(this, 'extra-previews')">
-        </div>
-        <div id="extra-previews" class="multi-preview-grid"></div>
-
-
-        <div class="btn-row">
-          <button type="button" class="wizard-btn wizard-btn-secondary" onclick="nextStep(2)"><i class="bi bi-arrow-left"></i> Back</button>
-          <button type="submit" class="wizard-btn wizard-btn-primary">Submit Listing <i class="bi bi-check-lg"></i></button>
-        </div>
-      </div>
-
-    </form>
-  </div>
+  </form>
 </div>
 
 <script>
-  // Wizard Logic
-  function nextStep(step) {
-    const currentStep = document.querySelector('.step-content.active');
-    
-    // Quick validation check before proceeding forward
-    if (step > parseInt(document.querySelector('.step-indicator.active').dataset.step)) {
-      const inputs = currentStep.querySelectorAll('input[required], select[required]');
-      let valid = true;
-
-      inputs.forEach(input => {
-        if (!input.value) {
-          valid = false;
-          input.style.borderColor = 'red';
-        } else {
-          input.style.borderColor = 'var(--border)';
-        }
+  // ==========================================
+  // SMART FORM VALIDATION
+  // ==========================================
+  document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('vehicleForm');
+      const allInputs = form.querySelectorAll('input[required], select[required]');
+      
+      // Clear errors on input
+      allInputs.forEach(input => {
+          input.addEventListener('input', () => {
+              input.parentElement.classList.remove('error');
+          });
+          input.addEventListener('change', () => {
+              input.parentElement.classList.remove('error');
+          });
       });
 
-      if (!valid) return; // Stop if invalid
-    }
+      // Handle Submit
+      form.addEventListener('submit', function(e) {
+          let isValid = true;
+          let firstErrorElement = null;
 
-    // Change Step
-    document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
-    document.getElementById('step' + step).classList.add('active');
+          allInputs.forEach(input => {
+              if (!input.value) {
+                  isValid = false;
+                  input.parentElement.classList.add('error');
+                  if (!firstErrorElement) firstErrorElement = input.parentElement;
+              } else {
+                  input.parentElement.classList.remove('error');
+              }
+          });
 
-    // Update Progress Bar
-    const indicators = document.querySelectorAll('.step-indicator');
-    const fill = document.getElementById('progressFill');
-    
-    indicators.forEach((ind, index) => {
-      if (index + 1 < step) ind.classList.add('completed');
-      if (index + 1 === step) ind.classList.add('active');
-      else if (index + 1 > step) ind.classList.remove('active', 'completed');
-    });
+          if (!isValid) {
+              e.preventDefault(); // Stop submission
+              // Smooth scroll to the first error
+              firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              
+              // Shake animation on the submit button for feedback
+              const btn = document.getElementById('submitBtn');
+              btn.style.transform = 'translateX(-10px)';
+              setTimeout(() => btn.style.transform = 'translateX(10px)', 100);
+              setTimeout(() => btn.style.transform = 'translateX(-10px)', 200);
+              setTimeout(() => btn.style.transform = 'translateX(0)', 300);
+          }
+      });
+  });
 
-    const percent = ((step - 1) / 2) * 100;
-    fill.style.width = percent + '%';
-  }
-
-  // Image Preview (Single Compulsory Images)
-  function previewImage(input, id) {
+  // ==========================================
+  // SINGLE IMAGE PREVIEW
+  // ==========================================
+  function previewImage(input, imgId, placeId) {
     const file = input.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = function(e) {
-        const img = document.getElementById(id);
+        const img = document.getElementById(imgId);
+        const wrapper = document.getElementById(imgId + '-wrap');
+        const placeholder = document.getElementById(placeId);
+        
         img.src = e.target.result;
-        img.style.display = 'block';
-        input.parentElement.querySelector('.upload-icon').style.display = 'none';
-        input.parentElement.querySelector('p').style.display = 'none';
+        wrapper.style.display = 'block';
+        placeholder.style.display = 'none';
+        
+        // Remove error state if exists
+        input.parentElement.classList.remove('error');
       }
       reader.readAsDataURL(file);
     }
   }
 
-  // NEW: Image Preview (Multiple Optional Images)
-  // Store files globally so they don't get erased when the user clicks the box again
-  const selectedFiles = new DataTransfer(); 
+  // ==========================================
+  // PROFESSIONAL MULTI-FILE UPLOAD LOGIC
+  // ==========================================
+  let selectedFiles = new DataTransfer(); 
 
   function previewMultipleImages(input, containerId) {
     const container = document.getElementById(containerId);
     
     if (input.files && input.files.length > 0) {
-      // 1. Add the newly selected files to our storage
-      Array.from(input.files).forEach(file => {
-        selectedFiles.items.add(file);
+      // Add unique files to our DataTransfer object
+      Array.from(input.files).forEach(newFile => {
+          let isDuplicate = false;
+          for (let i = 0; i < selectedFiles.files.length; i++) {
+              if (selectedFiles.files[i].name === newFile.name && selectedFiles.files[i].size === newFile.size) {
+                  isDuplicate = true;
+                  break;
+              }
+          }
+          if (!isDuplicate) {
+              selectedFiles.items.add(newFile);
+          }
       });
+      renderMultiPreviews(input.id, containerId);
+    }
+  }
 
-      // 2. Update the actual hidden HTML input to hold ALL files (old + new)
-      // This is what actually gets sent to your Django views.py!
-      input.files = selectedFiles.files;
-
-      // 3. Clear the visual container to re-render all previews
+  function renderMultiPreviews(inputId, containerId) {
+      const input = document.getElementById(inputId);
+      const container = document.getElementById(containerId);
+      
+      input.files = selectedFiles.files; // Sync real input
       container.innerHTML = ''; 
 
-      // 4. Draw the image previews on the screen
-      Array.from(input.files).forEach((file, index) => {
+      // Draw each image with a remove button
+      Array.from(selectedFiles.files).forEach((file, index) => {
         const reader = new FileReader();
         reader.onload = function(e) {
-          const img = document.createElement('img');
-          img.src = e.target.result;
-          container.appendChild(img);
+          const div = document.createElement('div');
+          div.className = 'multi-preview-item';
+          div.innerHTML = `
+              <img src="${e.target.result}" alt="Additional Photo">
+              <button type="button" class="remove-btn" onclick="removeFile(event, ${index}, '${inputId}', '${containerId}')" title="Remove image">
+                  <i class="bi bi-x-lg"></i>
+              </button>
+          `;
+          container.appendChild(div);
         }
         reader.readAsDataURL(file);
       });
       
-      // 5. Update the text on the screen
-      document.getElementById('multi-icon').className = 'bi bi-check-circle upload-icon';
-      document.getElementById('multi-icon').style.color = 'var(--primary)';
-      document.getElementById('multi-text').innerText = input.files.length + ' additional photo(s) selected. Click to add more.';
-    }
+      // Update UI Text
+      const icon = document.getElementById('multi-icon');
+      const text = document.getElementById('multi-text');
+      
+      if (selectedFiles.files.length > 0) {
+        icon.className = 'bi bi-images upload-icon';
+        icon.style.color = 'var(--primary)';
+        text.innerHTML = `<span style="color: var(--primary); font-weight: 700;">${selectedFiles.files.length} photo(s) ready.</span> Click or drag to add more.`;
+      } else {
+        icon.className = 'bi bi-images upload-icon';
+        icon.style.color = 'var(--text-muted)';
+        text.innerText = 'Click or drag multiple photos here (Sides, Trunk, Scratches)';
+      }
+  }
+
+  function removeFile(event, index, inputId, containerId) {
+      event.preventDefault(); 
+      event.stopPropagation();
+      
+      const newDt = new DataTransfer();
+      for(let i = 0; i < selectedFiles.files.length; i++) {
+          if (i !== index) {
+              newDt.items.add(selectedFiles.files[i]);
+          }
+      }
+      
+      selectedFiles = newDt; 
+      renderMultiPreviews(inputId, containerId); 
   }
 </script>
 {% endblock %}
