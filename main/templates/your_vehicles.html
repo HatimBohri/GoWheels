@@ -324,9 +324,19 @@
                         
                         <div class="v-specs">
                             <div class="spec-item"><i class="bi bi-grid-1x2"></i> {{ vehicle.category }}</div>
+                            
+                            <div class="spec-item" title="Vehicle Registration Number">
+                                <i class="bi bi-123"></i> 
+                                {% if vehicle.vehicle_number %}
+                                    {{ vehicle.vehicle_number }}
+                                {% else %}
+                                    <span style="color: #ff6b6b;"><i class="bi bi-exclamation-circle"></i> Needs Reg. No</span>
+                                {% endif %}
+                            </div>
+
                             <div class="spec-item"><i class="bi bi-people"></i> {{ vehicle.seats|default:"-" }} Seats</div>
                             <div class="spec-item"><i class="bi bi-fuel-pump"></i> {{ vehicle.fuel_type }}</div>
-                            <div class="spec-item"><i class="bi bi-geo-alt"></i> {{ vehicle.pickup_location|default:"Coordinate w/ Renter" }}</div>
+                            <div class="spec-item" style="grid-column: span 2;"><i class="bi bi-geo-alt"></i> {{ vehicle.pickup_location|default:"Coordinate w/ Renter" }}</div>
                         </div>
 
                         <div class="v-actions">

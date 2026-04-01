@@ -132,8 +132,8 @@
   .view-toggle.active { color: var(--primary); border-color: var(--primary); background: var(--primary-glow); }
 
   /* ===== VEHICLE GRID ===== */
-  .fleet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px; align-items: start; transition: 0.3s; }
-  
+  .fleet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px; align-items: stretch; transition: 0.3s; }
+  .fleet-card { background: var(--bg-card); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column; position: relative; transition: transform 0.25s ease, box-shadow 0.25s ease; height: 100%; }
   .fleet-card { background: var(--bg-card); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column; position: relative; transition: transform 0.25s ease, box-shadow 0.25s ease; }
   .fleet-card:hover { transform: translateY(-8px); box-shadow: 0 12px 30px rgba(0,0,0,0.35); border-color: rgba(255,106,42,0.3); }
   .fleet-card img { width: 100%; height: 180px; object-fit: cover; }
@@ -327,6 +327,9 @@
               <span class="price">₹{{ v.price_per_day }} <span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted);">/day</span></span>
               
               <div class="fleet-meta">
+                {% if v.vehicle_number %}
+                  <span title="Vehicle Number"><i class="bi bi-123"></i> {{ v.vehicle_number }}</span>
+                {% endif %}
                 <span><i class="bi bi-people"></i> {{ v.seats|default:"-" }} Seats</span>
                 <span><i class="bi bi-fuel-pump"></i> {{ v.fuel_type }}</span>
                 <span><i class="bi bi-geo-alt"></i> {{ v.pickup_location|default:"Contact for Location" }}</span>

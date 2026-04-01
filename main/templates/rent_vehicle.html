@@ -86,6 +86,15 @@
     .apply-btn:hover { border-color: var(--primary); color: var(--primary); }
     #promo-message { font-size: 0.85rem; margin-top: -10px; margin-bottom: 15px; display: none; }
 
+    /* Offers UI */
+    .offers-container { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 5px; }
+    .offers-container::-webkit-scrollbar { width: 4px; }
+    .offers-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+    .offer-item { display: flex; justify-content: space-between; align-items: center; background: var(--input-bg); border: 1px dashed var(--border); padding: 10px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    .offer-item:hover { border-color: var(--primary); background: var(--primary-glow); }
+    .offer-code { font-weight: 700; color: var(--primary); font-size: 0.85rem; background: rgba(255,106,42,0.1); padding: 3px 8px; border-radius: 6px; letter-spacing: 0.5px; }
+    .offer-desc { font-size: 0.8rem; color: var(--text-muted); text-align: right; max-width: 60%; }
+
     /* Terms & Conditions Checkbox */
     .terms-group { display: flex; align-items: flex-start; gap: 10px; margin-top: 15px; }
     .terms-group input { width: auto; margin-top: 4px; accent-color: var(--primary); cursor: pointer; }
@@ -195,7 +204,6 @@
   {% endfor %}
 {% endif %}
 
-<!-- Back Button Header -->
 <div class="header-actions">
     <a href="/" class="back-btn"><i class="bi bi-arrow-left"></i> Back to Home</a>
 </div>
@@ -227,7 +235,6 @@
         </div>
       </div>
 
-      <!-- Feature: Special Requests -->
       <div class="form-group" style="margin-top: 10px;">
         <label>Special Requests / Trip Notes (Optional)</label>
         <textarea name="special_notes" placeholder="E.g., I need the car delivered by 10 AM, etc."></textarea>
@@ -354,6 +361,12 @@
           </strong>
       </div>
       {% endif %}
+      {% if vehicle.vehicle_number %}
+      <div class="summary-item">
+          <span>Vehicle No.</span>
+          <strong>{{ vehicle.vehicle_number }}</strong>
+      </div>
+      {% endif %}
       <div class="summary-item"><span>Category</span><strong>{{ vehicle.category }}</strong></div>
       <div class="summary-item"><span>Pickup</span><strong style="max-width: 60%; text-align: right;">{{ vehicle.pickup_location|default:"Contact Host" }}</strong></div>
       
@@ -366,15 +379,14 @@
           </div>
         </div>
         <a href="javascript:void(0);" onclick="openWhatsApp('{{ vehicle.contact_number|escapejs }}', '{{ vehicle.vehicle_name|escapejs }}')" class="whatsapp-btn">
-  <i class="bi bi-whatsapp"></i> Chat on WhatsApp
-</a>
+          <i class="bi bi-whatsapp"></i> Chat on WhatsApp
+        </a>
       </div>
 
       <div class="summary-item"><span>Price/Day</span><span>₹{{ vehicle.price_per_day }}</span></div>
       <div class="summary-item"><span>Days</span><span id="total_days">0</span></div>
       <div class="summary-item"><span>Driver Fee</span><span id="driver_fee">₹0</span></div>
       
-      <!-- Feature: Promo Code Discount Row -->
       <div class="summary-item" id="discount_row" style="display: none; color: var(--success-text);">
           <span>Discount</span><span id="discount_amt">-₹0</span>
       </div>
@@ -382,13 +394,46 @@
       <hr style="border-color: var(--border);">
       <div class="summary-item" style="font-size: 1.25rem;"><strong>Total</strong><strong id="total_price" style="color: var(--primary);">₹0</strong></div>
 
-      <!-- Feature: Promo Code Input Box -->
       <div style="margin-top: 20px;">
           <div class="promo-group">
               <input type="text" id="promo_code" name="promo_code" placeholder="Enter Promo Code">
               <button type="button" class="apply-btn" onclick="applyPromo()">Apply</button>
           </div>
           <div id="promo-message"></div>
+
+          <div style="margin-top: 15px;">
+              <p style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px;">Available Offers (Click to apply)</p>
+              <div class="offers-container">
+                  <div class="offer-item" onclick="autoApplyPromo('EASY500')">
+                      <span class="offer-code">EASY500</span>
+                      <span class="offer-desc">Flat ₹500 off on your ride</span>
+                  </div>
+                  <div class="offer-item" onclick="autoApplyPromo('GO10')">
+                      <span class="offer-code">GO10</span>
+                      <span class="offer-desc">10% off instantly</span>
+                  </div>
+                  <div class="offer-item" onclick="autoApplyPromo('WEEKEND150')">
+                      <span class="offer-code">WEEKEND150</span>
+                      <span class="offer-desc">Flat ₹150 off</span>
+                  </div>
+                  
+                  {% if is_new_user %}
+                  <div class="offer-item" onclick="autoApplyPromo('FIRST200')">
+                      <span class="offer-code">FIRST200</span>
+                      <span class="offer-desc">₹200 off for your first ride</span>
+                  </div>
+                  {% endif %}
+                  
+                  <div class="offer-item" onclick="autoApplyPromo('LONG10')">
+                      <span class="offer-code">LONG10</span>
+                      <span class="offer-desc">10% off for 5+ days</span>
+                  </div>
+                  <div class="offer-item" onclick="autoApplyPromo('VIP25')">
+                      <span class="offer-code">VIP25</span>
+                      <span class="offer-desc">25% off on orders over ₹10k</span>
+                  </div>
+              </div>
+          </div>
       </div>
 
       <div id="date-warning" class="message-box">⚠️ This vehicle is already booked for some or all of the selected dates. Please choose different dates.</div>
@@ -402,7 +447,6 @@
         <input type="text" name="captcha_input" placeholder="Enter text" required style="text-transform:uppercase;">
       </div>
 
-      <!-- Feature: Terms & Conditions Checkbox -->
       <div class="terms-group">
           <input type="checkbox" id="terms" name="terms" required>
           <label for="terms">I agree to the <a href="#" style="color: var(--primary); text-decoration: none;">Terms & Conditions</a> and the cancellation policy.</label>
@@ -549,11 +593,30 @@
       const msgBox = document.getElementById("promo-message");
       let discountAmt = 0;
 
+      // Weekend Check Helper
+      let hasWeekend = false;
+      let tempDate = new Date(s);
+      while (tempDate <= e) {
+          if (tempDate.getDay() === 0 || tempDate.getDay() === 6) { // 0 is Sunday, 6 is Saturday
+              hasWeekend = true;
+              break;
+          }
+          tempDate.setDate(tempDate.getDate() + 1);
+      }
+
       // Conditional check for LONG10
       if (document.getElementById("promo_code").value.toUpperCase() === "LONG10" && days < 5 && activeDiscountType !== null) {
           activeDiscountType = null;
           activeDiscountValue = 0;
           msgBox.innerText = "LONG10 requires a minimum of 5 days.";
+          msgBox.style.color = "var(--error-text)";
+      }
+
+      // Conditional check for WEEKEND150
+      if (document.getElementById("promo_code").value.toUpperCase() === "WEEKEND150" && !hasWeekend && activeDiscountType !== null) {
+          activeDiscountType = null;
+          activeDiscountValue = 0;
+          msgBox.innerText = "WEEKEND150 is only valid for trips that include a Saturday or Sunday.";
           msgBox.style.color = "var(--error-text)";
       }
       
@@ -585,6 +648,20 @@
       document.getElementById("total_price").innerText = "₹" + total.toFixed(0);
       checkWalletBalance();
     }
+  }
+
+  // --- Auto Apply Promo helper function ---
+  function autoApplyPromo(code) {
+      document.getElementById('promo_code').value = code;
+      applyPromo();
+      
+      // Give a tiny visual bump to the input box so the user knows it worked
+      const input = document.getElementById('promo_code');
+      input.style.transform = "scale(1.02)";
+      input.style.borderColor = "var(--primary)";
+      setTimeout(() => {
+          input.style.transform = "scale(1)";
+      }, 200);
   }
 
   function applyPromo() {
@@ -654,12 +731,29 @@
           msgBox.style.display = "block";
       } 
       else if (codeInput === "WEEKEND150") {
-          activeDiscountType = "flat";
-          activeDiscountValue = 150;
-          msgBox.innerText = "Weekend Warrior! ₹150 off applied.";
-          msgBox.style.color = "var(--success-text)";
+          let checkStart = new Date(document.getElementById("start_date").value);
+          let checkEnd = new Date(document.getElementById("end_date").value);
+          let hasWeekend = false;
+          
+          while (checkStart <= checkEnd) {
+              if (checkStart.getDay() === 0 || checkStart.getDay() === 6) {
+                  hasWeekend = true;
+                  break;
+              }
+              checkStart.setDate(checkStart.getDate() + 1);
+          }
+
+          if (hasWeekend) {
+              activeDiscountType = "flat";
+              activeDiscountValue = 150;
+              msgBox.innerText = "Weekend Warrior! ₹150 off applied.";
+              msgBox.style.color = "var(--success-text)";
+          } else {
+              msgBox.innerText = "WEEKEND150 is only valid for trips that include a Saturday or Sunday.";
+              msgBox.style.color = "var(--error-text)";
+          }
           msgBox.style.display = "block";
-      } 
+      }
       else if (codeInput === "") {
           msgBox.style.display = "none";
       } 

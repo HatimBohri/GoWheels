@@ -84,6 +84,16 @@ def send_booking_confirmation_email(request, rental):
             </tr>
             """
 
+        # Check for Vehicle Number Display
+        vehicle_number_html = ""
+        if hasattr(rental.vehicle, 'vehicle_number') and rental.vehicle.vehicle_number:
+            vehicle_number_html = f"""
+            <tr>
+                <td style="padding: 8px 0; color: #888;">Vehicle No.</td>
+                <td style="padding: 8px 0; text-align: right; font-weight: 600; color: #121212;">{rental.vehicle.vehicle_number}</td>
+            </tr>
+            """
+
         # 3. Define the Premium HTML
         html_content = f"""
         <!DOCTYPE html>
@@ -118,6 +128,7 @@ def send_booking_confirmation_email(request, rental):
                                 <td style="padding: 8px 0; color: #888;">Vehicle</td>
                                 <td style="padding: 8px 0; text-align: right; font-weight: 500;">{rental.vehicle.vehicle_name}</td>
                             </tr>
+                            {vehicle_number_html}
                             <tr>
                                 <td style="padding: 8px 0; color: #888;">Dates</td>
                                 <td style="padding: 8px 0; text-align: right; font-weight: 500;">{start_str} to {end_str}</td>
@@ -155,25 +166,22 @@ def send_booking_confirmation_email(request, rental):
                     </div>
 
                     <div style="margin-top: 35px; background: linear-gradient(135deg, rgba(255,106,42,0.08), rgba(255,106,42,0.02)); border-left: 4px solid #ff6a2a; padding: 18px 22px; border-radius: 0 10px 10px 0;">
-
-    <p style="margin: 0 0 12px 0; font-size: 15px; color: #121212; font-weight: 600; letter-spacing: 0.3px;">
-        Pickup Guidelines
-    </p>
-
-    <ul style="margin: 0; padding-left: 18px; font-size: 13.5px; color: #444; line-height: 1.7;">
-        <li>Please carry your original <strong>Driving License</strong> and <strong>Aadhaar Card</strong> for identity verification.</li>
-        <li>Kindly arrive at least <strong>15 minutes prior</strong> to your scheduled pickup time.</li>
-        <li>Ensure your <strong>driving license is valid</strong> and not expired.</li>
-        <li>Thoroughly inspect the <strong>vehicle’s condition</strong> (interior & exterior) before departure.</li>
-        <li>Confirm availability of all required documents (<strong>RC, Insurance, PUC</strong>).</li>
-        <li>Check <strong>fuel level</strong> and basic functionalities (lights, brakes, indicators).</li>
-        <li>In case of delay, please <strong>inform your host in advance</strong>.</li>
-        <li>Vehicle usage is permitted only for the <strong>registered driver</strong>.</li>
-        <li>Follow all <strong>traffic regulations</strong> during your trip.</li>
-        <li>For any assistance, please <strong>contact support or your host immediately</strong>.</li>
-    </ul>
-
-</div>
+                        <p style="margin: 0 0 12px 0; font-size: 15px; color: #121212; font-weight: 600; letter-spacing: 0.3px;">
+                            Pickup Guidelines
+                        </p>
+                        <ul style="margin: 0; padding-left: 18px; font-size: 13.5px; color: #444; line-height: 1.7;">
+                            <li>Please carry your original <strong>Driving License</strong> and <strong>Aadhaar Card</strong> for identity verification.</li>
+                            <li>Kindly arrive at least <strong>15 minutes prior</strong> to your scheduled pickup time.</li>
+                            <li>Ensure your <strong>driving license is valid</strong> and not expired.</li>
+                            <li>Thoroughly inspect the <strong>vehicle’s condition</strong> (interior & exterior) before departure.</li>
+                            <li>Confirm availability of all required documents (<strong>RC, Insurance, PUC</strong>).</li>
+                            <li>Check <strong>fuel level</strong> and basic functionalities (lights, brakes, indicators).</li>
+                            <li>In case of delay, please <strong>inform your host in advance</strong>.</li>
+                            <li>Vehicle usage is permitted only for the <strong>registered driver</strong>.</li>
+                            <li>Follow all <strong>traffic regulations</strong> during your trip.</li>
+                            <li>For any assistance, please <strong>contact support or your host immediately</strong>.</li>
+                        </ul>
+                    </div>
 
                     <div style="text-align: center; margin-top: 40px;">
                         <a href="{domain_url}rent-history/" style="display: inline-block; padding: 16px 36px; background-color: #121212; color: #ffffff; text-decoration: none; border-radius: 30px; font-weight: 600; font-size: 15px; letter-spacing: 0.5px; transition: 0.3s;">Manage My Booking</a>
@@ -206,7 +214,6 @@ def send_booking_confirmation_email(request, rental):
         
     except Exception as e:
         print(f"❌ [EMAIL ERROR] Failed to send confirmation: {e}")
-
 
 # ==========================================
 # GENERAL PAGES
@@ -445,6 +452,7 @@ def list_vehicle(request):
         vehicle = Vehicle.objects.create(
             owner=request.user, contact_number=request.POST['contact_number'],
             vehicle_name=request.POST['vehicle_name'], vehicle_type=request.POST['vehicle_type'],
+            vehicle_number=request.POST.get('vehicle_number', ''),
             category=request.POST['category'], price_per_day=request.POST['price_per_day'],
             seats=request.POST.get('seats') or None, fuel_type=request.POST['fuel_type'],
             pickup_location=request.POST['pickup_location'],
@@ -541,7 +549,7 @@ def vehicles(request):
 
     if sort == "price_low": qs = qs.order_by("price_per_day")
     elif sort == "price_high": qs = qs.order_by("-price_per_day")
-    else: qs = qs.order_by("-created_at")
+    else: qs = qs.order_by("vehicle_name")  # Alphabetical mix
 
     for v in qs:
         v.front_image = v.images.filter(image_type="front").first()
@@ -664,7 +672,10 @@ def rent_vehicle(request, vehicle_id):
         elif promo_code == "LONG10" and days >= 5:
             discount_amt = base_total * 0.10
         elif promo_code == "WEEKEND150":
-            discount_amt = 150
+            # Check if any day in the rental range is a Saturday (5) or Sunday (6)
+            has_weekend = any((start + timedelta(days=i)).weekday() in [5, 6] for i in range(days))
+            if has_weekend:
+                discount_amt = 150
             
         # Make sure the discount doesn't exceed the total price
         if discount_amt > total_price:
@@ -980,6 +991,7 @@ def edit_vehicle(request, vehicle_id):
     if request.method == "POST":
         vehicle.contact_number = request.POST.get('contact_number')
         vehicle.vehicle_name = request.POST.get('vehicle_name')
+        vehicle.vehicle_number = request.POST.get('vehicle_number', '')
         vehicle.vehicle_type = request.POST.get('vehicle_type')
         vehicle.category = request.POST.get('category')
         vehicle.price_per_day = request.POST.get('price_per_day')

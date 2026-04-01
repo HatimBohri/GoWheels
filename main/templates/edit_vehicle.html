@@ -46,11 +46,17 @@
     <form method="POST" action="{% url 'edit_vehicle' vehicle.id %}">
       {% csrf_token %}
 
-      <div class="input-grid">
+      <div class="input-grid" style="grid-template-columns: repeat(3, 1fr);">
         <div class="input-group">
           <label>Vehicle Name & Model</label>
           <input type="text" name="vehicle_name" value="{{ vehicle.vehicle_name }}" required>
         </div>
+
+        <div class="input-group">
+          <label>Vehicle Number</label>
+          <input type="text" name="vehicle_number" value="{{ vehicle.vehicle_number|default:'' }}" placeholder="e.g. MH 18 AB 1234">
+        </div>
+
         <div class="input-group">
           <label>Contact Number</label>
           <input type="tel" name="contact_number" value="{{ vehicle.contact_number }}" required>
@@ -60,7 +66,7 @@
       <div class="input-grid">
         <div class="input-group">
             <label>Type</label>
-            <select name="vehicle_type" required>
+            <select name="vehicle_type" id="vType" required>
               <option value="car">Car</option>
               <option value="bike">Bike</option>
               <option value="truck">Truck</option>
@@ -105,7 +111,7 @@
         </div>
         <div class="input-group">
             <label>Seats</label>
-            <select name="seats" required>
+            <select name="seats" id="vSeats" required>
               <option value="2" {% if vehicle.seats == 2 %}selected{% endif %}>2</option>
               <option value="4" {% if vehicle.seats == 4 %}selected{% endif %}>4</option>
               <option value="5" {% if vehicle.seats == 5 %}selected{% endif %}>5</option>
@@ -117,7 +123,7 @@
 
           <div class="input-group">
             <label>Fuel</label>
-            <select name="fuel_type" required>
+            <select name="fuel_type" id="vFuel" required>
               <option value="Petrol" {% if vehicle.fuel_type == 'Petrol' %}selected{% endif %}>Petrol</option>
               <option value="Diesel" {% if vehicle.fuel_type == 'Diesel' %}selected{% endif %}>Diesel</option>
               <option value="Electric" {% if vehicle.fuel_type == 'Electric' %}selected{% endif %}>Electric</option>
