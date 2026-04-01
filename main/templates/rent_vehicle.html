@@ -106,7 +106,7 @@
     .quick-btn:hover { border-color: var(--primary); color: var(--primary); }
 
     /* Payment Grid */
-    .payment-options-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .payment-options-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
     .pay-card { border: 1px solid var(--border); border-radius: 12px; padding: 15px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; position: relative; background: var(--bg-card); transition: 0.2s; }
     .pay-card:hover { border-color: var(--primary); }
     .pay-card.selected-pay { border: 2px solid var(--primary); background: var(--primary-glow); }
@@ -306,25 +306,48 @@
 
       <h3>Payment Method</h3>
       <div class="payment-options-grid">
-          <label class="pay-card" id="wallet-card" onclick="selectPayment(this)">
+          <label class="pay-card" id="wallet-card" onclick="selectPayment(this, 'wallet')">
               <input type="radio" name="payment_mode" value="wallet" id="wallet-radio">
               <i class="bi bi-wallet2 pay-icon"></i>
               <div class="pay-check"><i class="bi bi-check-circle-fill"></i></div>
               <div><strong style="display:block; color: var(--text-main);">My Wallet</strong><small style="color: var(--text-muted);">Bal: ₹{{ wallet_balance|default:"0" }}</small></div>
           </label>
-          <label class="pay-card selected-pay" onclick="selectPayment(this)">
-              <input type="radio" name="payment_mode" value="online" checked>
+          
+          <label class="pay-card selected-pay" onclick="selectPayment(this, 'upi')">
+              <input type="radio" name="payment_mode" value="upi" id="upi-radio" checked>
+              <i class="bi bi-qr-code-scan pay-icon" style="color: #25D366;"></i>
+              <div class="pay-check"><i class="bi bi-check-circle-fill"></i></div>
+              <div><strong style="display:block; color: var(--text-main);">Direct UPI</strong><small style="color: var(--text-muted);">0% Fees</small></div>
+          </label>
+
+          <label class="pay-card" onclick="selectPayment(this, 'online')">
+              <input type="radio" name="payment_mode" value="online">
               <i class="bi bi-credit-card-2-front pay-icon"></i>
               <div class="pay-check"><i class="bi bi-check-circle-fill"></i></div>
-              <div><strong style="display:block; color: var(--text-main);">Online / UPI</strong><small style="color: var(--text-muted);">Secure Stripe</small></div>
+              <div><strong style="display:block; color: var(--text-main);">Card/Gateway</strong><small style="color: var(--text-muted);">Secure Stripe</small></div>
           </label>
-          <label class="pay-card" onclick="selectPayment(this)">
+
+          <label class="pay-card" onclick="selectPayment(this, 'cash')">
               <input type="radio" name="payment_mode" value="cash">
               <i class="bi bi-cash-coin pay-icon"></i>
               <div class="pay-check"><i class="bi bi-check-circle-fill"></i></div>
               <div><strong style="display:block; color: var(--text-main);">Cash</strong><small style="color: var(--text-muted);">On Pickup</small></div>
           </label>
       </div>
+
+      <div id="upi-qr-section" style="margin-top: 20px; background: var(--input-bg); border: 1px solid var(--primary); border-radius: 12px; padding: 20px; text-align: center;">
+          <p style="margin-top: 0; font-weight: 600; color: var(--text-main);">Scan to Pay via any UPI App</p>
+          <div style="background: white; padding: 15px; border-radius: 12px; display: inline-block; margin-bottom: 15px;">
+              <img id="dynamic-upi-qr" src="" alt="UPI QR Code" style="width: 180px; height: 180px;">
+          </div>
+          <p style="margin: 0 0 15px 0; font-size: 0.9rem; color: var(--text-muted);">UPI ID: <strong id="upi-id-display" style="color: var(--primary);">Loading...</strong></p>
+          
+          <div style="text-align: left;">
+              <label style="font-size: 0.85rem;">Enter 12-Digit UTR / Reference Number <span style="color: var(--error-text);">*</span></label>
+              <input type="text" name="upi_utr" id="upi_utr" placeholder="e.g. 301234567890" maxlength="12">
+          </div>
+      </div>
+
       <div id="wallet-warning">⚠️ Insufficient wallet balance. Please add funds or choose another method.</div>
     </div>
 
@@ -619,7 +642,7 @@
           msgBox.innerText = "WEEKEND150 is only valid for trips that include a Saturday or Sunday.";
           msgBox.style.color = "var(--error-text)";
       }
-      
+
       // Conditional check for VIP25
       if (document.getElementById("promo_code").value.toUpperCase() === "VIP25" && total < 10000 && activeDiscountType !== null) {
           activeDiscountType = null;
@@ -647,6 +670,18 @@
       currentTotal = total;
       document.getElementById("total_price").innerText = "₹" + total.toFixed(0);
       checkWalletBalance();
+
+      // --- DYNAMIC UPI QR GENERATOR ---
+      const MY_UPI_ID = "9322039676@ibl"; 
+      const MY_NAME = "GoWheels Rentals"; // Or "Hatim"                         
+      
+      document.getElementById("upi-id-display").innerText = MY_UPI_ID;
+      
+      // Build the standard UPI Intent URI
+      const upiUri = `upi://pay?pa=${MY_UPI_ID}&pn=${encodeURIComponent(MY_NAME)}&am=${total.toFixed(2)}&cu=INR&tn=GoWheels+Rental`;
+      
+      // Use a free API to generate the QR code from the URI
+      document.getElementById("dynamic-upi-qr").src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUri)}`;
     }
   }
 
@@ -753,7 +788,7 @@
               msgBox.style.color = "var(--error-text)";
           }
           msgBox.style.display = "block";
-      }
+      } 
       else if (codeInput === "") {
           msgBox.style.display = "none";
       } 
@@ -772,7 +807,7 @@
     const walletRadio = document.getElementById("wallet-radio");
     const walletWarning = document.getElementById("wallet-warning");
 
-    if (walletRadio.checked) {
+    if (walletRadio && walletRadio.checked) {
         if (userBalance < currentTotal) {
             walletWarning.style.display = "block";
             confirmBtn.disabled = true;
@@ -783,16 +818,29 @@
             confirmBtn.innerText = "Confirm Booking";
         }
     } else {
-        walletWarning.style.display = "none";
+        if (walletWarning) walletWarning.style.display = "none";
         confirmBtn.disabled = false;
         confirmBtn.innerText = "Confirm Booking";
     }
   }
 
-  function selectPayment(card) {
+  function selectPayment(card, mode) {
       document.querySelectorAll('.pay-card').forEach(c => c.classList.remove('selected-pay'));
       card.classList.add('selected-pay');
       card.querySelector('input').checked = true;
+      
+      const upiSection = document.getElementById("upi-qr-section");
+      const upiInput = document.getElementById("upi_utr");
+      
+      if (mode === 'upi') {
+          upiSection.style.display = "block";
+          upiInput.required = true;
+      } else {
+          upiSection.style.display = "none";
+          upiInput.required = false;
+          upiInput.value = "";
+      }
+      
       checkWalletBalance();
   }
 

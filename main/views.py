@@ -661,6 +661,9 @@ def rent_vehicle(request, vehicle_id):
         base_total = total_price
         discount_amt = 0
 
+        # Weekend Check
+        has_weekend = any((start + timedelta(days=i)).weekday() in [5, 6] for i in range(days))
+
         if promo_code == "VIP25" and base_total >= 10000:
             discount_amt = base_total * 0.25
         elif promo_code == "FIRST200" and is_new_user:
@@ -671,11 +674,8 @@ def rent_vehicle(request, vehicle_id):
             discount_amt = base_total * 0.10
         elif promo_code == "LONG10" and days >= 5:
             discount_amt = base_total * 0.10
-        elif promo_code == "WEEKEND150":
-            # Check if any day in the rental range is a Saturday (5) or Sunday (6)
-            has_weekend = any((start + timedelta(days=i)).weekday() in [5, 6] for i in range(days))
-            if has_weekend:
-                discount_amt = 150
+        elif promo_code == "WEEKEND150" and has_weekend:
+            discount_amt = 150
             
         # Make sure the discount doesn't exceed the total price
         if discount_amt > total_price:
@@ -727,7 +727,7 @@ def rent_vehicle(request, vehicle_id):
                     'price_data': { 
                         'currency': 'inr', 
                         'product_data': {'name': f"Rent {vehicle.vehicle_name}"}, 
-                        'unit_amount': paise_amount, # Use the precise integer calculation
+                        'unit_amount': paise_amount,
                     },
                     'quantity': 1,
                 }],
@@ -736,6 +736,23 @@ def rent_vehicle(request, vehicle_id):
                 cancel_url=domain_url + f'rent/{vehicle.id}/',
             )
             return redirect(checkout_session.url, code=303)
+
+        elif payment_mode == 'upi':
+            utr_number = request.POST.get("upi_utr", "Not Provided")
+            combined_notes = special_notes + f" [UPI UTR: {utr_number}]" if special_notes else f"[UPI UTR: {utr_number}]"
+            
+            rental = Rental.objects.create(
+                user=request.user, vehicle=vehicle, driver=selected_driver,
+                start_date=start, end_date=end, total_price=total_price,
+                full_name=full_name, age=age, phone_number=phone_number,
+                drive_type=drive_type, payment_mode='upi',
+                aadhaar_image=aadhaar_image, license_image=license_image,
+                special_notes=combined_notes, promo_code=promo_code
+            )
+            
+            send_booking_confirmation_email(request, rental)
+            messages.success(request, f"Booking Confirmed! Your UPI Payment (UTR: {utr_number}) is under review.")
+            return redirect("rent_history")
 
         else: # CASH
             rental = Rental.objects.create(
