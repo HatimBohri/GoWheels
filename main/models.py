@@ -162,6 +162,15 @@ class Rental(models.Model):
     PAYMENT_MODE_CHOICES = [
         ('cash', 'Cash on Pickup'),
         ('online', 'Online Payment'),
+        ('upi', 'UPI Payment'),
+        ('wallet', 'Wallet Payment'),
+    ]
+
+    # --- ADD THESE CHOICES ---
+    STATUS_CHOICES = [
+        ('ACTIVE', 'Active/Ongoing'),
+        ('COMPLETED', 'Completed'),
+        ('CANCELLED', 'Cancelled'),
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -178,18 +187,25 @@ class Rental(models.Model):
     aadhaar_image = models.ImageField(upload_to='documents/aadhaar/')
     license_image = models.ImageField(upload_to='documents/license/')
 
-    special_notes = models.TextField(blank=True, null=True, help_text="Any special requests from the user.")
-    promo_code = models.CharField(max_length=20, blank=True, null=True, help_text="Coupon code used during checkout.")
+    special_notes = models.TextField(blank=True, null=True)
+    promo_code = models.CharField(max_length=20, blank=True, null=True)
     
     drive_type = models.CharField(max_length=10, choices=DRIVE_TYPE_CHOICES, default='self')
-    payment_mode = models.CharField(max_length=10, choices=PAYMENT_MODE_CHOICES, default='cash')
+    payment_mode = models.CharField(max_length=20, choices=PAYMENT_MODE_CHOICES, default='cash')
     
     rented_at = models.DateTimeField(auto_now_add=True)
 
+    # ==========================================
+    # --- ADD THESE 4 NEW FIELDS ---
+    # ==========================================
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
+    actual_return_date = models.DateField(null=True, blank=True)
+    security_deposit_held = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    penalty_applied = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
     def __str__(self):
-        return f"{self.user.username} -> {self.vehicle.vehicle_name} ({self.payment_mode})"
-
-
+        return f"{self.user.username} -> {self.vehicle.vehicle_name} ({self.status})"
+    
 # ==========================================
 # 4. WALLET SYSTEM
 # ==========================================
@@ -237,6 +253,11 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     phone_number = models.CharField(max_length=15, null=True, blank=True)
 
+    cash_on_pickup_blocked = models.BooleanField(default=False, help_text="Blocked from using Cash payment due to past cancellation/no-show.")
+
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+
     def __str__(self):
         return f"{self.user.username}'s Profile"
 
@@ -273,3 +294,12 @@ class Review(models.Model):
     def vehicle_avg(self):
         """Calculates the average rating for the vehicle specifically"""
         return round((self.cleanliness + self.performance + self.comfort) / 3.0, 1)
+    
+    # Signal to automatically block cash payments if a rental is cancelled
+@receiver(post_save, sender=Rental)
+def block_cash_on_cancellation(sender, instance, **kwargs):
+    # Assuming you added the 'status' field to Rental from our previous step
+    if instance.status == 'CANCELLED':
+        profile = instance.user.profile
+        profile.cash_on_pickup_blocked = True
+        profile.save()

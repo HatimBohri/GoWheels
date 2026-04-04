@@ -50,4 +50,9 @@ urlpatterns = [
     path('reset-password/', views.reset_password, name='reset_password'),
 
     path('submit-review/', views.submit_review, name='submit_review'),
+
+    path('rental/<int:rental_id>/complete/', views.complete_rental_by_host, name='complete_rental_by_host'),
+
+    path('rental/<int:rental_id>/complete/', views.complete_rental_by_host, name='complete_rental_by_host'),
+    path('rental/<int:rental_id>/cancel/', views.cancel_rental_by_host, name='cancel_rental_by_host'), # NEW
 ]

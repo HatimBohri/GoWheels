@@ -581,7 +581,14 @@ def your_vehicles(request):
         v.front_image = v.images.filter(image_type="front").first()
         is_booked_now = Rental.objects.filter(vehicle=v, start_date__lte=today, end_date__gte=today).exists()
         v.is_booked_today = getattr(v, 'is_booked', lambda: is_booked_now)() if hasattr(v, 'is_booked') else is_booked_now
-        if v.is_booked_today: booked_count += 1
+        
+        if v.is_booked_today: 
+            booked_count += 1
+            
+        # NEW: Fetch active rentals for this vehicle so the host can mark them complete
+        # Assumes you added the 'status' field as discussed previously. 
+        # If not, use: Rental.objects.filter(vehicle=v, end_date__gte=today)
+        v.active_rentals = Rental.objects.filter(vehicle=v, status='ACTIVE').order_by('start_date')
 
     earnings_data = Rental.objects.filter(vehicle__owner=request.user).aggregate(total=Sum('total_price'))
     total_earnings = earnings_data['total'] or 0
@@ -1033,3 +1040,122 @@ def toggle_vehicle_status(request, vehicle_id):
         return JsonResponse({'success': True, 'is_available': vehicle.available})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+
+from django.db import transaction
+from decimal import Decimal
+from datetime import datetime
+from django.utils import timezone
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from .models import Rental, WalletTransaction # Ensure these are imported
+
+@login_required
+@require_POST
+@transaction.atomic
+def complete_rental_by_host(request, rental_id):
+    """ Handles the host marking a trip as complete, assessing damages, and billing. """
+    rental = get_object_or_404(Rental, id=rental_id, vehicle__owner=request.user)
+
+    if getattr(rental, 'status', '') != 'ACTIVE':
+        messages.error(request, "This trip has already been completed or cancelled.")
+        return redirect('your_vehicles')
+
+    return_date_str = request.POST.get('actual_return_date', str(timezone.now().date()))
+    damage_amount = Decimal(request.POST.get('damage_amount', '0.00') or '0.00')
+    host_notes = request.POST.get('host_notes', '')
+
+    actual_return_date = datetime.strptime(return_date_str, "%Y-%m-%d").date()
+    
+    # 1. Calculate Late Penalties
+    late_days = (actual_return_date - rental.end_date).days
+    late_penalty = Decimal('0.00')
+    
+    if late_days > 0:
+        daily_rate = Decimal(str(rental.vehicle.price_per_day))
+        late_penalty = Decimal(late_days) * (daily_rate * Decimal('1.5'))
+
+    total_penalty = late_penalty + damage_amount
+
+    # 2. Process Wallet & Security Deposit
+    user_wallet = getattr(rental.user, 'wallet', None)
+    if user_wallet:
+        deposit_held = getattr(rental, 'security_deposit_held', Decimal('0.00'))
+        refund_amount = deposit_held - total_penalty
+
+        if refund_amount > 0:
+            user_wallet.balance += refund_amount
+            WalletTransaction.objects.create(
+                wallet=user_wallet, amount=refund_amount, transaction_type='CREDIT',
+                description=f'Deposit Refund (Trip #{rental.id})'
+            )
+        elif refund_amount < 0:
+            amount_owed = abs(refund_amount)
+            user_wallet.balance -= amount_owed
+            WalletTransaction.objects.create(
+                wallet=user_wallet, amount=amount_owed, transaction_type='DEBIT',
+                description=f'Damage/Late Penalties (Trip #{rental.id})'
+            )
+        user_wallet.save()
+
+    # 3. Update the Rental Record
+    rental.status = 'COMPLETED'
+    if hasattr(rental, 'actual_return_date'): rental.actual_return_date = actual_return_date
+    if hasattr(rental, 'penalty_applied'): rental.penalty_applied = total_penalty
+    
+    # FIX: Safely handle NoneType for special_notes
+    closure_notes = f"\n\n--- HOST CLOSURE NOTES ---\nDamages: ₹{damage_amount}\nLate Days: {late_days}\nNotes: {host_notes}"
+    if rental.special_notes:
+        rental.special_notes += closure_notes
+    else:
+        rental.special_notes = closure_notes.strip()
+        
+    rental.save()
+
+    messages.success(request, f"Trip #{rental.id} successfully completed. Total penalties applied: ₹{total_penalty}.")
+    return redirect('your_vehicles')
+
+@login_required
+@require_POST
+@transaction.atomic
+def cancel_rental_by_host(request, rental_id):
+    """ Handles the host cancelling a trip because the user didn't show up. """
+    rental = get_object_or_404(Rental, id=rental_id, vehicle__owner=request.user)
+    
+    if getattr(rental, 'status', '') != 'ACTIVE':
+        messages.error(request, "This trip cannot be cancelled as it is not active.")
+        return redirect('your_vehicles')
+        
+    # 1. Penalize the User: Block Cash on Pickup
+    if hasattr(rental.user, 'profile'):
+        rental.user.profile.cash_on_pickup_blocked = True
+        rental.user.profile.save()
+        
+    # 2. Refund the security deposit (since the trip didn't happen)
+    user_wallet = getattr(rental.user, 'wallet', None)
+    deposit = getattr(rental, 'security_deposit_held', Decimal('0.00'))
+    
+    if user_wallet and deposit > 0:
+        user_wallet.balance += deposit
+        user_wallet.save()
+        WalletTransaction.objects.create(
+            wallet=user_wallet, amount=deposit, transaction_type='CREDIT',
+            description=f'Cancellation Refund (Trip #{rental.id})'
+        )
+        rental.security_deposit_held = Decimal('0.00')
+
+    # 3. Update the Rental Status
+    rental.status = 'CANCELLED'
+    closure_notes = "\n\n--- CANCELLED BY HOST ---\nReason: User No-Show / Did not pick up."
+    
+    if rental.special_notes:
+        rental.special_notes += closure_notes
+    else:
+        rental.special_notes = closure_notes.strip()
+        
+    rental.save()
+
+    messages.warning(request, f"Trip #{rental.id} cancelled. The user's cash payment privileges have been permanently blocked.")
+    return redirect('your_vehicles')
