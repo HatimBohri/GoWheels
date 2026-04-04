@@ -215,6 +215,145 @@ def send_booking_confirmation_email(request, rental):
     except Exception as e:
         print(f"❌ [EMAIL ERROR] Failed to send confirmation: {e}")
 
+
+def send_host_notification_email(request, rental):
+    """ Generates and sends a highly detailed, premium HTML notification to the vehicle host """
+    try:
+        host_email = rental.vehicle.owner.email
+        if not host_email:
+            return # Skip if host has no email configured
+
+        year = getattr(rental, 'rented_at', timezone.now()).year
+        booking_id = f"INV-{year}-{rental.id:05d}"
+        domain_url = request.build_absolute_uri('/')
+        
+        start_dt = rental.start_date if isinstance(rental.start_date, date) else datetime.strptime(rental.start_date, "%Y-%m-%d").date()
+        end_dt = rental.end_date if isinstance(rental.end_date, date) else datetime.strptime(rental.end_date, "%Y-%m-%d").date()
+        
+        start_str = start_dt.strftime("%d %b, %Y")
+        end_str = end_dt.strftime("%d %b, %Y")
+        days = (end_dt - start_dt).days + 1
+        
+        drive_mode = "Self-Drive"
+        if rental.drive_type == 'driver' and rental.driver:
+            drive_mode = f"Chauffeur ({rental.driver.name})"
+            
+        payment_modes = {'cash': 'Cash on Pickup', 'online': 'Online Payment', 'wallet': 'Paid via Wallet', 'upi': 'UPI Payment'}
+        payment_display = payment_modes.get(rental.payment_mode, rental.payment_mode.title())
+
+        # Premium HTML Template for Host with Detailed Instructions
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+        </head>
+        <body style="font-family: 'Poppins', Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 40px 10px;">
+            <div style="max-width: 650px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
+                
+                <div style="background-color: #121212; padding: 40px 20px; text-align: center;">
+                    <div style="display: inline-block; background-color: #28c76f; color: #000; border-radius: 50%; width: 48px; height: 48px; line-height: 48px; font-size: 24px; font-weight: bold; margin-bottom: 15px;">🚗</div>
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: 0.5px;">New Booking Confirmed</h1>
+                    <p style="color: #a0a0a0; margin: 10px 0 0 0; font-size: 15px;">Action Required: Please prepare your vehicle for handover.</p>
+                </div>
+
+                <div style="padding: 40px 30px;">
+                    <p style="margin: 0 0 20px 0; font-size: 16px; color: #333333;">Hello <strong>{rental.vehicle.owner.first_name or rental.vehicle.owner.username}</strong>,</p>
+                    <p style="margin: 0 0 30px 0; font-size: 15px; color: #555555; line-height: 1.6;">Excellent news! A renter has successfully booked your <strong>{rental.vehicle.vehicle_name}</strong> for an upcoming trip. Please review the booking details and strict handover instructions below to ensure a smooth and secure process.</p>
+
+                    <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #121212; border-bottom: 2px solid #28c76f; display: inline-block; padding-bottom: 4px;">Booking Summary</h3>
+                    <div style="background-color: #fafbfc; border: 1px solid #eaeef2; border-radius: 12px; padding: 20px; margin-bottom: 35px;">
+                        <table width="100%" cellpadding="0" cellspacing="0" style="font-size: 14px; color: #444444;">
+                            <tr>
+                                <td style="padding: 8px 0; color: #888;">Booking ID</td>
+                                <td style="padding: 8px 0; text-align: right; font-weight: 700; color: #121212;">{booking_id}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #888; border-top: 1px solid #eee;">Renter Name</td>
+                                <td style="padding: 8px 0; text-align: right; font-weight: 600; color: #121212; border-top: 1px solid #eee;">{rental.full_name}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #888;">Contact Phone</td>
+                                <td style="padding: 8px 0; text-align: right; font-weight: 500;">{rental.phone_number}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #888; border-top: 1px solid #eee;">Duration</td>
+                                <td style="padding: 8px 0; text-align: right; font-weight: 500; border-top: 1px solid #eee;">{start_str} to {end_str} ({days} Days)</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #888;">Drive Mode</td>
+                                <td style="padding: 8px 0; text-align: right; font-weight: 500;">{drive_mode}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; color: #888; border-top: 1px solid #eee;">Payment Method</td>
+                                <td style="padding: 8px 0; text-align: right; font-weight: 600; color: #ff6a2a; border-top: 1px solid #eee;">{payment_display} (Total: ₹{rental.total_price})</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #121212; border-bottom: 2px solid #ff6a2a; display: inline-block; padding-bottom: 4px;">Host Protocol & Guidelines</h3>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 20px;">To protect your asset and provide a 5-star experience, please strictly adhere to the following checklist.</p>
+
+                    <div style="margin-bottom: 25px;">
+                        <div style="font-weight: 600; color: #121212; font-size: 15px; margin-bottom: 10px; display: flex; align-items: center;"><span style="background: #eef2f5; color: #555; border-radius: 50%; width: 24px; height: 24px; display: inline-block; text-align: center; line-height: 24px; font-size: 12px; margin-right: 10px;">1</span> Pre-Trip Preparation</div>
+                        <ul style="margin: 0; padding-left: 35px; font-size: 13.5px; color: #444; line-height: 1.7;">
+                            <li>Clean the vehicle thoroughly (exterior wash and interior vacuum).</li>
+                            <li>Check essential fluids (engine oil, coolant, windshield washer).</li>
+                            <li>Ensure optimum tire pressure (including the spare tire).</li>
+                            <li>Verify that all mandatory documents (Original/Copy of RC, valid Insurance, and valid PUC) are securely placed in the glovebox.</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 25px;">
+                        <div style="font-weight: 600; color: #121212; font-size: 15px; margin-bottom: 10px; display: flex; align-items: center;"><span style="background: #ff6a2a; color: #fff; border-radius: 50%; width: 24px; height: 24px; display: inline-block; text-align: center; line-height: 24px; font-size: 12px; margin-right: 10px;">2</span> Handover Checklist (Mandatory)</div>
+                        <ul style="margin: 0; padding-left: 35px; font-size: 13.5px; color: #444; line-height: 1.7;">
+                            <li><strong>Identity Verification:</strong> Physically verify the renter's original Driving License and Aadhaar Card. The person picking up the car <span style="color:#d9534f; font-weight:bold;">must</span> be the person who booked it.</li>
+                            <li><strong>Capture Evidence:</strong> Take clear photos or a continuous video of the vehicle's exterior (all 4 sides) and interior to document pre-existing scratches/dents.</li>
+                            <li><strong>Dashboard Reading:</strong> Take a clear photo of the dashboard showing the <strong>Current Odometer reading</strong> and <strong>Fuel Level</strong>. Share these with the renter on WhatsApp for mutual agreement.</li>
+                            {f"<li><strong>Payment Collection:</strong> Since this is a Cash on Pickup booking, strictly collect <strong>₹{rental.total_price}</strong> before handing over the keys.</li>" if rental.payment_mode == 'cash' else ""}
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 25px;">
+                        <div style="font-weight: 600; color: #121212; font-size: 15px; margin-bottom: 10px; display: flex; align-items: center;"><span style="background: #28c76f; color: #fff; border-radius: 50%; width: 24px; height: 24px; display: inline-block; text-align: center; line-height: 24px; font-size: 12px; margin-right: 10px;">3</span> Vehicle Return</div>
+                        <ul style="margin: 0; padding-left: 35px; font-size: 13.5px; color: #444; line-height: 1.7;">
+                            <li>Inspect the vehicle against the photos taken during handover.</li>
+                            <li>Verify the fuel level matches the handover level.</li>
+                            <li>Once the trip is completed safely, log in to your dashboard to mark the trip as "Completed" and report any damages or late fees if applicable.</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 45px;">
+                        <a href="{domain_url}your-vehicles/" style="display: inline-block; padding: 16px 36px; background-color: #121212; color: #ffffff; text-decoration: none; border-radius: 30px; font-weight: 600; font-size: 15px; letter-spacing: 0.5px; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">Manage Dashboard</a>
+                    </div>
+                </div>
+                
+                <div style="background-color: #fafbfc; padding: 25px 20px; text-align: center; border-top: 1px solid #eaeef2;">
+                    <p style="margin: 0 0 10px 0; font-size: 13px; color: #888888;">If you detect any fraud or need emergency assistance, contact Host Support immediately at <a href="mailto:host-support@gowheels.com" style="color: #28c76f; text-decoration: none; font-weight: 600;">host-support@gowheels.com</a></p>
+                    <p style="margin: 0; font-size: 12px; color: #aaaaaa;">&copy; {year} GoWheels Premium Rentals. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        text_content = strip_tags(html_content)
+
+        send_mail(
+            subject=f"Action Required: New Booking Confirmed - {rental.vehicle.vehicle_name} 🚗 | GoWheels",
+            message=text_content,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[host_email],
+            fail_silently=True,
+            html_message=html_content
+        )
+        print(f"🔥 [DEVELOPER CONSOLE] Premium host protocol email sent to {host_email}")
+        
+    except Exception as e:
+        print(f"❌ [EMAIL ERROR] Failed to send host confirmation: {e}")
+
 # ==========================================
 # GENERAL PAGES
 # ==========================================
@@ -619,8 +758,23 @@ def rent_vehicle(request, vehicle_id):
     is_new_user = not Rental.objects.filter(user=request.user).exists()
 
     # Fetch all upcoming bookings for this vehicle to pass to frontend JSON
-    future_rentals = Rental.objects.filter(vehicle=vehicle, end_date__gte=timezone.now().date())
+    # Exclude cancelled or completed ones so they don't block availability
+    future_rentals = Rental.objects.filter(
+        vehicle=vehicle, 
+        end_date__gte=timezone.now().date()
+    ).exclude(status__in=['CANCELLED', 'COMPLETED'])
     booked_dates_list = [{'start': r.start_date.strftime("%Y-%m-%d"), 'end': r.end_date.strftime("%Y-%m-%d")} for r in future_rentals]
+
+    # --- Fetch future driver bookings to pass to Javascript ---
+    driver_bookings = list(Rental.objects.filter(
+        driver__isnull=False, 
+        end_date__gte=timezone.now().date()
+    ).exclude(status__in=['CANCELLED', 'COMPLETED']).values('driver_id', 'start_date', 'end_date'))
+    
+    # Format the dates into strings for JSON serialization
+    for db in driver_bookings:
+        db['start_date'] = db['start_date'].strftime("%Y-%m-%d")
+        db['end_date'] = db['end_date'].strftime("%Y-%m-%d")
 
     if request.method == "POST":
         captcha_input = request.POST.get("captcha_input", "").upper()
@@ -660,8 +814,15 @@ def rent_vehicle(request, vehicle_id):
         total_price = days * vehicle.price_per_day
         selected_driver = None
 
+        # --- Validate Driver Availability ---
         if drive_type == "driver" and driver_id:
             selected_driver = Driver.objects.get(id=int(driver_id))
+            
+            # Check if driver is already booked for these dates
+            if not selected_driver.is_available_for_dates(start, end):
+                messages.error(request, f"Sorry, Driver {selected_driver.name} is already booked on these dates. Please select another driver or change your dates.")
+                return redirect(request.path)
+                
             total_price += days * selected_driver.price_per_day
 
         # --- APPLY BACKEND PROMO CODE LOGIC ---
@@ -710,6 +871,8 @@ def rent_vehicle(request, vehicle_id):
                 )
                 
                 send_booking_confirmation_email(request, rental)
+                send_host_notification_email(request, rental)  # <-- Added Host Notification
+                
                 messages.success(request, f"Booking Successful! ₹{total_price} paid via Wallet.")
                 return redirect("rent_history")
             else:
@@ -758,6 +921,8 @@ def rent_vehicle(request, vehicle_id):
             )
             
             send_booking_confirmation_email(request, rental)
+            send_host_notification_email(request, rental)  # <-- Added Host Notification
+            
             messages.success(request, f"Booking Confirmed! Your UPI Payment (UTR: {utr_number}) is under review.")
             return redirect("rent_history")
 
@@ -772,13 +937,17 @@ def rent_vehicle(request, vehicle_id):
             )
             
             send_booking_confirmation_email(request, rental)
+            send_host_notification_email(request, rental)  # <-- Added Host Notification
+            
             messages.success(request, "Booking Confirmed! Please pay cash on pickup.")
             return redirect("rent_history")
 
     return render(request, "rent_vehicle.html", {
-        "vehicle": vehicle, "available_drivers": available_drivers, 
+        "vehicle": vehicle, 
+        "available_drivers": available_drivers, 
         "wallet_balance": user_wallet.balance,
         "booked_dates_json": json.dumps(booked_dates_list),
+        "driver_bookings_json": json.dumps(driver_bookings),  # <-- Passed to template
         "is_new_user": is_new_user
     })
 
@@ -802,6 +971,7 @@ def finalize_booking(request):
     
     del request.session['booking_data']
     send_booking_confirmation_email(request, rental)
+    send_host_notification_email(request, rental)  # <-- Added Host Notification
     
     messages.success(request, "Booking Confirmed Successfully!")
     return redirect("rent_history")
@@ -835,7 +1005,6 @@ def submit_review(request):
             messages.success(request, "Review submitted! Thank you for your feedback.")
         
     return redirect('rent_history')
-
 
 # ==========================================
 # DASHBOARD / USER GRAPHICS

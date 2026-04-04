@@ -149,6 +149,23 @@ class Driver(models.Model):
             self.rating = round(total / reviews.count(), 1)
             self.save()
 
+    @property
+    def is_booked_today(self):
+        from django.utils import timezone
+        today = timezone.now().date()
+        # Checks if driver has any active trips today
+        return self.rental_set.filter(
+            start_date__lte=today, 
+            end_date__gte=today
+        ).exclude(status__in=['CANCELLED', 'COMPLETED']).exists()
+
+    def is_available_for_dates(self, start_date, end_date):
+        # Checks if driver is free for the requested date range
+        return not self.rental_set.filter(
+            start_date__lte=end_date, 
+            end_date__gte=start_date
+        ).exclude(status__in=['CANCELLED', 'COMPLETED']).exists()
+
 # ==========================================
 # 3. RENTAL MODEL
 # ==========================================

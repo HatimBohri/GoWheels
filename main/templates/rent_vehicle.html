@@ -153,24 +153,32 @@
     .whatsapp-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: transparent; border: 1px solid var(--whatsapp); color: var(--whatsapp); padding: 8px 12px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: 0.3s; }
     .whatsapp-btn:hover { background: var(--whatsapp); color: #fff; border-color: var(--whatsapp); }
 
-    /* Drive & Premium Driver Cards */
+    /* =========================================
+       3. DRIVE & PREMIUM DRIVER CARDS
+       ========================================= */
     .drive-toggle-container { display: flex; background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; padding: 6px; margin-bottom: 25px; }
     .drive-option { flex: 1; text-align: center; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 600; color: var(--text-muted); transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem; }
     .drive-option:hover { color: var(--text-main); }
     .drive-option.selected { background: var(--bg-card); color: var(--primary); box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid var(--border); }
     
     .driver-grid { display: flex; flex-direction: column; gap: 12px; }
-    .driver-card { display: flex; align-items: center; justify-content: space-between; padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--input-bg); cursor: pointer; transition: all 0.3s ease; }
-    .driver-card:hover { border-color: var(--primary); }
-    .driver-card.selected { border: 2px solid var(--primary); background: var(--primary-glow); }
+    .driver-card { display: flex; align-items: center; justify-content: space-between; padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--input-bg); cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; }
+    .driver-card:hover:not(.locked) { border-color: var(--primary); }
+    .driver-card.selected:not(.locked) { border: 2px solid var(--primary); background: var(--primary-glow); }
     .driver-card input[type="radio"] { display: none; }
+    
+    /* Locked/Busy State styling */
+    .driver-card.locked { opacity: 0.55; cursor: not-allowed; background: rgba(0,0,0,0.1); filter: grayscale(100%); border-color: var(--border) !important; }
+    .driver-card.locked:hover { transform: none; box-shadow: none; }
+    .driver-card.locked .driver-price strong { color: var(--text-muted); }
+
     .driver-info { display: flex; align-items: center; gap: 15px; }
     .driver-img-wrapper { position: relative; }
     .driver-img { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); }
     .driver-placeholder { width: 55px; height: 55px; border-radius: 50%; background: var(--border); display: grid; place-items: center; font-size: 1.5rem; color: var(--text-muted); }
     .driver-rating { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); background: #FFD700; color: #000; font-size: 0.7rem; font-weight: 700; padding: 2px 5px; border-radius: 10px; display: flex; align-items: center; gap: 3px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
     .driver-price { text-align: right; }
-    .driver-price strong { display: block; color: var(--primary); font-size: 1.1rem; }
+    .driver-price strong { display: block; color: var(--primary); font-size: 1.1rem; transition: color 0.3s; }
     .driver-price small { color: var(--text-muted); font-size: 0.75rem; }
     
     /* SUCCESS ANIMATION */
@@ -273,28 +281,40 @@
       
       <div id="driver-section" style="display: none; margin-bottom: 25px;">
         <h4 style="margin-bottom: 12px; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Select a Chauffeur</h4>
+        
+        <div id="date-prompt-msg" style="background: rgba(255,159,67,0.1); color: #ff9f43; padding: 12px 15px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 20px; border: 1px solid rgba(255,159,67,0.3);">
+            <i class="bi bi-calendar-event"></i> Please select your Start and End dates above to check driver availability.
+        </div>
+
         <div class="driver-grid">
           {% for driver in available_drivers %}
-          <label class="driver-card" onclick="selectDriver(this)">
-            <input type="radio" name="driver_id" value="{{ driver.id }}" data-fee="{{ driver.price_per_day }}">
-            <div class="driver-info">
-                <div class="driver-img-wrapper">
-                    {% if driver.photo %}
-                      <img src="{{ driver.photo.url }}" class="driver-img" alt="{{ driver.name }}">
-                    {% else %}
-                      <div class="driver-placeholder"><i class="bi bi-person"></i></div>
-                    {% endif %}
-                    <div class="driver-rating"><i class="bi bi-star-fill"></i> {{ driver.rating|default:"5.0" }}</div>
-                </div>
-                <div>
-                  <strong style="color: var(--text-main); display: block; font-size: 1rem;">{{ driver.name }}</strong> 
-                  <small style="color: var(--text-muted);">Exp: {{ driver.experience_years }} yrs</small>
-                </div>
-            </div>
-            <div class="driver-price">
-                <strong>+₹{{ driver.price_per_day }}</strong>
-                <small>per day</small>
-            </div>
+          <label class="driver-card locked" id="driver-card-{{ driver.id }}" onclick="if(!this.classList.contains('locked')) selectDriver(this)">
+              <input type="radio" name="driver_id" value="{{ driver.id }}" data-fee="{{ driver.price_per_day }}" disabled>
+              
+              <div class="driver-info">
+                  <div class="driver-img-wrapper">
+                      {% if driver.photo %}
+                          <img src="{{ driver.photo.url }}" class="driver-img" alt="{{ driver.name }}">
+                      {% else %}
+                          <div class="driver-placeholder"><i class="bi bi-person"></i></div>
+                      {% endif %}
+                      <div class="driver-rating"><i class="bi bi-star-fill"></i> {{ driver.rating|default:"5.0" }}</div>
+                  </div>
+                  
+                  <div>
+                      <strong style="color: var(--text-main); display: block; font-size: 1rem; margin-bottom: 2px;">{{ driver.name }}</strong> 
+                      <small style="color: var(--text-muted); display: block; margin-bottom: 6px;">Exp: {{ driver.experience_years }} yrs</small>
+                      
+                      <span id="driver-badge-{{ driver.id }}" style="background: var(--input-bg); color: var(--text-muted); padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--border);">
+                          <i class="bi bi-clock-history"></i> Pending Dates
+                      </span>
+                  </div>
+              </div>
+              
+              <div class="driver-price">
+                  <strong>+₹{{ driver.price_per_day }}</strong>
+                  <small>per day</small>
+              </div>
           </label>
           {% endfor %}
         </div>
@@ -482,13 +502,12 @@
 </form>
 
 <script>
-  // Pull booked dates securely from the Django context
+  // Context Data Injection
   const bookedRanges = JSON.parse('{{ booked_dates_json|safe|default:"[]" }}');
-
-  // Check if the user is new from the Django context
+  const driverBookings = JSON.parse('{{ driver_bookings_json|safe|default:"[]" }}');
   const isNewUser = {{ is_new_user|yesno:"true,false" }};
 
-  // Instantly show users the booked dates on page load
+  // UI Setup & Existing Logic
   const bookedListSpan = document.getElementById('booked-dates-list');
   const bookedDisplay = document.getElementById('booked-dates-display');
   
@@ -517,14 +536,14 @@
 
   const startDate = document.getElementById("start_date");
   const endDate = document.getElementById("end_date");
+  const datePromptMsg = document.getElementById('date-prompt-msg');
   const pricePerDay = parseFloat("{{ vehicle.price_per_day }}");
   const userBalance = parseFloat("{{ wallet_balance|default:0 }}");
   
   let currentTotal = 0;
-  let activeDiscountType = null; // "flat" or "percent"
+  let activeDiscountType = null;
   let activeDiscountValue = 0;
 
-  // Timezone safe "today" function
   function getLocalDateString(dateObj) {
       const offset = dateObj.getTimezoneOffset() * 60000;
       return new Date(dateObj.getTime() - offset).toISOString().split('T')[0];
@@ -538,8 +557,10 @@
       startDate.addEventListener('change', function() {
           endDate.setAttribute('min', this.value);
           if(endDate.value && endDate.value < this.value) endDate.value = this.value;
-          updatePrice();
+          updateSystem();
       });
+      
+      endDate.addEventListener("change", updateSystem);
   }
 
   function setQuickDate(startType, daysTotal) {
@@ -553,14 +574,76 @@
     end.setDate(start.getDate() + daysTotal);
     endDate.value = getLocalDateString(end);
     
-    updatePrice();
+    updateSystem();
+  }
+
+  // Unified Update Controller
+  function updateSystem() {
+      updateDriverAvailability();
+      updatePrice();
+  }
+
+  // --- NEW: Dynamic Frontend Driver Availability Logic ---
+  function updateDriverAvailability() {
+      const startVal = startDate.value;
+      const endVal = endDate.value;
+
+      if (!startVal || !endVal) {
+          datePromptMsg.style.display = 'block';
+          return;
+      }
+
+      datePromptMsg.style.display = 'none';
+      const userStart = new Date(startVal);
+      const userEnd = new Date(endVal);
+
+      document.querySelectorAll('.driver-card').forEach(card => {
+          const radioInput = card.querySelector('input[type="radio"]');
+          const driverId = parseInt(radioInput.value);
+          const badge = document.getElementById(`driver-badge-${driverId}`);
+          
+          let isDriverBusy = false;
+
+          // Scanning overlapping driver dates
+          for (let i = 0; i < driverBookings.length; i++) {
+              if (driverBookings[i].driver_id === driverId) {
+                  const bookingStart = new Date(driverBookings[i].start_date);
+                  const bookingEnd = new Date(driverBookings[i].end_date);
+                  
+                  if (bookingStart <= userEnd && bookingEnd >= userStart) {
+                      isDriverBusy = true;
+                      break;
+                  }
+              }
+          }
+
+          if (isDriverBusy) {
+              radioInput.disabled = true;
+              radioInput.checked = false; 
+              card.classList.add('locked');
+              card.classList.remove('selected');
+              
+              badge.innerHTML = '<i class="bi bi-x-circle-fill"></i> Busy';
+              badge.style.background = 'rgba(234,84,85,0.15)';
+              badge.style.color = '#ea5455';
+              badge.style.borderColor = 'transparent';
+          } else {
+              radioInput.disabled = false;
+              card.classList.remove('locked');
+              
+              badge.innerHTML = '<i class="bi bi-check-circle-fill"></i> Available';
+              badge.style.background = 'rgba(40,199,111,0.15)';
+              badge.style.color = '#28c76f';
+              badge.style.borderColor = 'transparent';
+          }
+      });
   }
 
   function updatePrice() {
     const sStr = startDate.value;
     const eStr = endDate.value;
     
-    // 1. OVERLAP VALIDATION CHECK
+    // OVERLAP VALIDATION CHECK FOR VEHICLE
     let isOverlapping = false;
     if(sStr && eStr) {
         for(let range of bookedRanges) {
@@ -587,7 +670,6 @@
         confirmBtn.innerText = "Confirm Booking";
     }
 
-    // 2. NORMAL CALCULATION
     const s = new Date(sStr);
     const e = new Date(eStr);
     
@@ -611,23 +693,21 @@
         document.getElementById("driver_fee").innerText = "₹0";
       }
       
-      // 3. APPLY DISCOUNTS
+      // APPLY DISCOUNTS
       const discountRow = document.getElementById("discount_row");
       const msgBox = document.getElementById("promo-message");
       let discountAmt = 0;
 
-      // Weekend Check Helper
       let hasWeekend = false;
       let tempDate = new Date(s);
       while (tempDate <= e) {
-          if (tempDate.getDay() === 0 || tempDate.getDay() === 6) { // 0 is Sunday, 6 is Saturday
+          if (tempDate.getDay() === 0 || tempDate.getDay() === 6) { 
               hasWeekend = true;
               break;
           }
           tempDate.setDate(tempDate.getDate() + 1);
       }
 
-      // Conditional check for LONG10
       if (document.getElementById("promo_code").value.toUpperCase() === "LONG10" && days < 5 && activeDiscountType !== null) {
           activeDiscountType = null;
           activeDiscountValue = 0;
@@ -635,7 +715,6 @@
           msgBox.style.color = "var(--error-text)";
       }
 
-      // Conditional check for WEEKEND150
       if (document.getElementById("promo_code").value.toUpperCase() === "WEEKEND150" && !hasWeekend && activeDiscountType !== null) {
           activeDiscountType = null;
           activeDiscountValue = 0;
@@ -643,7 +722,6 @@
           msgBox.style.color = "var(--error-text)";
       }
 
-      // Conditional check for VIP25
       if (document.getElementById("promo_code").value.toUpperCase() === "VIP25" && total < 10000 && activeDiscountType !== null) {
           activeDiscountType = null;
           activeDiscountValue = 0;
@@ -658,7 +736,6 @@
       }
 
       if (discountAmt > 0) {
-          // Prevent discount from making total negative
           if (discountAmt > total) discountAmt = total;
           total = total - discountAmt;
           document.getElementById('discount_amt').innerText = "-₹" + discountAmt.toFixed(0);
@@ -671,32 +748,22 @@
       document.getElementById("total_price").innerText = "₹" + total.toFixed(0);
       checkWalletBalance();
 
-      // --- DYNAMIC UPI QR GENERATOR ---
+      // DYNAMIC UPI
       const MY_UPI_ID = "9322039676@ibl"; 
-      const MY_NAME = "GoWheels Rentals"; // Or "Hatim"                         
-      
+      const MY_NAME = "GoWheels Rentals"; 
       document.getElementById("upi-id-display").innerText = MY_UPI_ID;
-      
-      // Build the standard UPI Intent URI
       const upiUri = `upi://pay?pa=${MY_UPI_ID}&pn=${encodeURIComponent(MY_NAME)}&am=${total.toFixed(2)}&cu=INR&tn=GoWheels+Rental`;
-      
-      // Use a free API to generate the QR code from the URI
       document.getElementById("dynamic-upi-qr").src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUri)}`;
     }
   }
 
-  // --- Auto Apply Promo helper function ---
   function autoApplyPromo(code) {
       document.getElementById('promo_code').value = code;
       applyPromo();
-      
-      // Give a tiny visual bump to the input box so the user knows it worked
       const input = document.getElementById('promo_code');
       input.style.transform = "scale(1.02)";
       input.style.borderColor = "var(--primary)";
-      setTimeout(() => {
-          input.style.transform = "scale(1)";
-      }, 200);
+      setTimeout(() => { input.style.transform = "scale(1)"; }, 200);
   }
 
   function applyPromo() {
@@ -704,7 +771,6 @@
       const msgBox = document.getElementById("promo-message");
       const days = parseInt(document.getElementById("total_days").innerText) || 0;
       
-      // Calculate base total to check if it's over ₹10,000 for VIP25
       let baseTotal = days * pricePerDay;
       const driveTypeInput = document.querySelector('input[name="drive_type"]:checked');
       if (driveTypeInput && driveTypeInput.value === "driver") {
@@ -798,7 +864,7 @@
           msgBox.style.display = "block";
       }
       
-      updatePrice(); // Recalculate based on new variables
+      updatePrice(); 
   }
 
   function checkWalletBalance() {
@@ -859,7 +925,7 @@
       document.getElementById("opt-driver").classList.add("selected");
       document.getElementById("driver-section").style.display = "block";
     }
-    updatePrice(); 
+    updateSystem(); 
   }
 
   function selectDriver(card) {
@@ -869,7 +935,6 @@
     updatePrice(); 
   }
 
-  endDate.addEventListener("change", updatePrice);
   document.querySelectorAll('input[name="driver_id"]').forEach(el => {
       el.addEventListener("change", updatePrice);
   });
@@ -905,22 +970,14 @@
   function openLightbox(src) { lightboxImg.src = src; lightbox.classList.add("show"); }
   function closeLightbox() { lightbox.classList.remove("show"); }
 
-  // Bulletproof WhatsApp Link Generator
   function openWhatsApp(rawNumber, vehicleName) {
       if (!rawNumber || rawNumber.trim() === '') {
           alert("Sorry, the host hasn't provided a valid contact number.");
           return;
       }
-      
-      // 1. Remove all spaces, dashes, brackets, and + signs
       let cleanNumber = rawNumber.replace(/\D/g, '');
+      if (cleanNumber.length === 10) cleanNumber = '91' + cleanNumber;
       
-      // 2. If it's a standard 10-digit Indian number, automatically add the 91 country code
-      if (cleanNumber.length === 10) {
-          cleanNumber = '91' + cleanNumber;
-      }
-      
-      // 3. Create the secure message and open WhatsApp
       const text = encodeURIComponent(`Hi! I am interested in renting your ${vehicleName} via GoWheels.`);
       window.open(`https://wa.me/${cleanNumber}?text=${text}`, '_blank');
   }
